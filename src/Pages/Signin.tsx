@@ -9,11 +9,11 @@ function Login() {
         <form>
           <div className="mb-2">
             <input
-              type="text" placeholder="Username" className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"
+              type="text" placeholder="Username" className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500"
             />
           </div>
           <div className="mb-6 relative">
-            <input type="password" placeholder="Password" className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"/>
+            <input type="password" placeholder="Password" className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500"/>
           </div>
           <button className="w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200">
             Log in
