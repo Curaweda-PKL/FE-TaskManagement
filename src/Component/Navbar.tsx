@@ -1,17 +1,45 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Feature from '../Pages/Feature';
+import Solution from '../Pages/Solution'; // Import the Solution component
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
+  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false); // Add state for Solution
+  const [isHovered, setIsHovered] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleFeatures = () => {
+    setIsFeaturesOpen(!isFeaturesOpen);
+    if (!isFeaturesOpen) {
+      setIsSolutionsOpen(false); // Close Solution when Features is opened
+    }
+  };
+
+  const toggleSolutions = () => {
+    setIsSolutionsOpen(!isSolutionsOpen);
+    if (!isSolutionsOpen) {
+      setIsFeaturesOpen(false); // Close Features when Solutions is opened
+    }
+  };
 
   return (
-    <nav className="absolute z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3">
+    <nav 
+      className={`relative z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${
+        isHovered ? 'shadow-lg' : ''
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className="flex items-center justify-between">
-        <Link to="/" className="text-purple-600 font-bold text-2xl font-newsreader">TaskFlow</Link>
+        <a href="/" className="text-purple-600 font-bold text-2xl font-newsreader">TaskFlow</a>
         
         <button 
           className="lg:hidden"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          onClick={toggleMenu}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -19,14 +47,24 @@ function Navbar() {
         </button>
 
         <div className="hidden lg:flex items-center space-x-6">
-          <Link to="/features" className="text-gray-600 hover:text-gray-900">Features</Link>
-          <Link to="/solutions" className="text-gray-600 hover:text-gray-900">Solutions</Link>
-          <Link 
-            to="/boards" 
+          <button 
+            onClick={toggleFeatures}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            Features
+          </button>
+          <button 
+            onClick={toggleSolutions}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            Solutions
+          </button>
+          <a 
+            href="/boards" 
             className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300"
           >
             Go to your boards
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -35,15 +73,29 @@ function Navbar() {
           isMenuOpen ? 'max-h-60 opacity-100 animate-slideDown' : 'max-h-0 opacity-0'
         }`}
       >
-        <Link to="/features" className="block px-4 py-2 text-gray-600 hover:bg-gray-100">Features</Link>
-        <Link to="/solutions" className="block px-4 py-2 text-gray-600 hover:bg-gray-100">Solutions</Link>
-        <Link 
-          to="/boards" 
+        <button 
+          onClick={toggleFeatures}
+          className="block px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left"
+        >
+          Features
+        </button>
+        <button 
+          onClick={toggleSolutions}
+          className="block px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left"
+        >
+          Solutions
+        </button>
+        <a href="/boards" className="block px-4 py-2 text-gray-600 hover:bg-gray-100">Solutions</a>
+        <a 
+          href="/boards" 
           className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300"
         >
           Go to your boards
-        </Link>
+        </a>
       </div>
+
+      <Feature isOpen={isFeaturesOpen} />
+      <Solution isOpen={isSolutionsOpen} /> {/* Add the Solution component */}
     </nav>
   );
 }
