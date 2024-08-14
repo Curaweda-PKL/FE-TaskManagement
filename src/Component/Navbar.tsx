@@ -1,41 +1,41 @@
 import React, { useState } from 'react';
-import Feature from '../Pages/Feature';
-import Solution from '../Pages/Solution'; // Import the Solution component
+import { CaretDown, MagnifyingGlass, Bell, Question, User } from 'phosphor-react';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
-  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false); // Add state for Solution
   const [isHovered, setIsHovered] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const toggleFeatures = () => {
-    setIsFeaturesOpen(!isFeaturesOpen);
-    if (!isFeaturesOpen) {
-      setIsSolutionsOpen(false); // Close Solution when Features is opened
-    }
-  };
-
-  const toggleSolutions = () => {
-    setIsSolutionsOpen(!isSolutionsOpen);
-    if (!isSolutionsOpen) {
-      setIsFeaturesOpen(false); // Close Features when Solutions is opened
-    }
-  };
-
   return (
     <nav 
-      className={`relative z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${
+      className={`fixed z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${
         isHovered ? 'shadow-lg' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center justify-between">
-        <a href="/" className="text-purple-600 font-bold text-2xl font-newsreader">TaskFlow</a>
+        <div className="flex items-center space-x-4">
+          <a href="/" className="text-purple-600 font-bold text-2xl font-newsreader">TaskFlow</a>
+          
+          <div className="hidden lg:flex items-center space-x-4">
+            <button className="flex items-center text-gray-600 hover:text-gray-900">
+              Workspace<CaretDown size={16} className="ml-1" />
+            </button>
+            <button className="flex items-center text-gray-600 hover:text-gray-900">
+              Recent<CaretDown size={16} className="ml-1" />
+            </button>
+            <button className="flex items-center text-gray-600 hover:text-gray-900">
+              Starred<CaretDown size={16} className="ml-1" />
+            </button>
+            <button className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300">
+              Create
+            </button>
+          </div>
+        </div>
         
         <button 
           className="lg:hidden"
@@ -46,25 +46,20 @@ function Navbar() {
           </svg>
         </button>
 
-        <div className="hidden lg:flex items-center space-x-6">
-          <button 
-            onClick={toggleFeatures}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            Features
-          </button>
-          <button 
-            onClick={toggleSolutions}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            Solutions
-          </button>
-          <a 
-            href="/boards" 
-            className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300"
-          >
-            Go to your boards
-          </a>
+        <div className="hidden lg:flex items-center space-x-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search"
+              className="bg-gray-100 text-black rounded-md px-3 py-2 pl-10 text-sm w-64"
+            />
+            <MagnifyingGlass size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+          </div>
+          <Bell size={24} className="text-gray-600 hover:text-gray-900 cursor-pointer" />
+          <Question size={24} className="text-gray-600 hover:text-gray-900 cursor-pointer" />
+          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center cursor-pointer">
+            <User size={20} className="text-white" />
+          </div>
         </div>
       </div>
 
@@ -73,29 +68,26 @@ function Navbar() {
           isMenuOpen ? 'max-h-60 opacity-100 animate-slideDown' : 'max-h-0 opacity-0'
         }`}
       >
-        <button 
-          onClick={toggleFeatures}
-          className="block px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left"
-        >
-          Features
+        <button className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
+          Workspace<CaretDown size={16} className="ml-1" />
         </button>
-        <button 
-          onClick={toggleSolutions}
-          className="block px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left"
-        >
-          Solutions
+        <button className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
+          Recent<CaretDown size={16} className="ml-1" />
         </button>
-        <a href="/boards" className="block px-4 py-2 text-gray-600 hover:bg-gray-100">Solutions</a>
-        <a 
-          href="/boards" 
-          className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300"
-        >
-          Go to your boards
-        </a>
+        <button className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
+          Starred<CaretDown size={16} className="ml-1" />
+        </button>
+        <button className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">
+          Create
+        </button>
+        <div className="px-4 py-2">
+          <input
+            type="text"
+            placeholder="Search"
+            className="bg-gray-100 rounded-md px-3 py-2 w-full text-sm"
+          />
+        </div>
       </div>
-
-      <Feature isOpen={isFeaturesOpen} />
-      <Solution isOpen={isSolutionsOpen} /> {/* Add the Solution component */}
     </nav>
   );
 }
