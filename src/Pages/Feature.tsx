@@ -49,13 +49,7 @@ function Feature({ isOpen }: FeatureProps) {
   return (
     <div 
       ref={featureRef}
-      className={`
-        absolute top-full left-0 w-full bg-white shadow-lg rounded-b-md overflow-hidden
-        transition-all duration-300 ease-in-out
-        ${isOpen ? 'opacity-100' : 'opacity-0'}
-      `}
-      style={{ maxHeight: '0px' }}
-    >
+      className={`absolute top-full left-0 w-full bg-white shadow-lg rounded-b-md overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}style={{ maxHeight: '0px' }}>
       <div className="max-w-7xl mx-auto px-20 sm:px-20 lg:px-20 py-6">
         <h2 className="text-lg text-black border-b border-black mb-4">Explore the features that help your team succeed</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

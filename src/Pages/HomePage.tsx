@@ -83,7 +83,7 @@ function HomePage() {
                 </div>
               ))}
             </div>
-            <div className='w-full md:w-1/2'>
+            <div className='w-full md:w-full'>
               <img src={Board} alt="Board" className='w-full h-auto' />
             </div>
           </div>
