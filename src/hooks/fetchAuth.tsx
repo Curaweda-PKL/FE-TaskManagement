@@ -12,6 +12,22 @@ const useAuth = (onSuccess: any): any => {
   const [checkingLogin, setCheckingLogin] = useState(true);
   const token = localStorage.getItem("token");
 
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const response = await axios.get(`${config}/user/check-login`, { headers: { Authorization: token } });
+        setIsLoggedIn(response.data.isLoggedIn);
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        setIsLoggedIn(false);
+      } finally {
+        setCheckingLogin(false);
+      }
+    };
+
+    checkLogin();
+  }, [token]);
+
   const handleLogin = async (): Promise<any> => {
     setLoading(true);
     setError(null);
@@ -20,6 +36,7 @@ const useAuth = (onSuccess: any): any => {
       const response: any = await axios.post(`${config}/user/login`, { email, password });
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token);
+        setIsLoggedIn(true);
         onSuccess();
         return true;
       }
@@ -30,21 +47,6 @@ const useAuth = (onSuccess: any): any => {
     }
     return false;
   };
-
-  useEffect(() => {
-    const checkLogin = async () => {
-        try {
-            const response = await axios.get(`${config}/user/check-login`, { headers: { Authorization: token } });
-            setIsLoggedIn(response.data.isLoggedIn);
-        } catch (error) {
-            console.error('Error checking login status:', error);
-        } finally {
-            setCheckingLogin(false);
-        }
-    };
-
-    checkLogin();
-    }, []);
 
   const handleRegister = async (): Promise<any> => {
     setLoading(true);
@@ -63,6 +65,11 @@ const useAuth = (onSuccess: any): any => {
     return false;
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+  };
+
   return {
     name,
     setName,
@@ -74,6 +81,7 @@ const useAuth = (onSuccess: any): any => {
     error,
     handleLogin,
     handleRegister,
+    handleLogout,
     isLoggedIn,
     checkingLogin,
   };

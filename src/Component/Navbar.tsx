@@ -11,7 +11,7 @@ function Navbar() {
 
   return (
     <nav 
-      className={`fixed z-100 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${
+      className={`fixed z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${
         isHovered ? 'shadow-lg' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}

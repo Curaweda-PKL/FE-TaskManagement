@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Feature from '../Pages/Feature';
 import Solution from '../Pages/Solution';
 import { CaretDown } from 'phosphor-react';
+import useAuth from '../hooks/fetchAuth';
 
 function NavbarHome() {
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth(() => {});
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
   const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
@@ -28,6 +32,14 @@ function NavbarHome() {
     }
   };
 
+  const handleBoardsClick = () => {
+    if (isLoggedIn) {
+      navigate('/boards');
+    } else {
+      navigate('/signin');
+    }
+  };
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (navRef.current && !navRef.current.contains(event.target)) {
@@ -45,7 +57,7 @@ function NavbarHome() {
   return (
     <nav 
       ref={navRef}
-      className={`relative z-100 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${isHovered ? 'shadow-lg' : ''}`}
+      className={`relative z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${isHovered ? 'shadow-lg' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}>
       <div className="flex items-center justify-between">
@@ -63,8 +75,10 @@ function NavbarHome() {
           <button onClick={toggleSolutions}
             className={`flex items-center text-gray-600 hover:text-gray-900 ${isSolutionsOpen ? 'underline-active' : ''
             }`}>Solutions<CaretDown size={16} className="ml-1" /></button>
-          <a href="/boards" 
-            className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300">Go to your boards</a>
+          <button onClick={handleBoardsClick} 
+            className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300">
+            {isLoggedIn ? 'Go to your boards' : 'Sign In'}
+          </button>
         </div>
       </div>
 
@@ -77,7 +91,9 @@ function NavbarHome() {
           className={`flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left ${isSolutionsOpen ? 'underline-active' : ''}`}>Solutions<CaretDown size={16} className="ml-1" />
         </button>
 
-        <a href="/boards" className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300">Go to your boards</a>
+        <button onClick={handleBoardsClick} className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">
+          {isLoggedIn ? 'Go to your boards' : 'Sign In'}
+        </button>
       </div>
 
       <Feature isOpen={isFeaturesOpen} />
