@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { House, SquaresFour, Heart, ChartBar, Users, Gear, CaretDown, Plus } from 'phosphor-react';
 
-const Sidebar: React.FC = () => {
+const SidebarWorkspace: React.FC = () => {
   const [isWorkspaceExpanded, setIsWorkspaceExpanded] = useState(true);
   const location = useLocation();
 
@@ -12,7 +12,7 @@ const Sidebar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <aside className="w-[25%] min-w-56 bg-white pl-[4%] py-32 h-screen p-4 max768:w-[230px] max768:min-w-0 max768:ml-[-230px]">
+    <aside className="w-80 bg-white pl-12 py-32 h-screen p-4">
       <div className="mb-4">
         <Link to="/boards" className={`text-gray-600 p-2 mb-2 flex items-center ${hoverClass} ${isActive('/boards') ? activeClass : ''}`}>
           <SquaresFour size={20} className="mr-2" /><span>Boards</span>
@@ -25,20 +25,14 @@ const Sidebar: React.FC = () => {
       <div className="mb-4">
         <h2 className="text-sm font-semibold text-gray-600 mb-2">Workspaces</h2>
         <div className="bg-white rounded-md p-2">
-          <div
-            className={`flex items-center justify-between ${hoverClass}`}
-            onClick={() => setIsWorkspaceExpanded(!isWorkspaceExpanded)}
-          >
-            <div className="flex items-center overflow-hidden">
+          <div 
+            className={`flex items-center justify-between ${hoverClass}`} onClick={() => setIsWorkspaceExpanded(!isWorkspaceExpanded)}>
+            <div className="flex items-center">
               <div className="w-4 h-4 bg-red-500 rounded-sm mr-2"></div>
-              <span className="text-black font-medium overflow-hidden text-ellipsis whitespace-nowrap">Kelompok 1 Workspace</span>
+              <span className="text-black font-medium">Kelompok 1 Workspace</span>
             </div>
-            <CaretDown
-              size={16}
-              className={`text-gray-600 transform transition-transform ${isWorkspaceExpanded ? 'rotate-180' : ''}`}
-            />
+            <CaretDown size={16} className={`text-gray-600 transform transition-transform ${isWorkspaceExpanded ? 'rotate-180' : ''}`}/>
           </div>
-
           {isWorkspaceExpanded && (
             <div className="mt-2 ml-6 space-y-2 text-gray-600">
               <Link to="/workspace/boards" className={`flex items-center p-1 ${hoverClass} ${isActive('/workspace/boards') ? activeClass : ''}`}>
@@ -73,4 +67,4 @@ const Sidebar: React.FC = () => {
   );
 };
 
-export default Sidebar;
+export default SidebarWorkspace;
