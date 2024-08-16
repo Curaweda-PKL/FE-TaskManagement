@@ -45,7 +45,7 @@ function NavbarHome() {
   return (
     <nav 
       ref={navRef}
-      className={`relative z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${isHovered ? 'shadow-lg' : ''}`}
+      className={`relative z-100 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${isHovered ? 'shadow-lg' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}>
       <div className="flex items-center justify-between">
