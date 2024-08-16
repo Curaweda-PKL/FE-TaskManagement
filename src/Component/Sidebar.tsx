@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { House, SquaresFour, Heart, ChartBar, Users, Gear, CaretDown, Plus } from 'phosphor-react';
+import ChevronRight from '../assets/Media/ChevronRight.svg'
 
 const Sidebar: React.FC = () => {
   const [isWorkspaceExpanded, setIsWorkspaceExpanded] = useState(true);
@@ -11,8 +12,20 @@ const Sidebar: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <aside className="w-[25%] min-w-56 bg-white pl-[4%] py-32 h-screen p-4 max768:w-[230px] max768:min-w-0 max768:ml-[-230px]">
+    <aside className={`w-[25%] min-w-56 bg-white pl-[4%] py-32 h-screen p-4 max768:w-[230px] max768:min-w-0 ${isSidebarOpen ? 'max768:ml-0' : 'max768:ml-[-230px]'} max768:fixed transition-all duration-300 z-20`}>
+      <div
+        className={`fixed top-20 ${isSidebarOpen ? 'left-[-1.5rem] max768:left-[195px]' : 'left-[-1.5rem] max768:left-1'} max768:inline bg-white rounded-full p-1 shadow-2xl cursor-pointer transition-all duration-300`}
+        onClick={toggleSidebar}
+      >
+        <img src={ChevronRight} alt="" className={` ${isSidebarOpen ? 'transform rotate-180' : ''}`} />
+      </div>
       <div className="mb-4">
         <Link to="/boards" className={`text-gray-600 p-2 mb-2 flex items-center ${hoverClass} ${isActive('/boards') ? activeClass : ''}`}>
           <SquaresFour size={20} className="mr-2" /><span>Boards</span>
