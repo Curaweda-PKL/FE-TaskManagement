@@ -1,11 +1,8 @@
 @import url('./assets/phosphor-icons.css');
-/* #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+#root {
+  background-color: white;
 }
-
+/* 
 .logo {
   height: 6em;
   padding: 1.5em;
