@@ -15,12 +15,10 @@ const Sidebar: React.FC = () => {
     <aside className="w-[25%] min-w-56 bg-white pl-[4%] py-32 h-screen p-4 max768:w-[230px] max768:min-w-0 max768:ml-[-230px]">
       <div className="mb-4">
         <Link to="/boards" className={`text-gray-600 p-2 mb-2 flex items-center ${hoverClass} ${isActive('/boards') ? activeClass : ''}`}>
-          <SquaresFour size={20} className="mr-2" />
-          <span>Boards</span>
+          <SquaresFour size={20} className="mr-2" /><span>Boards</span>
         </Link>
-        <Link to="/home" className={`bg-white text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/home') ? activeClass : ''}`}>
-          <House size={20} className="mr-2" />
-          <span>Home</span>
+        <Link to="/home" className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/home') ? activeClass : ''}`}>
+          <House size={20} className="mr-2" /><span>Home</span>
         </Link>
       </div>
 
@@ -44,21 +42,17 @@ const Sidebar: React.FC = () => {
           {isWorkspaceExpanded && (
             <div className="mt-2 ml-6 space-y-2 text-gray-600">
               <Link to="/workspace/boards" className={`flex items-center p-1 ${hoverClass} ${isActive('/workspace/boards') ? activeClass : ''}`}>
-                <SquaresFour size={16} className="mr-2" />
-                <span>Boards</span>
+                <SquaresFour size={16} className="mr-2" /><span>Boards</span>
               </Link>
               <Link to="/workspace/highlights" className={`flex items-center p-1 ${hoverClass} ${isActive('/workspace/highlights') ? activeClass : ''}`}>
-                <Heart size={16} className="mr-2" />
-                <span>Highlights</span>
+                <Heart size={16} className="mr-2" /><span>Highlights</span>
               </Link>
               <Link to="/workspace/reports" className={`flex items-center p-1 ${hoverClass} ${isActive('/workspace/reports') ? activeClass : ''}`}>
-                <ChartBar size={16} className="mr-2" />
-                <span>Reports</span>
+                <ChartBar size={16} className="mr-2" /><span>Reports</span>
               </Link>
               <Link to="/workspace/members" className={`flex items-center justify-between p-1 ${hoverClass} ${isActive('/workspace/members') ? activeClass : ''}`}>
                 <div className="flex items-center">
-                  <Users size={16} className="mr-2" />
-                  <span>Member</span>
+                  <Users size={16} className="mr-2" /><span>Member</span>
                 </div>
                 <div className="flex items-center">
                   <Plus size={16} className="mr-1" />
@@ -67,8 +61,7 @@ const Sidebar: React.FC = () => {
               </Link>
               <Link to="/workspace/settings" className={`flex items-center justify-between p-1 ${hoverClass} ${isActive('/workspace/settings') ? activeClass : ''}`}>
                 <div className="flex items-center">
-                  <Gear size={16} className="mr-2" />
-                  <span>Settings</span>
+                  <Gear size={16} className="mr-2" /><span>Settings</span>
                 </div>
                 <CaretDown size={16} />
               </Link>
