@@ -1,6 +1,6 @@
 import React from 'react';
-import Sidebar from './Sidebar';
-import Navbar from './Navbar';
+import Sidebar from '../Component/Sidebar';
+import Navbar from '../Component/Navbar';
 import { Outlet } from 'react-router-dom';
 
 const Layout: React.FC = () => {
@@ -8,8 +8,10 @@ const Layout: React.FC = () => {
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar />
-        <main className="flex-1 overflow-y-auto">
+        <div>
+          <Navbar />
+        </div>
+        <main className="flex-1 overflow-y-auto mt-24 p-5">
           <Outlet />
         </main>
       </div>
