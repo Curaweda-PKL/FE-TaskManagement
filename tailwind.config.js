@@ -9,6 +9,9 @@ export default {
       fontFamily: {
         inter: ['Inter', 'Newsreader'],
       },
+      width:{
+        'w100' : '500px',
+      },
       screens: {
         'max1000': {'max': '1020px'},
         'max850': {'max': '851px'},

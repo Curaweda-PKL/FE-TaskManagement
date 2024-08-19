@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CaretDown, MagnifyingGlass, Bell, Question, User, Star, Clipboard, ClipboardText, X } from 'phosphor-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { CaretDown, MagnifyingGlass, Bell, Question, User, Star, Clipboard, ClipboardText, X, UsersThree } from 'phosphor-react';
 import CreateBoard from './CreateBoard'
 import work from '../assets/Media/work.png'
 import createWork from '../assets/Media/createWork.svg'
@@ -12,7 +12,7 @@ function Navbar() {
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceDescription, setWorkspaceDescription] = useState('');
-
+  const navbarRef = useRef(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +51,22 @@ function Navbar() {
     handleToggle('create');
   };
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (navbarRef.current && !navbarRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    }
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <nav 
+      ref={navbarRef}
       className={`fixed z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${
         isHovered ? 'shadow-lg' : ''
       }`}
@@ -236,7 +250,43 @@ function Navbar() {
             <input type="text" placeholder="Search" className="bg-gray-100 text-black rounded-md px-3 py-2 pl-10 text-sm w-64"/>
             <MagnifyingGlass size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           </div>
-          <Bell size={24} className="text-gray-600 hover:text-gray-900 cursor-pointer" />
+          <details
+              className="relative inline-block"
+              open={openDropdown === 'notification'}
+              onClick={(e) => { e.preventDefault(); handleToggle('notification'); }}
+            >
+              <summary className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer list-none">
+              <Bell size={24} className="text-gray-600 hover:text-gray-900 cursor-pointer" />
+              </summary>
+              <div className=" fixed right-0 mt-5 bg-white rounded-lg shadow-md p-4 w-w100 h-80 text-black">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Notifications</h2>
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-600 mr-2">only show unread</span>
+                    <div className="w-12 h-6 bg-green-500 rounded-full p-1 cursor-pointer">
+                      <div className="bg-white w-4 h-4 rounded-full shadow-md transform translate-x-6"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="border-t border-black pt-2">
+                  <div className='border p-2'>
+                  <p className="flex font-semibold border-b pb-2"><UsersThree size={24} />Task Management</p>
+                  <div className="flex items-start mt-0 pt-2">
+                    <div className="bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-white font-bold mr-3">
+                      N
+                    </div>
+                    <div>
+                      <p className="font-semibold">Najwan Muttaqin</p>
+                      <p className="text-sm text-gray-600">
+                        Added you to the Workspace Task management as an admin Jul 31, 2024,
+                        10:52 AM
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </details>
           <Question size={24} className="text-gray-600 hover:text-gray-900 cursor-pointer" />
           <details
             className="relative inline-block"
@@ -248,7 +298,7 @@ function Navbar() {
                 <User size={20} className="text-white" />
               </div>
             </summary>
-            <ul className="absolute right-0 mt-4 bg-white border border-gray-200 rounded-md shadow-lg w-64">
+            <ul className="fixed right-0 mt-4 bg-white border border-gray-200 rounded-md shadow-lg w-72">
               <li className="p-4">
                 <h3 className="text-sm font-bold text-gray-900 mb-4">ACCOUNT</h3>
                 <div className="flex items-center mb-4">
