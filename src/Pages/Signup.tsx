@@ -16,27 +16,32 @@ function Signup() {
     error,
     handleRegister,
     isLoggedIn,
-    checkingLogin
+    checkingLogin,
   } = useAuth(() => {
     navigate('/signin');
   });
-  
+
   useEffect(() => {
-    if (isLoggedIn) {
-      navigate('/signin');
+    if (!checkingLogin && isLoggedIn) {
+      navigate('/boards');
     }
-  }, [isLoggedIn, navigate]);
+  }, [checkingLogin, isLoggedIn, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await handleRegister();
+    console.log('Registration success:', success);
     if (success) {
       navigate('/signin');
     }
   };
 
   if (checkingLogin) {
-    return <div className='flex justify-center'><span className="loading loading-bars loading-lg h-screen"></span></div>;
+    return (
+      <div className="flex justify-center">
+        <span className="loading loading-bars loading-lg h-screen z-20"></span>
+      </div>
+    );
   }
 
   return (
@@ -45,19 +50,31 @@ function Signup() {
         <h2 className="text-2xl text-black font-semibold mb-4 text-center mb-8">SIGN UP</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-2">
-            <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)}
+            <input
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"
               required
             />
           </div>
           <div className="mb-2">
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"
               required
             />
           </div>
           <div className="mb-6 relative">
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"
               required
             />
@@ -70,7 +87,7 @@ function Signup() {
             {loading ? 'Signing up...' : 'Sign up'}
           </button>
         </form>
-        {error && <p className='text-red-700 mt-2 text-center'>{error}</p>}
+        {error && <p className="text-red-700 mt-2 text-center">{error}</p>}
         <div className="text-center mt-4">
           <p className="text-gray-600">
             Already have an Account?{' '}
