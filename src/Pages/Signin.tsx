@@ -62,6 +62,7 @@ function Signin() {
         </form>
         {error && <p className='text-red-700 mt-2 text-center'>{error}</p>}
         <div className="text-center mt-4">
+            <Link to="/ForgotPassword" className="text-indigo-500 hover:underline">Forgot Your Password?</Link>
           <p className="text-gray-600">
             Can't Log in?{' '}
             <Link to="/signup" className="text-indigo-500 hover:underline">

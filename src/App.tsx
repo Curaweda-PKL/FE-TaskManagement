@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Layout from './Pages/Layout';
 import Signin from './Pages/Signin';
 import Signup from './Pages/Signup';
+import ForgotPassword from './Pages/ForgotPassword';
+import ResetPassword from './Component/ResetPassword';
 import HomePage from './Pages/HomePage';
 import Boards from './Pages/Boards';
 import Home from './Pages/Home';
@@ -21,6 +23,8 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/signin" element={<Signin />} />
+        <Route path="/forgotpassword" element={<ForgotPassword />} />
+        <Route path="/resetpassword" element={<ResetPassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route element={<Layout />}>
           <Route path="/home" element={<Home />} />
