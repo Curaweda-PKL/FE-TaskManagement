@@ -4,8 +4,8 @@ import SideTask from '../Component/SideTask';
 
 const WorkspaceHighlights: React.FC = () => {
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <div className="max-w-screen-xl mx-auto pt-32 pb-8 px-8">
+    <div className="bg-white min-h-screen">
+      <div className="max-w-screen-xl mx-auto px-8">
         <div className="bg-white rounded-lg shadow-sm mr-80">
           <div className="flex flex-col items-center text-center">
             <div className="relative w-full h-48">

@@ -22,10 +22,14 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
+<<<<<<< Updated upstream
         <Route path="/signin" element={<Signin />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/resetpassword" element={<ResetPassword />} />
+=======
+>>>>>>> Stashed changes
         <Route path="/signup" element={<Signup />} />
+        <Route path="/signin" element={<Signin />} />
         <Route element={<Layout />}>
           <Route path="/home" element={<Home />} />
           <Route 
