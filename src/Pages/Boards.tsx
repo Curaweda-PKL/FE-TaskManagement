@@ -40,7 +40,6 @@ const Boards: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Simulasi data awal
     const initialWorkspaces: Workspace[] = [
       {
         id: '1',
@@ -62,7 +61,6 @@ const Boards: React.FC = () => {
           { id: '2-4', name: "Project 4" },
         ]
       },
-      // Tambahkan workspace lain sesuai kebutuhan
     ];
     setWorkspaces(initialWorkspaces);
   }, []);
@@ -72,7 +70,6 @@ const Boards: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
     console.log('Joining workspace:', workspaceId);
     closeModal();
     setWorkspaceId('');

@@ -32,7 +32,7 @@ function ForgotPassword() {
         {error && <p className="text-red-500 text-center mt-2 text-sm">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-4 sm:mt-6">
           <div className="mb-4">
-            <p className="text-gray-600 mb-2 text-sm sm:text-base">Email</p>
+            <p className="text-gray-600 mb-2 text-sm sm:text-base"></p>
             <input
               type="email"
               placeholder="Email"
