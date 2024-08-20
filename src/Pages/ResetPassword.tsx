@@ -49,9 +49,6 @@ function ResetPassword() {
     setError('');
 
     try {
-      // Implementasikan logika untuk mengatur ulang password di sini
-      // Contoh:
-      // await resetPassword(password);
       alert('Password berhasil diubah.');
       navigate('/signin');
     } catch (err) {
@@ -68,7 +65,7 @@ function ResetPassword() {
         <p className='text-center mb-6 text-sm sm:text-base'>Enter a new password below to change your password</p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <p className="text-gray-600 mb-2 text-sm sm:text-base">New Password</p>
+            <p className="text-gray-600 mb-2 text-sm sm:text-base"></p>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}

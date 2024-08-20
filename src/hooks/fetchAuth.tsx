@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config/baseUrl';
 
-const useAuth = (onSuccess: () => void): any => {
+const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   const [name, setName] = useState<any>('');
   const [email, setEmail] = useState<any>('');
   const [password, setPassword] = useState<any>('');
@@ -65,8 +65,9 @@ const useAuth = (onSuccess: () => void): any => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
+    onLogout(); // Panggil fungsi callback untuk logout
   };
-
+  
   return {
     name,
     setName,

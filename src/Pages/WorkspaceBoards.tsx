@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLocation } from 'react-router-dom';
 import { faLock, faUser, faUserFriends } from '@fortawesome/free-solid-svg-icons';
 
 const WorkspaceBoards: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const location = useLocation();
+  const isWorkspaceLayout = location.pathname === '/workspace/boards-ws';
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -14,7 +17,7 @@ const WorkspaceBoards: React.FC = () => {
   };
 
   return (
-    <div className='bg-white min-h-screen'> {/* Menghapus padding atas */}
+    <div className={`bg-white min-h-screen ${isWorkspaceLayout ? '' : ''}`}>
       <div className="flex items-center justify-between bg-white p-4 rounded-md shadow-md mb-4 mx-6 mt-0"> {/* Tambahkan mt-0 untuk menyingkirkan margin atas */}
         <div className="flex items-center">
           <div className="w-8 h-8 bg-red-600 rounded-md mr-4"></div>
