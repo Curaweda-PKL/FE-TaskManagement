@@ -1,17 +1,17 @@
 import React from 'react';
-import Sidebar from '../Component/Sidebar';
-import Navbar from '../Component/Navbar';
+import SidebarWorkspace from './SidebarWorkspace';
+import Navbar from './Navbar';
 import { Outlet } from 'react-router-dom';
 
-const Layout: React.FC = () => {
+const LayoutWorkspace: React.FC = () => {
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <SidebarWorkspace />
       <div className="flex flex-col flex-1 overflow-hidden">
         <div>
           <Navbar />
         </div>
-        <main className="flex-1 overflow-y-auto mt-24 p-5">
+        <main className="flex-1 overflow-y-auto mt-[72px] p-5">
           <Outlet />
         </main>
       </div>
@@ -19,4 +19,4 @@ const Layout: React.FC = () => {
   );
 };
 
-export default Layout;
+export default LayoutWorkspace;

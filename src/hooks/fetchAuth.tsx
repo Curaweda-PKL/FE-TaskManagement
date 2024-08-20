@@ -2,31 +2,22 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config/baseUrl';
 
-const useAuth = (onSuccess: any): any => {
+const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   const [name, setName] = useState<any>('');
   const [email, setEmail] = useState<any>('');
   const [password, setPassword] = useState<any>('');
   const [loading, setLoading] = useState<any>(false);
   const [error, setError] = useState<any>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [checkingLogin, setCheckingLogin] = useState(true);
-  const token = localStorage.getItem("token");
+  const [isLoggedIn, setIsLoggedIn] = useState<any>(false);
+  const [checkingLogin, setCheckingLogin] = useState<any>(true);
 
   useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        const response = await axios.get(`${config}/user/check-login`, { headers: { Authorization: token } });
-        setIsLoggedIn(response.data.isLoggedIn);
-      } catch (error) {
-        console.error('Error checking login status:', error);
-        setIsLoggedIn(false);
-      } finally {
-        setCheckingLogin(false);
-      }
-    };
-
-    checkLogin();
-  }, [token]);
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+    setCheckingLogin(false);
+  }, []);
 
   const handleLogin = async (): Promise<any> => {
     setLoading(true);
@@ -41,7 +32,8 @@ const useAuth = (onSuccess: any): any => {
         return true;
       }
     } catch (error: any) {
-      setError('Login failed. Please check your credentials.');
+      console.error('Login Error:', error);
+      setError(error?.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -51,25 +43,31 @@ const useAuth = (onSuccess: any): any => {
   const handleRegister = async (): Promise<any> => {
     setLoading(true);
     setError(null);
-
+  
     try {
-      const response: any = await axios.post(`${config}/user/register`, { name, email, password });
-      if (response.status === 200) {
-        return await handleLogin();
+      const response = await axios.post(`${config}/user/register`, { name, email, password });
+      if (response.status === 200 || response.status === 201) {
+        console.log('Registration successful:', response.data);
+        return true;
+      } else {
+        setError('Registration failed. Please try again.');
+        return false;
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Registration error:', error);
       setError('Registration failed. Please try again.');
+      return false;
     } finally {
       setLoading(false);
     }
-    return false;
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
+    onLogout(); // Panggil fungsi callback untuk logout
   };
-
+  
   return {
     name,
     setName,
@@ -79,11 +77,11 @@ const useAuth = (onSuccess: any): any => {
     setPassword,
     loading,
     error,
+    isLoggedIn,
+    checkingLogin,
     handleLogin,
     handleRegister,
     handleLogout,
-    isLoggedIn,
-    checkingLogin,
   };
 };
 
