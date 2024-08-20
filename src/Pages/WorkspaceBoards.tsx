@@ -14,8 +14,8 @@ const WorkspaceBoards: React.FC = () => {
   };
 
   return (
-    <div className='bg-gray-100 min-h-screen py-20'>
-      <div className="flex items-center justify-between bg-white p-4 rounded-md shadow-md mb-4 mx-6">
+    <div className='bg-white min-h-screen'> {/* Menghapus padding atas */}
+      <div className="flex items-center justify-between bg-white p-4 rounded-md shadow-md mb-4 mx-6 mt-0"> {/* Tambahkan mt-0 untuk menyingkirkan margin atas */}
         <div className="flex items-center">
           <div className="w-8 h-8 bg-red-600 rounded-md mr-4"></div>
           <div>
@@ -35,7 +35,9 @@ const WorkspaceBoards: React.FC = () => {
             Your Boards
           </h2>
           <div className='flex gap-4 mt-4'>
-            <div className='w-56 h-36 bg-red-500 text-white flex items-center justify-center rounded-md'>Project 1</div>
+            <div className='w-56 h-36 bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] text-white flex items-start justify-start rounded-md p-4'>
+              Project 1
+            </div>
             <div className='w-56 h-36 bg-gray-400 text-white flex items-center justify-center rounded-md cursor-pointer' onClick={handleOpenModal}>
               Create New Project
             </div>
@@ -56,8 +58,12 @@ const WorkspaceBoards: React.FC = () => {
             <div className='bg-blue-500 w-10 h-10 flex items-center justify-center rounded-full text-white'>N</div>
           </div>
           <div className='flex gap-4 mt-4'>
-            <div className='w-56 h-36 bg-red-500 text-white flex items-center justify-center rounded-md'>Project 1</div>
-            <div className='w-56 h-36 bg-blue-500 text-white flex items-center justify-center rounded-md'>Project 2</div>
+            <div className='w-56 h-36 bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] text-white flex items-start justify-start rounded-md p-4'>
+              Project 1
+            </div>
+            <div className='w-56 h-36 bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] text-white flex items-start justify-start rounded-md p-4'>
+              Project 2
+            </div>
           </div>
         </div>
         <div>

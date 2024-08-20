@@ -2,39 +2,32 @@ import React from 'react';
 
 const WorkspaceReports: React.FC = () => {
   return (
-    <div className='bg-gray-100 min-h-screen py-20'>
-      <div className='container mx-auto px-4'>
-        <h1 className='text-black text-2xl font-bold mb-4'>Reports</h1>
-        
-        <div className='flex mb-4'>
-          <button className='bg-gray-300 text-black px-4 py-2 rounded-md mr-2'>Opportunity</button>
-          <button className='bg-gray-300 text-black px-4 py-2 rounded-md mr-2'>Lead</button>
-          <button className='bg-gray-300 text-black px-4 py-2 rounded-md'>Goals</button>
+    <div className='bg-white min-h-screen'>
+      <div className='container mx-auto px-4 py-4'> 
+        <h1 className='text-black text-2xl font-bold mb-2'>Reports</h1> 
+        <h2 className='text-xl font-bold'>YOUR PERFORMANCE THIS WEEK, <span className='text-yellow-400'>AVERAGE</span></h2>
+        <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
+        <div className='flex items-center mt-4 mb-10'> 
+          <div className='w-full bg-gray-300 h-2 rounded-md'>
+            <div className='bg-blue-500 h-2 rounded-md' style={{ width: '40%' }}></div>
+          </div>
+          <span className='ml-4'>2/5</span>
         </div>
+        <p className='text-gray-500 mt-2'>Bar resetting in : 4d 12h</p>
 
-        <div className='relative mb-8'>
-          <input 
-            type='text' 
-            className='w-full py-2 px-4 rounded-md border border-gray-300' 
-            placeholder='Search' 
+        {/* Search bar above the table */}
+        <div className='mb-4'>
+          <input
+            type='text'
+            placeholder='Search...'
+            className='border border-gray-300 rounded-md py-2 px-4 text-sm w-full'
           />
-          <svg 
-            className='w-6 h-6 text-gray-500 absolute top-1/2 right-3 transform -translate-y-1/2' 
-            fill='currentColor' 
-            viewBox='0 0 20 20'
-          >
-            <path 
-              fillRule='evenodd' 
-              d='M12.9 14.32a8 8 0 111.42-1.42l5.39 5.38a1 1 0 01-1.42 1.42l-5.38-5.39zM8 14a6 6 0 100-12 6 6 0 000 12z' 
-              clipRule='evenodd' 
-            />
-          </svg>
         </div>
 
         <table className='min-w-full bg-white border border-gray-300'>
           <thead>
-            <tr>
-            <th className='px-6 py-3 border-b border-gray-300 text-left text-sm font-medium text-gray-900'>NO</th>
+            <tr>  
+              <th className='px-6 py-3 border-b border-gray-300 text-left text-sm font-medium text-gray-900'>NO</th>
               <th className='px-6 py-3 border-b border-gray-300 text-left text-sm font-medium text-gray-900'>USERS</th>
               <th className='px-6 py-3 border-b border-gray-300 text-left text-sm font-medium text-gray-900'>BOARD</th>
               <th className='px-6 py-3 border-b border-gray-300 text-left text-sm font-medium text-gray-900'>CARD</th>
