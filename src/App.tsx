@@ -13,8 +13,10 @@ import WorkspaceHighlights from './Pages/WorkspaceHighlights';
 import WorkspaceReports from './Pages/WorkspaceReports';
 import WorkspaceMembers from './Pages/WorkspaceMembers';
 import WorkspaceSettings from './Pages/WorkspaceSettings';
+import WorkspaceProject from './Pages/WorkspaceProject';
 import useAuth from './hooks/fetchAuth';
 import LayoutWorkspace from './Component/LayoutWorkspace';
+
 
 function App() {
   const { isLoggedIn } = useAuth(() => {});
@@ -38,7 +40,8 @@ function App() {
           <Route path="/workspace/boards-ws" element={isLoggedIn ? <WorkspaceBoards /> : <Navigate to="/signin" replace />} />
           <Route path="/workspace/reports" element={isLoggedIn ? <WorkspaceReports /> : <Navigate to="/signin" replace />} />
           <Route path="/workspace/members" element={isLoggedIn ? <WorkspaceMembers /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/settings" element={isLoggedIn ? <WorkspaceSettings /> : <Navigate to="/signin" replace />} />      
+          <Route path="/workspace/settings" element={isLoggedIn ? <WorkspaceSettings /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/project" element={isLoggedIn ? <WorkspaceProject /> : <Navigate to="signin" replace />} />
         </Route>
       </Routes>
     </Router>
