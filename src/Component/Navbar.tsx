@@ -1,13 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { CaretDown, MagnifyingGlass, Bell, Question, User, Star, Clipboard, ClipboardText, X, UsersThree } from 'phosphor-react';
 import CreateBoard from './CreateBoard'
 import work from '../assets/Media/work.png'
 import createWork from '../assets/Media/createWork.svg'
-import useAuth from '../hooks/fetchAuth';
 
 function Navbar() {
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -15,10 +12,10 @@ function Navbar() {
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceDescription, setWorkspaceDescription] = useState('');
-  const navbarRef = useRef(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Handle form submission logic here
     console.log({ workspaceName, workspaceDescription });
   };
 
@@ -48,37 +45,13 @@ function Navbar() {
     setShowCreateBoard(false);
   };
 
-  const handleCreateClick = () => {
+  const handleCreateClick = (e) => {
     e.stopPropagation();
     handleToggle('create');
   };
 
-  const { handleLogout } = useAuth(
-    () => {},
-    () => navigate('/')
-  );
-
-  const handleLogoutClick = () => {
-    handleLogout();
-    setOpenDropdown(null);
-  };
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (navbarRef.current && !navbarRef.current.contains(event.target)) {
-        setOpenDropdown(null);
-      }
-    }
-  
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   return (
     <nav 
-      ref={navbarRef}
       className={`fixed z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-20 py-3 transition-shadow duration-300 ${
         isHovered ? 'shadow-lg' : ''
       }`}
@@ -198,21 +171,44 @@ function Navbar() {
                       <h2 className="text-2xl font-bold text-black">Let's Build a Workspace</h2>
                     </div>
                     <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Workspace name</label>
-                      <input type="text" className="w-full px-3 py-2 bg-white border border-gray-300" placeholder="Workspace..." value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)}/>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Workspace name
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 bg-white border border-gray-300"
+                        placeholder="Workspace..."
+                        value={workspaceName}
+                        onChange={(e) => setWorkspaceName(e.target.value)}
+                      />
                       <p className="text-xs text-gray-500 mt-1">This is the name of your team or your organization.</p>
                     </div>
                     <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Workspace description</label>
-                      <textarea className="w-full px-3 py-2 bg-white border border-gray-300" 
-                        placeholder="Our workspace is..." value={workspaceDescription} onChange={(e) => setWorkspaceDescription(e.target.value)}></textarea>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Workspace description
+                      </label>
+                      <textarea
+                        className="w-full px-3 py-2 bg-white border border-gray-300"
+                        rows="4"
+                        placeholder="Our workspace is..."
+                        value={workspaceDescription}
+                        onChange={(e) => setWorkspaceDescription(e.target.value)}
+                      ></textarea>
                       <p className="text-xs text-gray-500 mt-1">Get your members on board with a few words about your Workspace.</p>
                     </div>
-                    <button onClick={closeCreateWorkspace} 
-                      className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full">Continue</button>
+                    <button 
+                      onClick={closeCreateWorkspace} 
+                      className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full"
+                    >
+                      Continue
+                    </button>
                   </div>
                   <div className="w-1/2 flex items-center justify-center relative">
-                    <button onClick={closeCreateWorkspace} className="absolute top-0 right-0 m-4 z-20 text-black hover:text-gray-600"><X size={24} />
+                    <button 
+                      onClick={closeCreateWorkspace} 
+                      className="absolute top-0 right-0 m-4 z-20 text-black hover:text-gray-600"
+                    >
+                      <X size={24} />
                     </button>
                     <img src={createWork} alt="Background" className="w-full h-full object-cover" />
                     <div className="absolute w-64 h-48 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -287,7 +283,7 @@ function Navbar() {
                 <User size={20} className="text-white" />
               </div>
             </summary>
-            <ul className="fixed right-0 mt-4 bg-white border border-gray-200 rounded-md shadow-lg w-72">
+            <ul className="absolute right-0 mt-4 bg-white border border-gray-200 rounded-md shadow-lg w-64">
               <li className="p-4">
                 <h3 className="text-sm font-bold text-gray-900 mb-4">ACCOUNT</h3>
                 <div className="flex items-center mb-4">
@@ -306,9 +302,9 @@ function Navbar() {
               <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                 <p className="text-sm text-gray-700">Profile and visibility</p>
               </li>
-              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-200" onClick={handleLogoutClick}>
-            <p className="text-sm text-gray-700">Log out</p>
-          </li>
+              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-200">
+                <p className="text-sm text-gray-700">Log out</p>
+              </li>
             </ul>
           </details>
         </div>
