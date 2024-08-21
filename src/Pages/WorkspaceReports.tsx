@@ -4,7 +4,7 @@ import{faChevronLeft, faChevronRight, faMagnifyingGlass} from '@fortawesome/free
 
 const WorkspaceReports: React.FC = () => {
   return (
-    <div className='bg-white min-h-screen text-black'>
+    <div className='bg-white py-4 px-5 min-h-screen text-black'>
       <h1 className='text-xl font-bold mb-5'>Reports</h1> 
       <div className='container mx-auto px-4'> 
         <h2 className='text-2xl font-bold text-gray-600'>YOUR PERFORMANCE THIS WEEK, <span className='text-yellow-400'>AVERAGE</span></h2>
@@ -17,7 +17,6 @@ const WorkspaceReports: React.FC = () => {
         </div>
         <p className='text-gray-500 mb-11'>Bar resetting in : 4d 12h</p>
 
-        {/* Search bar above the table */}
         <div className='mb-4 flex items-center text-center w-full'>
           <div className='relative'>
             <input
@@ -46,7 +45,6 @@ const WorkspaceReports: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {/* Add your rows here */}
           </tbody>
         </table>
       </div>

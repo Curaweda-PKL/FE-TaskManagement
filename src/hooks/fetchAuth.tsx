@@ -65,7 +65,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
-    onLogout(); // Panggil fungsi callback untuk logout
+    onLogout();
   };
   
   return {

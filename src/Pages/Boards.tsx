@@ -4,10 +4,11 @@ import GenericAvatar from '../assets/Media/GenericAvatar.svg';
 import Grid from '../assets/Media/Grid.svg';
 import setting from '../assets/Media/settings.svg';
 import trello from '../assets/Media/Trello.svg';
-import star from '../assets/Media/starIcon.svg';
 import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
 import { faStar as faStarSolid } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import useBoards from '../hooks/fetchWorkspace';
+
 
 interface Toolbar {
   id: number;
@@ -15,22 +16,11 @@ interface Toolbar {
   img: string;
 }
 
-interface Project {
-  id: string;
-  name: string;
-}
-
-interface Workspace {
-  id: string;
-  name: string;
-  projects: Project[];
-}
-
 const Boards: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [workspaceId, setWorkspaceId] = useState('');
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const { boards, isLoading } = useBoards();
 
   const toolbars: Toolbar[] = [
     { id: 1, name: "Board", img: trello },
@@ -38,32 +28,6 @@ const Boards: React.FC = () => {
     { id: 3, name: "Member", img: GenericAvatar },
     { id: 4, name: "Settings", img: setting },
   ];
-
-  useEffect(() => {
-    const initialWorkspaces: Workspace[] = [
-      {
-        id: '1',
-        name: "Kelompok 1 Workspace",
-        projects: [
-          { id: '1-1', name: "Project 1" },
-          { id: '1-2', name: "Project 2" },
-          { id: '1-3', name: "Project 3" },
-          { id: '1-4', name: "Project 4" },
-        ]
-      },
-      {
-        id: '2',
-        name: "Kelompok 2 Workspace",
-        projects: [
-          { id: '2-1', name: "Project 1" },
-          { id: '2-2', name: "Project 2" },
-          { id: '2-3', name: "Project 3" },
-          { id: '2-4', name: "Project 4" },
-        ]
-      },
-    ];
-    setWorkspaces(initialWorkspaces);
-  }, []);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -87,30 +51,10 @@ const Boards: React.FC = () => {
     });
   };
 
-  const addWorkspace = (name: string) => {
-    const newWorkspace: Workspace = {
-      id: Date.now().toString(),
-      name,
-      projects: []
-    };
-    setWorkspaces([...workspaces, newWorkspace]);
-  };
-
-  const addProject = (workspaceId: string, projectName: string) => {
-    setWorkspaces(workspaces.map(workspace => {
-      if (workspace.id === workspaceId) {
-        return {
-          ...workspace,
-          projects: [
-            ...workspace.projects,
-            { id: `${workspaceId}-${Date.now()}`, name: projectName }
-          ]
-        };
-      }
-      return workspace;
-    }));
-  };
-
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
   return (
     <div>
       <section className='flex items-center gap-5'>
@@ -122,7 +66,7 @@ const Boards: React.FC = () => {
       </section>
 
       <section className='flex flex-col gap-10 mt-9'>
-        {workspaces.map((workspace) => (
+        {boards.map((workspace: any) => (
           <div key={workspace.id}>
             <div className='mt-3 flex justify-between max-w-[905px] max1000:flex-col max1000:gap-3'>
               <div className='flex items-center gap-2 max-w-[300px] overflow-hidden'>
@@ -140,7 +84,7 @@ const Boards: React.FC = () => {
             </div>
 
             <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
-              {workspace.projects.map((project) => (
+            {workspace.projects && workspace.projects.map((project: any) => (
                 <div
                   key={project.id}
                   className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
@@ -161,9 +105,6 @@ const Boards: React.FC = () => {
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                 <h5 className='text-white relative z-10'>Create New Project</h5>
               </div>
-              {/* <div className='p-1 h-28 w-full bg-[#2e3b4286] rounded-[5px] flex items-center justify-center cursor-pointer'>
-                <h5 className='text-white'>Create New Project</h5>
-              </div> */}
             </div>
           </div>
         ))}

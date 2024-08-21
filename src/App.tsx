@@ -16,6 +16,7 @@ import WorkspaceSettings from './Pages/WorkspaceSettings';
 import WorkspaceProject from './Pages/WorkspaceProject';
 import useAuth from './hooks/fetchAuth';
 import LayoutWorkspace from './Component/LayoutWorkspace';
+import Profile from './Pages/Profile';
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
         <Route path="/resetpassword" element={<ResetPassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
+        <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/signin" replace />} />
         <Route element={<Layout />}>
           <Route path="/home" element={isLoggedIn ? <Home /> : <Navigate to="/signin" replace />} />
           <Route path="/boards" element={isLoggedIn ? <Boards /> : <Navigate to="/signin" replace />} />
@@ -41,7 +43,7 @@ function App() {
           <Route path="/workspace/reports" element={isLoggedIn ? <WorkspaceReports /> : <Navigate to="/signin" replace />} />
           <Route path="/workspace/members" element={isLoggedIn ? <WorkspaceMembers /> : <Navigate to="/signin" replace />} />
           <Route path="/workspace/settings" element={isLoggedIn ? <WorkspaceSettings /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/project" element={isLoggedIn ? <WorkspaceProject /> : <Navigate to="signin" replace />} />
+          <Route path="/workspace/project" element={isLoggedIn ? <WorkspaceProject /> : <Navigate to="/signin" replace />} />
         </Route>
       </Routes>
     </Router>
