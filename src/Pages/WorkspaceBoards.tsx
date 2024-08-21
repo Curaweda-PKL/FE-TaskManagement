@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CreateBoard from '../Component/CreateBoard'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock, faUser, faUserFriends, faBars, faUserPlus, faX, faCheck, faTimes, faLink } from '@fortawesome/free-solid-svg-icons';
 
@@ -7,6 +8,7 @@ const WorkspaceBoards: React.FC = () => {
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [isRequestOpen, setIsRequest] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [showCreateBoard, setShowCreateBoard] = useState(false);
 
   const handleOpenInvite = () => {
     setIsModalOpen(false);
@@ -17,6 +19,14 @@ const WorkspaceBoards: React.FC = () => {
     setIsModalOpen(false);
     setIsRequest(true);
   }
+
+  const closeCreateBoard = () => {
+    setShowCreateBoard(false);
+  };
+
+  const handleCreateBoardClick = () => {
+    setShowCreateBoard(true);
+  };
 
   const handleOpenJoin = () =>{
     setIsModalOpen(false);
@@ -61,7 +71,7 @@ const WorkspaceBoards: React.FC = () => {
             <div className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden text-white'>
               Project 1
             </div>
-            <div className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white' onClick={handleOpenModal}>
+            <div onClick={handleCreateBoardClick} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>
               <h5 className='text-white text-center'>Create New Project</h5>
             </div>
           </div>
@@ -98,6 +108,9 @@ const WorkspaceBoards: React.FC = () => {
           <p className='text-gray-500 mt-2'>Bar resetting in : 4d 12h</p>
         </div>
       </div>
+      {showCreateBoard && (
+        <CreateBoard onClose={closeCreateBoard} />
+      )}
       {isJoinOpen && (
          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
          <div className="bg-white rounded-lg p-6 w-80 relative right-16">
