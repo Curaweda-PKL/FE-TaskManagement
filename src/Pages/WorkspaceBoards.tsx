@@ -9,6 +9,7 @@ const WorkspaceBoards: React.FC = () => {
   const [isRequestOpen, setIsRequest] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [showCreateBoard, setShowCreateBoard] = useState(false);
+  const isWorkspaceLayout = location.pathname === '/workspace/boards-ws';
 
   const handleOpenInvite = () => {
     setIsModalOpen(false);
@@ -47,7 +48,7 @@ const WorkspaceBoards: React.FC = () => {
   }
 
   return (
-    <div className='bg-white min-h-screen text-gray-600'>
+    <div className={`bg-white min-h-screen ${isWorkspaceLayout ? '' : ''}`}>
       <div className="flex items-center justify-between bg-white p-4 border-black border-b-2 -4 mx-6 mt-0 mb-2">
         <div className="flex items-center font-sem">
           <div className="w-11 h-11 bg-red-700 mr-3"></div>
