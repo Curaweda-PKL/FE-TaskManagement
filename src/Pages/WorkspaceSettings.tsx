@@ -1,28 +1,26 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock, faPencilAlt, faBars, faGlobe, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faPencilAlt, faBars, faGlobe, faTimes, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 const WorkspaceSettings: React.FC = () => {
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [activePopup, setActivePopup] = useState<'visibility' | 'delete' | null>(null);
   const [visibility, setVisibility] = useState<'Private' | 'Public'>('Private');
 
-  const togglePopup = () => {
-    setIsPopupVisible(!isPopupVisible);
+  const togglePopup = (popupType: 'visibility' | 'delete') => {
+    setActivePopup(activePopup === popupType ? null : popupType);
   };
 
-  const closePopup = () => {
-    setIsPopupVisible(false);
-  };
-
-  const handleBackgroundClick = () => {
-    if (isPopupVisible) {
-      closePopup();
-    }
+  const closeAllPopups = () => {
+    setActivePopup(null);
   };
 
   const handleVisibilityChange = (newVisibility: 'Private' | 'Public') => {
     setVisibility(newVisibility);
-    closePopup();
+    closeAllPopups();
+  };
+
+  const handleBackgroundClick = () => {
+    closeAllPopups();
   };
 
   return (
@@ -61,18 +59,49 @@ const WorkspaceSettings: React.FC = () => {
                 </span>
               </div>
             </div>
-            <button onClick={togglePopup} className='bg-gray-200 px-3 py-1 rounded text-sm relative'>
+            <button onClick={(e) => {
+              e.stopPropagation();
+              togglePopup('visibility');
+            }} className='bg-gray-200 px-3 py-1 rounded text-sm relative'>
               Change
             </button>
           </div>
+          
+          <div className='mt-3 cursor-pointer' onClick={(e) => {
+            e.stopPropagation();
+            togglePopup('delete');
+          }}>
+              <p className='text-red-500 font-semibold hover:bg-gray-200 w-fit p-1.5 px-5 rounded-md'>Delete this workspace?</p>
+          </div>
 
-          {isPopupVisible && (
+          {activePopup === 'delete' && (
+            <div className='flex justify-center' onClick={(e) => e.stopPropagation()}>
+              <div className="bg-white shadow-xl rounded-lg p-6 max-w-sm w-full text-center">
+                <div className='flex justify-end right-0'>
+                  <FontAwesomeIcon icon={faXmark} onClick={closeAllPopups}/>
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Delete this workspace?
+                </h2>
+                <p className="text-sm text-gray-700 mb-6">
+                  Are you sure you want to delete this workspace permanently? This can't be undone.
+                </p>
+                <div className="flex justify-center">
+                  <button className="bg-[#FF0000] text-sm text-white font-medium py-1 px-10 rounded-lg hover:bg-red-600">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePopup === 'visibility' && (
             <div
               className='absolute right-0 mt-2 bg-white border py-1 shadow-lg w-1/3 z-10'
               onClick={(e) => e.stopPropagation()}
             >
               <div className='flex justify-end px-1'>
-                <FontAwesomeIcon icon={faTimes} className='cursor-pointer' onClick={closePopup} />
+                <FontAwesomeIcon icon={faTimes} className='cursor-pointer' onClick={closeAllPopups} />
               </div>
               <p className='mb-3 text-center'>Select workspace visibility</p>
               <div className='mb-0'>
