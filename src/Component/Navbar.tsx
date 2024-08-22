@@ -48,7 +48,7 @@ function Navbar() {
     setShowCreateBoard(false);
   };
 
-  const handleCreateClick = () => {
+  const handleCreateClick = (e) => {
     e.stopPropagation();
     handleToggle('create');
   };
@@ -154,79 +154,102 @@ function Navbar() {
               </ul>
             </details>
             <div className="relative inline-block">
-            <button
-              onClick={handleCreateClick}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300"
-            >
-              Create
-            </button>
-            {openDropdown === 'create' && (
-              <ul className="absolute left-0 mt-3 bg-white border border-gray-200 rounded-md shadow-lg w-72">
-                <li
-                  className="p-4 hover:bg-gray-100 cursor-pointer"
-                  onClick={handleCreateBoardClick}
-                >
-                  <div className="flex">
-                    <div className="flex-shrink-0 mr-3">
-                      <Clipboard size={16} />
+              <button
+                onClick={handleCreateClick}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300"
+              >
+                Create
+              </button>
+              {openDropdown === 'create' && (
+                <ul className="absolute left-0 mt-3 bg-white border border-gray-200 rounded-md shadow-lg w-72">
+                  <li
+                    className="p-4 hover:bg-gray-100 cursor-pointer"
+                    onClick={handleCreateBoardClick}
+                  >
+                    <div className="flex">
+                      <div className="flex-shrink-0 mr-3">
+                        <Clipboard size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900">Create board</h3>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">Create board</h3>
+                    <p className="text-xs text-gray-500 mt-2">
+                      A board is made up of cards ordered on lists. Use it to manage projects, track information or organize anything.
+                    </p>
+                  </li>
+                  <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
+                    <div className="flex">
+                      <div className="flex-shrink-0 mr-3">
+                        <ClipboardText size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    A board is made up of cards ordered on lists. Use it to manage projects, track information or organize anything.
-                  </p>
-                </li>
-                <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
-                  <div className="flex">
-                    <div className="flex-shrink-0 mr-3">
-                      <ClipboardText size={16} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">A Workspace is a place to store and manage boards</p>
-                </li>
-              </ul>
-            )}
+                    <p className="text-xs text-gray-500 mt-2">A Workspace is a place to store and manage boards</p>
+                  </li>
+                </ul>
+              )}
               {showCreateBoard && (
                 <CreateBoard onClose={closeCreateBoard} />
               )}
               {showCreateWorkspace && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white shadow-lg overflow-hidden w-full max-w-3xl max-h-[90vh] flex relative">       
-                  <div className="w-1/2 p-8 overflow-y-auto">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-bold text-black">Let's Build a Workspace</h2>
+                  <div className="bg-white shadow-lg overflow-hidden w-full max-w-3xl max-h-[90vh] flex relative">       
+                    <div className="w-1/2 p-8 overflow-y-auto">
+                      <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-black">Let's Build a Workspace</h2>
+                      </div>
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Workspace name
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-white border border-gray-300"
+                          placeholder="Workspace..."
+                          value={workspaceName}
+                          onChange={(e) => setWorkspaceName(e.target.value)}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">This is the name of your team or your organization.</p>
+                      </div>
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Workspace description
+                        </label>
+                        <textarea
+                          className="w-full px-3 py-2 bg-white border border-gray-300"
+                          rows="4"
+                          placeholder="Our workspace is..."
+                          value={workspaceDescription}
+                          onChange={(e) => setWorkspaceDescription(e.target.value)}
+                        ></textarea>
+                        <p className="text-xs text-gray-500 mt-1">Get your members on board with a few words about your Workspace.</p>
+                      </div>
+                      <button 
+                        onClick={closeCreateWorkspace} 
+                        className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full"
+                      >
+                        Continue
+                      </button>
                     </div>
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Workspace name</label>
-                      <input type="text" className="w-full px-3 py-2 bg-white border border-gray-300" placeholder="Workspace..." value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)}/>
-                      <p className="text-xs text-gray-500 mt-1">This is the name of your team or your organization.</p>
-                    </div>
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Workspace description</label>
-                      <textarea className="w-full px-3 py-2 bg-white border border-gray-300" 
-                        placeholder="Our workspace is..." value={workspaceDescription} onChange={(e) => setWorkspaceDescription(e.target.value)}></textarea>
-                      <p className="text-xs text-gray-500 mt-1">Get your members on board with a few words about your Workspace.</p>
-                    </div>
-                    <button onClick={closeCreateWorkspace} 
-                      className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full">Continue</button>
-                  </div>
-                  <div className="w-1/2 flex items-center justify-center relative">
-                    <button onClick={closeCreateWorkspace} className="absolute top-0 right-0 m-4 z-20 text-black hover:text-gray-600"><X size={24} />
-                    </button>
-                    <img src={createWork} alt="Background" className="w-full h-full object-cover" />
-                    <div className="absolute w-64 h-48 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                      <img src={work} alt="Work" className="w-full h-full object-cover z-10" />
+                    <div className="w-1/2 flex items-center justify-center relative">
+                      <button 
+                        onClick={closeCreateWorkspace} 
+                        className="absolute top-0 right-0 m-4 z-20 text-black hover:text-gray-600"
+                      >
+                        <X size={24} />
+                      </button>
+                      <img src={createWork} alt="Background" className="w-full h-full object-cover" />
+                      <div className="absolute w-64 h-48 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <img src={work} alt="Work" className="w-full h-full object-cover z-10" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               )}
-          </div>
+            </div>
           </div>
         </div>
         <button 
@@ -244,25 +267,25 @@ function Navbar() {
             <MagnifyingGlass size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           </div>
           <details
-              className="relative inline-block"
-              open={openDropdown === 'notification'}
-              onClick={(e) => { e.preventDefault(); handleToggle('notification'); }}
-            >
-              <summary className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer list-none">
+            className="relative inline-block"
+            open={openDropdown === 'notification'}
+            onClick={(e) => { e.preventDefault(); handleToggle('notification'); }}
+          >
+            <summary className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer list-none">
               <Bell size={24} className="text-gray-600 hover:text-gray-900 cursor-pointer" />
-              </summary>
-              <div className=" fixed right-0 mt-5 bg-white rounded-lg shadow-md p-4 w-w100 h-80 text-black">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold">Notifications</h2>
-                  <div className="flex items-center">
-                    <span className="text-sm text-gray-600 mr-2">only show unread</span>
-                    <div className="w-12 h-6 bg-green-500 rounded-full p-1 cursor-pointer">
-                      <div className="bg-white w-4 h-4 rounded-full shadow-md transform translate-x-6"></div>
-                    </div>
+            </summary>
+            <div className=" fixed right-0 mt-5 bg-white rounded-lg shadow-md p-4 w-w100 h-80 text-black">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Notifications</h2>
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-600 mr-2">only show unread</span>
+                  <div className="w-12 h-6 bg-green-500 rounded-full p-1 cursor-pointer">
+                    <div className="bg-white w-4 h-4 rounded-full shadow-md transform translate-x-6"></div>
                   </div>
                 </div>
-                <div className="border-t border-black pt-2">
-                  <div className='border p-2'>
+              </div>
+              <div className="border-t border-black pt-2">
+                <div className='border p-2'>
                   <p className="flex font-semibold border-b pb-2"><UsersThree size={24} />Task Management</p>
                   <div className="flex items-start mt-0 pt-2">
                     <div className="bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-white font-bold mr-3">
@@ -278,8 +301,8 @@ function Navbar() {
                   </div>
                 </div>
               </div>
-              </div>
-            </details>
+            </div>
+          </details>
           <Question size={24} className="text-gray-600 hover:text-gray-900 cursor-pointer" />
           <details
             className="relative inline-block"
