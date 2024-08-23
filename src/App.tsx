@@ -6,7 +6,7 @@ import Signup from './Pages/Signup';
 import ForgotPassword from './Pages/ForgotPassword';
 import ResetPassword from './Pages/ResetPassword';
 import HomePage from './Pages/HomePage';
-import Boards from './Pages/Boards';
+import Boards from './Pages/Workspace';
 import Home from './Pages/Home';
 import WorkspaceBoards from './Pages/WorkspaceBoards';
 import WorkspaceHighlights from './Pages/WorkspaceHighlights';
@@ -35,15 +35,15 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/home" element={isLoggedIn ? <Home /> : <Navigate to="/signin" replace />} />
           <Route path="/boards" element={isLoggedIn ? <Boards /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/boards" element={isLoggedIn ? <WorkspaceBoards /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/highlights" element={isLoggedIn ? <WorkspaceHighlights /> : <Navigate to="/signin" replace />} />        
+          <Route path="/workspace/:workspaceId/boards" element={isLoggedIn ? <WorkspaceBoards /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/:workspaceId/highlights" element={isLoggedIn ? <WorkspaceHighlights /> : <Navigate to="/signin" replace />} />        
         </Route>
         <Route element={<LayoutWorkspace />}>
-          <Route path="/workspace/boards-ws" element={isLoggedIn ? <WorkspaceBoards /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/reports" element={isLoggedIn ? <WorkspaceReports /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/members" element={isLoggedIn ? <WorkspaceMembers /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/settings" element={isLoggedIn ? <WorkspaceSettings /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/project" element={isLoggedIn ? <WorkspaceProject /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/:workspaceId/boards-ws" element={isLoggedIn ? <WorkspaceBoards /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/:workspaceId/reports" element={isLoggedIn ? <WorkspaceReports /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/:workspaceId/members" element={isLoggedIn ? <WorkspaceMembers /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/:workspaceId/settings" element={isLoggedIn ? <WorkspaceSettings /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/:workspaceId/project" element={isLoggedIn ? <WorkspaceProject /> : <Navigate to="/signin" replace />} />
         </Route>
       </Routes>
     </Router>

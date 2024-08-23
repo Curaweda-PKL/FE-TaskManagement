@@ -1,37 +1,21 @@
-import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config/baseUrl';
 
-const useWorkspace = () => {
-  const [boards, setBoards] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchWorkspace = async () => {
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${config}/workspace/myMyworkspace`, {
-          headers: {
-            Authorization: token,
-          },
-        });
-        setBoards(response.data.result);
-      } catch (error) {
-        console.error('Error fetching boards:', error);
-      } finally {
-        setIsLoading(false);
+export const fetchWorkspaces = async () => {
+  try {
+    const response = await axios.get(config + '/workspace/myWorkspace', {
+      headers: {
+        'Authorization': localStorage.getItem('token'),
       }
-    };
+    });
 
-    fetchWorkspace();
-  }, []);
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
 
-  return {
-    boards,
-    setBoards,
-    isLoading,
-  };
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch workspaces:', error);
+    throw error;  
+  }
 };
-
-export default useWorkspace;
