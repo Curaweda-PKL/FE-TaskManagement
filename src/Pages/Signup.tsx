@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/fetchAuth';
 
 function Signup() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     name,
@@ -36,6 +37,10 @@ function Signup() {
     }
   };
 
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   if (checkingLogin) {
     return (
       <div className="flex justify-center">
@@ -55,7 +60,7 @@ function Signup() {
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500"
               required
             />
           </div>
@@ -65,25 +70,32 @@ function Signup() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500"
               required
             />
           </div>
           <div className="mb-6 relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-300 px-4 py-2 border rounded-full focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500"
               required
             />
+            <button
+              type="button"
+              onClick={toggleShowPassword}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-600"
+            >
+              {showPassword ? (
+                <i className="ph-eye text-xl"></i>
+              ) : (
+                <i className="ph-eye-slash text-xl"></i>
+              )}
+            </button>
           </div>
-          <button
-            type="submit"
-            className="w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200"
-            disabled={loading}
-          >
+          <button type="submit" className="w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200" disabled={loading}>
             {loading ? 'Signing up...' : 'Sign up'}
           </button>
         </form>

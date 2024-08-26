@@ -2,29 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'phosphor-react';
 
 interface CreateBoardProps {
-  workspaceId: string;
+  workspaceId: any;
   onClose: () => void;
-  onCreateBoard: (workspaceId: string, name: string, description: string) => void;
+  onCreateBoard: (workspaceId: any, name: string, description: string) => void;
   initialData?: { id: string; name: string; description: string };
   isEditing?: boolean;
 }
 
 const CreateBoard: React.FC<CreateBoardProps> = ({ workspaceId, onClose, onCreateBoard, initialData, isEditing = false }) => {
-  const [title, setTitle] = useState(initialData?.name || '');
+  const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
 
   useEffect(() => {
     if (initialData) {
-      setTitle(initialData.name);
+      setName(initialData.name);
       setDescription(initialData.description);
     }
   }, [initialData]);
 
   const handleSubmit = () => {
     if (isEditing && initialData) {
-      onCreateBoard(initialData.id, title, description);
+      onCreateBoard(initialData.id, name, description);
     } else {
-      onCreateBoard(workspaceId, title, description);
+      onCreateBoard(workspaceId, name, description);
     }
   };
 
@@ -47,15 +47,15 @@ const CreateBoard: React.FC<CreateBoardProps> = ({ workspaceId, onClose, onCreat
               type="text"
               className="w-full bg-white px-3 py-2 border rounded-md"
               placeholder="Input your title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
             <p className="text-xs text-gray-500 mt-1">* Board title is required</p>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Board Description*</label>
             <input
-              type="text"
+              type="description"
               className="w-full bg-white px-3 py-2 border rounded-md"
               placeholder="Input your description"
               value={description}

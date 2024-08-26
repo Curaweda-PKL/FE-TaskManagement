@@ -31,7 +31,7 @@ function Navbar() {
     setShowCreateWorkspace(false);
   };
 
-  const handleToggle = (dropdown) => {
+  const handleToggle = (dropdown : any) => {
     setOpenDropdown(prevDropdown => prevDropdown === dropdown ? null : dropdown);
   };
 
@@ -48,7 +48,7 @@ function Navbar() {
     setShowCreateBoard(false);
   };
 
-  const handleCreateClick = (e) => {
+  const handleCreateClick = (e : any) => {
     e.stopPropagation();
     handleToggle('create');
   };
@@ -68,7 +68,7 @@ function Navbar() {
   };
 
   useEffect(() => {
-    function handleClickOutside(event) {
+    function handleClickOutside(event : any) {
       if (navbarRef.current && !navbarRef.current.contains(event.target)) {
         setOpenDropdown(null);
       }

@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
+import ConfirmationAlert from '../Component/Alert';
 
 interface Toolbar {
   id: number;
@@ -18,12 +19,17 @@ interface Toolbar {
 
 const Workspace: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [workspaces, setWorkspaces] = useState([]);
+  const [workspaces, setWorkspaces] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateBoard, setShowCreateBoard] = useState(false);
-  const [editingBoard, setEditingBoard] = useState(null);
+  const [editingBoard, setEditingBoard] = useState<any>(null);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, boardId: any | null }>({
+    isOpen: false,
+    boardId: null
+  });
 
   const toolbars: Toolbar[] = [
     { id: 1, name: "Board", img: trello },
@@ -39,11 +45,20 @@ const Workspace: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
       const workspaceData = await fetchWorkspaces();
-
       const updatedWorkspaces = await Promise.all(
         workspaceData.map(async (workspace: any) => {
           const boards = await fetchBoards(workspace.id);
@@ -56,41 +71,84 @@ const Workspace: React.FC = () => {
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
+      setAlert({ type: 'error', message: 'Failed to fetch workspace data. Please try again later.' });
     }
   };
 
   const handleCreateBoard = async (workspaceId: string, name: string, description: string) => {
     try {
-      await createBoard(workspaceId, name, description);
+      const response = await createBoard(workspaceId, name, description);
+      const message = response?.message || 'Board created successfully.';
       await fetchData();
       setShowCreateBoard(false);
-    } catch (error) {
+      setAlert({ type: 'success', message: message });
+    } catch (error: any) {
       console.error('Failed to create board:', error);
+      let errorMessage;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else {
+        errorMessage = 'Failed to create board. Please try again.';
+      }
+  
+      setAlert({ type: 'error', message: errorMessage });
     }
   };
 
-  const handleEditBoard = async (boardId: string, name: string, description: string) => {
+  const handleEditBoard = async (boardId: any, name: string, description: string) => {
     try {
-      await updateBoard(boardId, name, description);
+      const response = await updateBoard(boardId, name, description);
+      const message = response?.message || 'Board updated successfully.';
       await fetchData();
       setEditingBoard(null);
-    } catch (error) {
+      setAlert({ type: 'success', message: message });
+    } catch (error: any) {
       console.error('Failed to update board:', error);
+      let errorMessage;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else {
+        errorMessage = 'Failed to update board. Please try again.';
+      }
+  
+      setAlert({ type: 'error', message: errorMessage });
     }
   };
 
-  const handleDeleteBoard = async (boardId: string) => {
-    if (window.confirm('Are you sure you want to delete this board?')) {
+
+  const openDeleteConfirmation = (boardId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId });
+  };
+
+  const closeDeleteConfirmation = () => {
+    setDeleteConfirmation({ isOpen: false, boardId: null });
+  };
+
+  const handleDeleteBoard = async () => {
+    if (deleteConfirmation.boardId) {
       try {
-        await deleteBoard(boardId);
+        const response = await deleteBoard(deleteConfirmation.boardId);
+        const message = response?.message;
         await fetchData();
-      } catch (error) {
-        console.error('Failed to delete board:', error);
+        setAlert({ type: 'success', message: message });
+      } catch (error: any) {
+        console.error(error);
+        let errorMessage;
+        if (error.response && error.response.data && error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else {
+          errorMessage = 'An unexpected error occurred';
+        }
+        
+        setAlert({ type: 'error', message: errorMessage });
+      } finally {
+        closeDeleteConfirmation();
       }
     }
   };
 
-  const openCreateBoard = (workspaceId: string) => {
+
+  const openCreateBoard = (workspaceId: any) => {
     setCurrentWorkspaceId(workspaceId);
     setShowCreateBoard(true);
   };
@@ -104,6 +162,12 @@ const Workspace: React.FC = () => {
 
   return (
     <div>
+      {alert && (
+        <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+          {alert.message}
+        </div>
+      )}
+
       <section className='flex items-center gap-5'>
         <h1 className='text-black font-bold text-2xl max768:text-xl'>YOUR WORKSPACE</h1>
         <div className="group flex py-2 px-3 gap-3 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 items-center" onClick={openModal}>
@@ -152,7 +216,7 @@ const Workspace: React.FC = () => {
                       className='text-white hover:text-red-500 cursor-pointer'
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteBoard(board.id);
+                        openDeleteConfirmation(board.id);
                       }}
                     />
                   </div>
@@ -164,6 +228,13 @@ const Workspace: React.FC = () => {
             </div>
           </div>
         ))}
+
+        <ConfirmationAlert
+          isOpen={deleteConfirmation.isOpen}
+          onClose={closeDeleteConfirmation}
+          onConfirm={handleDeleteBoard}
+          message="Are you sure you want to delete this board? This action cannot be undone."
+        />
       </section>
 
       {showCreateBoard && (
@@ -204,7 +275,7 @@ const Workspace: React.FC = () => {
           </div>
         </div>
       )}
-    </div >
+    </div>
   );
 };
 
