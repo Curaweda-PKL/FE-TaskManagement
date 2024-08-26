@@ -24,7 +24,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     setError(null);
 
     try {
-      const response: any = await axios.post(`${config}/user/login`, { email, password });
+      const response = await axios.post(`${config}/user/login`, { email, password });
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token);
         setIsLoggedIn(true);
@@ -33,7 +33,11 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       }
     } catch (error: any) {
       console.error('Login Error:', error);
-      setError(error?.response?.data?.message || 'Login failed. Please check your credentials.');
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Login failed. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -53,9 +57,13 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
         setError('Registration failed. Please try again.');
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      setError('Registration failed. Please try again.');
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
       return false;
     } finally {
       setLoading(false);

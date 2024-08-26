@@ -1,8 +1,9 @@
 import axios from 'axios';
 import config from '../config/baseUrl';
 
-export const fetchWorkspaces = async () => {
+export const fetchWorkspaces = async (workspaceId: any) => {
   try {
+    console.log(workspaceId);
     const response = await axios.get(config + '/workspace/myWorkspace', {
       headers: {
         'Authorization': localStorage.getItem('token'),

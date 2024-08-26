@@ -20,7 +20,7 @@ export const fetchBoards = async (workspaceId: any) => {
     throw error;
   }
 };
-export const updateBoard = async (boardId: string, name: string, description: string) => {
+export const updateBoard = async (boardId: any, name: any, description: any) => {
   try {
     const response = await axios.put(
       config + "/board/updateBoard",
@@ -39,7 +39,7 @@ export const updateBoard = async (boardId: string, name: string, description: st
     throw error;
   }
 };
-export const createBoard = async (workspaceId: string, name: string, description: string) => {
+export const createBoard = async (workspaceId: any, name: any, description: any) => {
   try {
     const response = await axios.post(
       config + "/board/createBoard",
@@ -59,7 +59,7 @@ export const createBoard = async (workspaceId: string, name: string, description
   }
 };
 
-export const deleteBoard = async (boardId: string) => {
+export const deleteBoard = async (boardId: any) => {
   try {
     const response = await axios.delete(
       `${config}/board/deleteBoard`,

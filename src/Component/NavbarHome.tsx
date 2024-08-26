@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Feature from '../Pages/Feature';
-import Solution from '../Pages/Solution';
-import { CaretDown } from 'phosphor-react';
+import Feature from './Feature';
+import Solution from './Solution';
 import useAuth from '../hooks/fetchAuth';
 
 function NavbarHome() {
@@ -41,7 +40,7 @@ function NavbarHome() {
   };
 
   useEffect(() => {
-    function handleClickOutside(event) {
+    function handleClickOutside(event : any) {
       if (navRef.current && !navRef.current.contains(event.target)) {
         setIsFeaturesOpen(false);
         setIsSolutionsOpen(false);
@@ -70,11 +69,11 @@ function NavbarHome() {
 
         <div className="hidden lg:flex items-center space-x-10">
           <button onClick={toggleFeatures}
-            className={`flex items-center text-gray-600 hover:text-gray-900 ${isFeaturesOpen ? 'underline-active' : ''}`}>Features<CaretDown size={16} className="ml-1" />
+            className={`flex items-center text-gray-600 hover:text-gray-900 ${isFeaturesOpen ? 'underline-active' : ''}`}>Features<i className='ph-caret-down ml-1'></i>
           </button>
           <button onClick={toggleSolutions}
             className={`flex items-center text-gray-600 hover:text-gray-900 ${isSolutionsOpen ? 'underline-active' : ''
-            }`}>Solutions<CaretDown size={16} className="ml-1" /></button>
+            }`}>Solutions<i className='ph-caret-down ml-1'></i></button>
           <button onClick={handleBoardsClick} 
             className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300">
             {isLoggedIn ? 'Go to your boards' : 'Sign In'}
@@ -85,10 +84,10 @@ function NavbarHome() {
       <div 
         className={`lg:hidden mt-4 bg-white rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-60 opacity-100 animate-slideDown' : 'max-h-0 opacity-0'}`}>
         <button onClick={toggleFeatures}
-          className={`flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left ${isFeaturesOpen ? 'underline-active' : ''}`}>Features<CaretDown size={16} className="ml-1" />
+          className={`flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left ${isFeaturesOpen ? 'underline-active' : ''}`}>Features<i className='ph-caret-down ml-1'></i>
         </button>
         <button onClick={toggleSolutions}
-          className={`flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left ${isSolutionsOpen ? 'underline-active' : ''}`}>Solutions<CaretDown size={16} className="ml-1" />
+          className={`flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left ${isSolutionsOpen ? 'underline-active' : ''}`}>Solutions<i className='ph-caret-down ml-1'></i>
         </button>
 
         <button onClick={handleBoardsClick} className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">

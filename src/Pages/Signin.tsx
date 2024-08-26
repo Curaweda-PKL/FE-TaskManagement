@@ -1,9 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/fetchAuth';
 
 function Signin() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+
+  const onSuccess = () => {
+    navigate('/boards');
+  };
+
+  const onLogout = () => {
+    navigate('/');
+  };
 
   const {
     email,
@@ -13,11 +22,10 @@ function Signin() {
     loading,
     error,
     handleLogin,
+    handleLogout,
     isLoggedIn,
     checkingLogin,
-  } = useAuth(() => {
-    navigate('/boards');
-  });
+  } = useAuth(onSuccess, onLogout);
 
   useEffect(() => {
     if (!checkingLogin && isLoggedIn) {
@@ -31,6 +39,10 @@ function Signin() {
     if (success) {
       window.location.reload();
     }
+  };
+
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
   };
 
   if (checkingLogin) {
@@ -57,12 +69,23 @@ function Signin() {
           </div>
           <div className="mb-6 relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500"
             />
+            <button
+              type="button"
+              onClick={toggleShowPassword}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-600"
+            >
+              {showPassword ? (
+                <i className="ph-eye text-xl"></i>
+              ) : (
+                <i className="ph-eye-slash text-xl"></i>
+              )}
+            </button>
           </div>
           <button
             type="submit"
@@ -74,14 +97,25 @@ function Signin() {
         </form>
         {error && <p className="text-red-700 mt-2 text-center">{error}</p>}
         <div className="text-center mt-4">
-            <Link to="/ForgotPassword" className="text-indigo-500 hover:underline">Forgot Your Password?</Link>
-          <p className="text-gray-600">
+          <Link to="/ForgotPassword" className="text-indigo-500 hover:underline">Forgot Your Password?</Link>
+          <p className="text-gray-600 mt-2">
             Can't Log in?{' '}
             <Link to="/signup" className="text-indigo-500 hover:underline">
               Create an Account
             </Link>
           </p>
         </div>
+        {isLoggedIn && (
+          <div className="mt-4 text-center">
+            <p className="text-green-600">You are currently logged in.</p>
+            <button
+              onClick={handleLogout}
+              className="mt-2 bg-red-500 text-white py-1 px-3 rounded-full hover:bg-red-700 transition duration-200"
+            >
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
