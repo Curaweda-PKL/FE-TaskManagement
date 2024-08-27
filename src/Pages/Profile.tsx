@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import Navbar from '../Component/Navbar';
+import useAuth from '../hooks/fetchAuth'; // Import the useAuth hook
 
 function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
-  const [profile, setProfile] = useState({
-    name: 'ketompok1',
-    username: 'ketompok1',
-    email: 'ketompok1@gmail.com'
-  });
+  const { userData, isLoggedIn, checkingLogin } = useAuth(() => {}, () => {}); // Use the useAuth hook
+
+  // Handle loading and logged-in states
+  if (checkingLogin) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isLoggedIn) {
+    return <div>You are not logged in. Please log in to view your profile.</div>;
+  }
+
+  if (userData)
 
   return (
     <div className='min-h-screen bg-white font-sans text-black'>
@@ -19,8 +27,8 @@ function Profile() {
           <div className='flex items-center mb-6'>
             <div className='w-12 h-12 bg-red-500 rounded-full mr-4'></div>
             <div>
-              <h2 className='font-semibold'>{profile.name}</h2>
-              <p className='text-sm text-gray-600'>@{profile.username}</p>
+              <h2 className='font-semibold'>{userData.name}</h2>
+              <p className='text-sm text-gray-600'>{userData.email}</p>
             </div>
           </div>
 
@@ -49,13 +57,13 @@ function Profile() {
                 <div className='w-full h-24 bg-white relative border-t-2 border-black rounded-b-lg shadow-lg'></div>
                 <h3 className='font-bold mb-4 mt-7'>About you</h3>
                 <div className='flex flex-col space-y-4 text-black'>
-                  {['name', 'username', 'email'].map((field) => (
+                  {['name', 'email'].map((field) => (
                     <div key={field} className='flex flex-col space-y-2'>
                       <label className='w-24 text-sm capitalize font-bold'>{field}</label>
                       <input
                         type="text"
                         name={field}
-                        value={profile[field]}
+                        value={userData[field] || ''}
                         readOnly
                         className='flex-grow border-b pb-1 focus:outline-none focus:border-b-purple-600 bg-white'
                       />
@@ -65,7 +73,6 @@ function Profile() {
               </div>
             </div>
           ) : (
-            
             <div className="flex justify-center">
               <div className='max-w-md'>
                 <h3 className='font-semibold mb-6 text-lg'>Password</h3>

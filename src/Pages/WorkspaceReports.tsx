@@ -1,6 +1,4 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import{faChevronLeft, faChevronRight, faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons';
 
 const WorkspaceReports: React.FC = () => {
   return (
@@ -24,11 +22,11 @@ const WorkspaceReports: React.FC = () => {
               placeholder='Search...'
               className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl  px-3 py-2 pl-10 text-sm w-64'
             />
-            <FontAwesomeIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500' icon={faMagnifyingGlass} />
+            <i className='fas fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'/>
           </div>
           <div className='ml-10 mr-10'>
-          <FontAwesomeIcon className='mr-11' icon={faChevronLeft} />
-          <FontAwesomeIcon icon={faChevronRight} />
+          <i className='fas fa-chevron-left mr-11'/>
+          <i className='fas fa-chevron-right'/>
           </div>
           <h2 className='font-bold'>4-10 Agustus 2024</h2>
           <h2 className='ml-auto text-gray-500 font-bold bg-gray-200 py-2 px-4 rounded-xl'>WEEK</h2>

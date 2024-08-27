@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faUserFriends, faPencilAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { useState } from 'react';
 
 const WorkspaceProject = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -74,9 +72,9 @@ const WorkspaceProject = () => {
       <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
         <div className="flex items-center space-x-7">
           <h1 className="text-xl text-black font-medium">Project 1</h1>
-          <FontAwesomeIcon icon={faStar} className="text-gray-400" />
+          <i className="fas fa-star text-gray-400"></i>
           <div className="flex -space-x-1">
-            <FontAwesomeIcon icon={faUserFriends} className="text-gray-400" />
+            <i className="fas fa-user-friends text-gray-400"></i>
           </div>
         </div>
         <button className="bg-purple-600 text-white px-4 py-1 rounded text-sm">
@@ -100,7 +98,7 @@ const WorkspaceProject = () => {
                     <span className="text-black text-sm">{cardList.title}</span>
                   </div>
                   <button className="text-gray-400 hover:text-gray-600">
-                    <FontAwesomeIcon icon={faPencilAlt} className="h-3 w-3" />
+                    <i className="fas fa-pencil-alt h-3 w-3"></i>
                   </button>
                 </li>
               ))}
@@ -111,7 +109,7 @@ const WorkspaceProject = () => {
           </div>
         ))}
         <button className="bg-gray-200 text-gray-600 hover:text-gray-800 px-4 py-2 rounded-xl h-10 w-44 text-sm">
-          <FontAwesomeIcon icon={faPlus} className="h-3 w-3 mr-3" />
+          <i className="fas fa-plus h-3 w-3 mr-3"></i>
           Add another list
         </button>
       </main>
@@ -127,7 +125,7 @@ const WorkspaceProject = () => {
                 className="btn bg-transparent border-hidden close text-lg text-black font-bold hover:bg-white"
                 onClick={handleClosePopup}
               >
-                <i className="ph-x"></i>
+                <i className="fas fa-x"></i>
               </div>
             </div>
             <div className="cardlist flex flex-row">
@@ -135,7 +133,7 @@ const WorkspaceProject = () => {
                 <div className="flex flex-row gap-10 mb-3">
                   <div className="memberColor h-6 w-12 bg-red-500 rounded"></div>
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 rounded w-fit bg-gray-300 border-none text-black">
-                    <i className="ph-eye"></i>Activity
+                    <i className="fas fa-eye"></i>Activity
                   </div>
                 </div>
                 <h2 className="text-black mb-3 font-semibold">Description</h2>
@@ -157,35 +155,35 @@ const WorkspaceProject = () => {
               </div>
               <div className="cardlistend flex flex-col gap-1 pl-20 justify-start">
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1">
-                  <i className="ph-user"></i>Join
+                  <i className="fas fa-user"></i>Join
                 </div>
                 <div className="border-b-2 border-black"></div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1" onClick={() => handleOpenMemberPopup(selectedCardList)}>
-                  <i className="ph-user"></i>Member
+                  <i className="fas fa-user"></i>Member
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="ph-tag"></i>Labels
+                  <i className="fas fa-tag"></i>Labels
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="ph-check-square"></i>Checklist
+                  <i className="fas fa-check-square"></i>Checklist
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="ph-clock"></i>Dates
+                  <i className="fas fa-clock"></i>Dates
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4">
-                  <i className="ph-paperclip"></i>Attachment
+                  <i className="fas fa-paperclip"></i>Attachment
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="ph-file-arrow-up"></i>Submit
+                  <i className="fas fa-file-upload"></i>Submit
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="ph-copy"></i>Copy
+                  <i className="fas fa-copy"></i>Copy
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="ph-archive"></i>Archive
+                  <i className="fas fa-archive"></i>Archive
                 </div>
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="ph-share"></i>Share
+                  <i className="fas fa-share"></i>Share
                 </div>
               </div>
             </div>
@@ -204,19 +202,19 @@ const WorkspaceProject = () => {
                 className="btn bg-transparent border-hidden close text-lg text-black font-bold hover:bg-white"
                 onClick={handleCloseMemberPopup}
               >
-                <i className="ph-x"></i>
+                <i className="fas fa-times"></i>
               </div>
             </div>
             <input
-                  type="text"
-                  placeholder="Search members"
-                  className="rounded h-10 text-sm p-2 mb-4 bg-gray-300 text-black font-semibold"
-                />
+              type="text"
+              placeholder="Search members"
+              className="rounded h-10 text-sm p-2 mb-4 bg-gray-300 text-black font-semibold"
+            />
             <ul>
               {selectedCardList.members.length > 0 ? (
                 selectedCardList.members.map((member, index) => (
                   <li key={index} className="text-black mb-2 p-3 h-10 flex items-center bg-gray-400 rounded">
-                    <i className='ph-user mr-2'></i>{member.name}
+                    <i className="fas fa-user mr-2"></i>{member.name}
                   </li>
                 ))
               ) : (

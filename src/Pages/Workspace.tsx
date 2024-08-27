@@ -1,11 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import userPlus from '../assets/Media/UserPlus.svg';
-import GenericAvatar from '../assets/Media/GenericAvatar.svg';
-import Grid from '../assets/Media/Grid.svg';
-import setting from '../assets/Media/settings.svg';
-import trello from '../assets/Media/Trello.svg';
-import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
@@ -14,7 +7,7 @@ import ConfirmationAlert from '../Component/Alert';
 interface Toolbar {
   id: number;
   name: string;
-  img: string;
+  icon: string;
 }
 
 const Workspace: React.FC = () => {
@@ -32,10 +25,10 @@ const Workspace: React.FC = () => {
   });
 
   const toolbars: Toolbar[] = [
-    { id: 1, name: "Board", img: trello },
-    { id: 2, name: "Views", img: Grid },
-    { id: 3, name: "Member", img: GenericAvatar },
-    { id: 4, name: "Settings", img: setting },
+    { id: 1, name: "Board", icon: "fa-th-large" },
+    { id: 2, name: "Report", icon: "fa-book-open" },
+    { id: 3, name: "Member", icon: "fa-user" },
+    { id: 4, name: "Settings", icon: "fa-cog" },
   ];
 
   const openModal = () => setIsModalOpen(true);
@@ -58,7 +51,7 @@ const Workspace: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const workspaceData = await fetchWorkspaces();
+      const workspaceData = await fetchWorkspaces(Workspace);
       const updatedWorkspaces = await Promise.all(
         workspaceData.map(async (workspace: any) => {
           const boards = await fetchBoards(workspace.id);
@@ -147,7 +140,6 @@ const Workspace: React.FC = () => {
     }
   };
 
-
   const openCreateBoard = (workspaceId: any) => {
     setCurrentWorkspaceId(workspaceId);
     setShowCreateBoard(true);
@@ -167,11 +159,10 @@ const Workspace: React.FC = () => {
           {alert.message}
         </div>
       )}
-
       <section className='flex items-center gap-5'>
         <h1 className='text-black font-bold text-2xl max768:text-xl'>YOUR WORKSPACE</h1>
         <div className="group flex py-2 px-3 gap-3 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 items-center" onClick={openModal}>
-          <img src={userPlus} alt="" className='max768:h-[18px] max768:w-[18px]' />
+          <i className='fas fa-user-plus text-gray-700 max768:h-[18px] max768:w-[18px]' />
           <span className="text-[#4A4A4A] font-semibold text-[15px] group-hover:text-[#7000FF] transition-colors duration-300">Join Workspace</span>
         </div>
       </section>
@@ -187,7 +178,7 @@ const Workspace: React.FC = () => {
               <div className='grid grid-cols-4 max850:grid-cols-2 gap-5 max850:gap-2'>
                 {toolbars.map((toolbar) => (
                   <div key={toolbar.id} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
-                    <img src={toolbar.img} alt={toolbar.name} className='max768:h-[18px] max768:w-[18px]' />
+                    <i className={`fas ${toolbar.icon} max768:h-[18px] max768:w-[18px] text-[#4A4A4A]`} aria-hidden="true"></i>
                     <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>{toolbar.name}</span>
                   </div>
                 ))}
@@ -203,17 +194,15 @@ const Workspace: React.FC = () => {
                   <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                   <h5 className='text-white relative z-10'>{board.name}</h5>
                   <div className='absolute right-2 bottom-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
-                    <FontAwesomeIcon
-                      icon={faPencilAlt}
-                      className='text-white hover:text-yellow-300 cursor-pointer'
+                    <i
+                      className='fas fa-pencil text-white hover:text-yellow-300 cursor-pointer'
                       onClick={(e) => {
                         e.stopPropagation();
                         openEditBoard(board);
                       }}
                     />
-                    <FontAwesomeIcon
-                      icon={faTrashAlt}
-                      className='text-white hover:text-red-500 cursor-pointer'
+                    <i
+                      className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                       onClick={(e) => {
                         e.stopPropagation();
                         openDeleteConfirmation(board.id);
