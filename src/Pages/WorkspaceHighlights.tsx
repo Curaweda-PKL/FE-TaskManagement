@@ -1,9 +1,5 @@
 import React from 'react';
-import Wolf from '../assets/Media/wolf.png'
 import Sticker from '../assets/Media/sticker.svg'
-import SideTask from '../Component/SideTask';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import{faEye, faMessage, faClock, faPaperPlane} from '@fortawesome/free-solid-svg-icons';
 
 const WorkspaceHighlights: React.FC = () => {
   return (
@@ -28,11 +24,11 @@ const WorkspaceHighlights: React.FC = () => {
             <div className='bg-gray-200 p-3 rounded-lg'>
             <span className="font-semibold text-gray-600">Tugas 1</span>
               <div className="flex items-center text-xs mt-1">
-                <FontAwesomeIcon icon={faEye} className="text-xs text-gray-600 mr-2"/>
+                <i className="fas fa-eye text-xs text-gray-600 mr-2"/>
                 <span className="ml-2 bg-yellow-200 text-yellow-800  border-yellow-800 border px-2 py-0.5 rounded-full text-xs">
-                  <FontAwesomeIcon icon={faClock } className='mr-2'/>Sep 12 - Sep 13
+                  <i className='fas fa-clock mr-2'/>Sep 12 - Sep 13
                 </span>
-                <FontAwesomeIcon icon={faMessage} className="text-xs text-gray-600 ml-4"/>
+                <i className="fas fa-message text-xs text-gray-600 ml-4"/>
                 <span className="ml-1">1</span>
               </div>
               </div>
@@ -49,13 +45,12 @@ const WorkspaceHighlights: React.FC = () => {
                   <p className="mt-2  text-sm">hai akhsan tugasnya dikerjakan sesuai waktu yang ditetapkan ya</p>
                   <img className='mt-2' src={Sticker}/>
               <button className="mt-3 flex w-[99%] p-2 items-center justify-center text-sm text-gray-600 bg-gray-200 hover:text-gray-800">
-                <FontAwesomeIcon className="mr-2" icon={faPaperPlane} />
+                <i className="fas fa-paper-plane mr-2"/>
                 Reply
               </button>
             </div>
           </div>
         </div>
-      <SideTask />
     </div>
     /*<div className="bg-white min-h-screen">
       <div className="max-w-screen-xl mx-auto px-8">

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { House, SquaresFour, Users, Gear } from 'phosphor-react';
 import ChevronRight from '../assets/Media/ChevronRight.svg';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 
@@ -20,19 +19,14 @@ const SidebarWorkspace: React.FC = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const handleWorkspaceClick = (workspaceId: any) => {
-    const workspace = workspaces.find(ws => ws.id === workspaceId);
-    setSelectedWorkspace(workspace || null);
-  };
-
   useEffect(() => {
     const getWorkspaces = async () => {
       try {
-        const data = await fetchWorkspaces();
+        const data = await fetchWorkspaces(workspaces);
         setWorkspaces(data);
         if (data.length > 0) {
           const defaultWorkspace = data.find(ws => ws.id === workspaceId);
-          setSelectedWorkspace(defaultWorkspace || data[0]); // Set the selected workspace based on URL or default to the first one
+          setSelectedWorkspace(defaultWorkspace || data[0]);
         }
       } catch (error) {
         console.error('Failed to fetch workspaces:', error);
@@ -40,7 +34,7 @@ const SidebarWorkspace: React.FC = () => {
     };
 
     getWorkspaces();
-  }, [workspaceId]); // Depend on workspaceId to refetch when it changes
+  }, [workspaceId]);
 
   return (
     <>
@@ -59,30 +53,35 @@ const SidebarWorkspace: React.FC = () => {
             </div>
           </div>
           <div className="mt-2 space-y-1 px-4">
-            <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/boards-ws`} className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/workspace/boards') ? activeClass : ''}`}>
-              <SquaresFour size={20} className="mr-2" /><span>Boards</span>
+            <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/boards-ws`} 
+                className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/boards-ws`) ? activeClass : ''}`}>
+                <i className="fas fa-th-large mr-2"></i><span>Boards</span>
             </Link>
-            <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`} className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/workspace/members') ? activeClass : ''}`}>
-              <Users size={20} className="mr-2" /><span>Members</span>
+            <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`} 
+                className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`) ? activeClass : ''}`}>
+                <i className="fas fa-user-friends mr-2"></i><span>Members</span>
             </Link>
-            <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`} className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/workspace/settings') ? activeClass : ''}`}>
-              <Gear size={20} className="mr-2" /><span>Workspace Settings</span>
+            <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`} 
+                className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`) ? activeClass : ''}`}>
+                <i className="fas fa-cog mr-2"></i><span>Workspace Settings</span>
             </Link>
           </div>
         </div>
 
         <div className="mb-4 px-4">
           <h2 className="text-sm font-semibold text-gray-600 mb-2">Workspace View</h2>
-          <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/reports`} className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/workspace/reports') ? activeClass : ''}`}>
-            <House size={20} className="mr-2" /><span>Reports</span>
+          <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/reports`} 
+              className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/reports`) ? activeClass : ''}`}>
+              <i className="fas fa-book-open mr-2"></i><span>Reports</span>
           </Link>
         </div>
 
         <div className="mb-4 px-4">
           <h2 className="text-sm font-semibold text-gray-600 mb-2">Your Board</h2>
-          <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/project`} className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/workspace/project') ? activeClass : ''}`}>
-            <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
-            <span>Project 1</span>
+          <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/project`} 
+              className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/project`) ? activeClass : ''}`}>
+              <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
+              <span>Project 1</span>
           </Link>
         </div>
       </aside>

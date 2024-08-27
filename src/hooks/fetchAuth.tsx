@@ -3,23 +3,37 @@ import axios from 'axios';
 import config from '../config/baseUrl';
 
 const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
-  const [name, setName] = useState<any>('');
-  const [email, setEmail] = useState<any>('');
-  const [password, setPassword] = useState<any>('');
-  const [loading, setLoading] = useState<any>(false);
-  const [error, setError] = useState<any>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<any>(false);
-  const [checkingLogin, setCheckingLogin] = useState<any>(true);
+  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [checkingLogin, setCheckingLogin] = useState<boolean>(true);
+  const [userData, setUserData] = useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
+      fetchUserData();
     }
     setCheckingLogin(false);
   }, []);
 
-  const handleLogin = async (): Promise<any> => {
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`${config}/user/user-data`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setUserData(response.data);
+    } catch (error: any) {
+      console.error('Error fetching user data:', error);
+      setError('Failed to fetch user data.');
+    }
+  };
+
+  const handleLogin = async (): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
@@ -28,6 +42,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token);
         setIsLoggedIn(true);
+        fetchUserData();
         onSuccess();
         return true;
       }
@@ -44,7 +59,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     return false;
   };
 
-  const handleRegister = async (): Promise<any> => {
+  const handleRegister = async (): Promise<boolean> => {
     setLoading(true);
     setError(null);
   
@@ -73,6 +88,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
+    setUserData(null);
     onLogout();
   };
   
@@ -87,6 +103,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     error,
     isLoggedIn,
     checkingLogin,
+    userData,
     handleLogin,
     handleRegister,
     handleLogout,
