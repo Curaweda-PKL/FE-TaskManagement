@@ -12,7 +12,7 @@ function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const validatePassword = (password) => {
+  const validatePassword = (password : any) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasNumber = /\d/.test(password);
@@ -29,7 +29,7 @@ function ResetPassword() {
     return '';
   };
 
-  const handleConfirmPasswordChange = (e) => {
+  const handleConfirmPasswordChange = (e : any) => {
     setConfirmPassword(e.target.value);
     setPasswordMismatch(e.target.value !== password);
   };

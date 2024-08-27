@@ -1,6 +1,5 @@
 import React from 'react';
 import Wolf from '../assets/Media/wolf.png'
-import SideTask from '../Component/SideTask';
 
 const Home: React.FC = () => {
   return (
@@ -20,7 +19,6 @@ const Home: React.FC = () => {
           </div>
         </div>
       </div>
-      <SideTask />
     </div>
   );
 };

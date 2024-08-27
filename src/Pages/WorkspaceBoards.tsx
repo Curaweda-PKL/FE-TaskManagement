@@ -1,118 +1,236 @@
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useLocation } from 'react-router-dom';
-import { faLock, faUser, faUserFriends } from '@fortawesome/free-solid-svg-icons';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { fetchWorkspaces } from '../hooks/fetchWorkspace';
+import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
+import CreateBoard from '../Component/CreateBoard';
+import ConfirmationAlert from '../Component/Alert';
+import WorkspaceHeader from '../Component/WorkapaceHeader';
 
 const WorkspaceBoards: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const location = useLocation();
-  const isWorkspaceLayout = location.pathname === '/workspace/boards-ws';
+  const { workspaceId } = useParams<{ workspaceId: any }>();
+  const [workspace, setWorkspace] = useState<any>(null);
+  const [boards, setBoards] = useState<any[]>([]);
+  const [showCreateBoard, setShowCreateBoard] = useState(false);
+  const [editingBoard, setEditingBoard] = useState<any>(null);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, boardId: string | null }>({
+    isOpen: false,
+    boardId: null
+  });
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
+  useEffect(() => {
+    fetchWorkspaceData();
+    fetchBoardsData();
+  }, [workspaceId]);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  const fetchWorkspaceData = async () => {
+    try {
+      const workspaces = await fetchWorkspaces(workspaceId);
+      const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      setWorkspace(currentWorkspace);
+    } catch (error) {
+      console.error('Failed to fetch workspace:', error);
+      setAlert({ type: 'error', message: 'Failed to fetch workspace data. Please try again later.' });
+    }
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const fetchBoardsData = async () => {
+    try {
+      const boardsData = await fetchBoards(workspaceId);
+      console.log('Fetched boards data:', boardsData);
+      setBoards(boardsData);
+    } catch (error) {
+      console.error('Failed to fetch boards:', error);
+      setAlert({ type: 'error', message: 'Failed to fetch boards data. Please try again later.' });
+    }
+  };
+
+  const handleCreateBoard = async (workspaceId: any, name: any, description: any) => {
+    console.log('Creating board with:', {workspaceId, name, description });
+    try {
+      const response = await createBoard(workspaceId, name, description);
+      const message = response?.message || 'Board created successfully.';
+      await fetchBoardsData();
+      setShowCreateBoard(false);
+      setAlert({ type: 'success', message: message });
+    } catch (error: any) {
+      console.error('Failed to create board:', error);
+      let errorMessage = error.response?.data?.error || 'Failed to create board. Please try again.';
+      setAlert({ type: 'error', message: errorMessage });
+    }
+  };
+
+  const handleEditBoard = async (boardId: any, name: any, description: any) => {
+    console.log(boardId);
+    console.log(name);
+    console.log(description);
+    try {
+      const response = await updateBoard(boardId, name, description);
+      const message = response?.message || 'Board updated successfully.';
+      await fetchBoardsData();
+      setEditingBoard(null);
+      setAlert({ type: 'success', message: message });
+    } catch (error: any) {
+      console.error('Failed to update board:', error);
+      let errorMessage = error.response?.data?.error || 'Failed to update board. Please try again.';
+      setAlert({ type: 'error', message: errorMessage });
+    }
+  };
+
+  const openDeleteConfirmation = (boardId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId });
+  };
+
+  const closeDeleteConfirmation = () => {
+    setDeleteConfirmation({ isOpen: false, boardId: null });
+  };
+
+  const handleDeleteBoard = async () => {
+    if (deleteConfirmation.boardId) {
+      try {
+        const response = await deleteBoard(deleteConfirmation.boardId);
+        const message = response?.message || 'Board deleted successfully.';
+        await fetchBoardsData();
+        setAlert({ type: 'success', message: message });
+      } catch (error: any) {
+        console.error('Failed to delete board:', error);
+        let errorMessage = error.response?.data?.error || 'Failed to delete board. Please try again.';
+        setAlert({ type: 'error', message: errorMessage });
+      } finally {
+        closeDeleteConfirmation();
+      }
+    }
   };
 
   return (
-    <div className={`bg-white min-h-screen ${isWorkspaceLayout ? '' : ''}`}>
-      <div className="flex items-center justify-between bg-white p-4 rounded-md shadow-md mb-4 mx-6 mt-0"> {/* Tambahkan mt-0 untuk menyingkirkan margin atas */}
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-red-600 rounded-md mr-4"></div>
-          <div>
-            <h2 className="text-black text-xl font-bold">Kelompok 1’s workspace</h2>
-            <div className="flex items-center text-gray-500">
-              <FontAwesomeIcon icon={faLock} className="mr-2" />
-              <span>Private</span>
-            </div>
-          </div>
-          <button className="mb-5 ml-20 text-purple-600 bg-purple-100 px-9 py-1 rounded-md font-medium">Invite Workspace members</button>
+    <div className="bg-white min-h-screen">
+      {alert && (
+        <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+          {alert.message}
         </div>
-      </div>
-      <div className='mx-6'>
-        <div className='mb-8'>
-          <h2 className='text-xl font-bold flex items-center'>
-            <FontAwesomeIcon icon={faUser} className='mr-2' />
+      )}
+      <WorkspaceHeader workspace={workspace}/>
+
+      <div className='px-6 py-2 text-gray-600'>
+        <div className='mb-6'>
+          <h2 className='text-lg font-semibold flex items-center'>
+            <i className='fas fa-user mr-2 text-xl'></i>
             Your Boards
           </h2>
-          <div className='flex gap-4 mt-4'>
-            <div className='w-56 h-36 bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] text-white flex items-start justify-start rounded-md p-4'>
-              Project 1
-            </div>
-            <div className='w-56 h-36 bg-gray-400 text-white flex items-center justify-center rounded-md cursor-pointer' onClick={handleOpenModal}>
-              Create New Project
+          <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
+            {boards.map((board) => (
+              <div
+                key={board.id}
+                className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
+              >
+                <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
+                <h5 className='text-white relative z-10'>{board.name}</h5>
+                <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                  <i
+                    className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingBoard(board);
+                    }}
+                  />
+                  <i
+                    className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDeleteConfirmation(board.id);
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+            <div onClick={() => setShowCreateBoard(true)} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>
+              <h5 className='text-white text-center'>Create New Board</h5>
             </div>
           </div>
         </div>
         <div className='mb-8'>
-          <h2 className='text-xl font-bold flex items-center'>
-            <FontAwesomeIcon icon={faUserFriends} className='mr-2' />
+          <h2 className='text-lg font-semibold flex items-center'>
+            <i className='fas fa-user-friends mr-2 text-xl'></i>
             All boards in this workspace
           </h2>
-          <div className='flex items-center gap-4 mt-4'>
-            <div className='flex items-center bg-gray-200 px-4 py-2 rounded-md'>
-              <span className='mr-2'>Sort by</span>
-              <select className='bg-white border border-gray-300 rounded-md'>
-                <option>Most recently active</option>
-              </select>
-            </div>
-            <div className='bg-blue-500 w-10 h-10 flex items-center justify-center rounded-full text-white'>N</div>
+          <div className='items-center gap-4 mt-4'>
+            <p className='mr-2'>Sort by</p>
+            <select className='bg-gray-400 border p-1 border-gray-300 text-white rounded-md'>
+              <option>Most recently active</option>
+            </select>
           </div>
-          <div className='flex gap-4 mt-4'>
-            <div className='w-56 h-36 bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] text-white flex items-start justify-start rounded-md p-4'>
-              Project 1
-            </div>
-            <div className='w-56 h-36 bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] text-white flex items-start justify-start rounded-md p-4'>
-              Project 2
-            </div>
+          <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
+            {boards.map((board) => (
+              <div
+                key={board.id}
+                className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
+              >
+                <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
+                <h5 className='text-white relative z-10'>{board.name}</h5>
+                <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                  <i
+                    className='fas fa-pencil-alt text-xl text-white hover:text-yellow-300 cursor-pointer'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingBoard(board);
+                    }}
+                  />
+                  <i
+                    className='fas fa-trash text-xl text-white hover:text-red-500 cursor-pointer'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDeleteConfirmation(board.id);
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         <div>
           <h2 className='text-xl font-bold'>YOUR PERFORMANCE THIS WEEK</h2>
           <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
           <div className='flex items-center mt-4'>
-            <div className='w-full bg-gray-300 h-2 rounded-md'>
-              <div className='bg-blue-500 h-2 rounded-md' style={{ width: '40%' }}></div>
+            <div className='w-2/3 bg-gray-300 h-1 rounded-md'>
+              <div className='bg-blue-500 h-1 rounded-md' style={{ width: '35%' }}></div>
             </div>
             <span className='ml-4'>2/5</span>
           </div>
           <p className='text-gray-500 mt-2'>Bar resetting in : 4d 12h</p>
         </div>
       </div>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-md shadow-md w-96">
-            <h2 className="text-xl font-bold mb-4">Create board</h2>
-            <div className="mb-4">
-              <label className="block text-gray-700">Background</label>
-              <div className="flex gap-2 mt-2">
-                <div className="w-10 h-10 bg-red-500 rounded-md"></div>
-                <div className="w-10 h-10 bg-blue-500 rounded-md"></div>
-                <div className="w-10 h-10 bg-green-500 rounded-md"></div>
-              </div>
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Board title*</label>
-              <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-md" />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Visibility</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                <option>Public</option>
-                <option>Private</option>
-                <option>Workspace</option>
-              </select>
-            </div>
-            <div className="flex justify-end">
-              <button onClick={handleCloseModal} className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2">Cancel</button>
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-md">Create</button>
-            </div>
-          </div>
-        </div>
+      {showCreateBoard && (
+        <CreateBoard
+          workspaceId={workspaceId}
+          onClose={() => setShowCreateBoard(false)}
+          onCreateBoard={handleCreateBoard}
+        />
       )}
+      {editingBoard && (
+        <CreateBoard
+          workspaceId={workspaceId}
+          onClose={() => setEditingBoard(null)}
+          onCreateBoard={handleEditBoard}
+          initialData={editingBoard}
+          isEditing={true}
+        />
+      )}
+      <ConfirmationAlert
+        isOpen={deleteConfirmation.isOpen}
+        onClose={closeDeleteConfirmation}
+        onConfirm={handleDeleteBoard}
+        message="Are you sure you want to delete this board? This action cannot be undone."
+      />
     </div>
   );
 };

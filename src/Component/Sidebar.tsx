@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { House, SquaresFour, Heart, ChartBar, Users, Gear, CaretDown, Plus } from 'phosphor-react';
-import ChevronRight from '../assets/Media/ChevronRight.svg'
+import ChevronRight from '../assets/Media/ChevronRight.svg';
+import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 
 const Sidebar: React.FC = () => {
-  const [isWorkspaceExpanded, setIsWorkspaceExpanded] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [workspaces, setWorkspaces] = useState<any[]>([]);
+  const [expandedWorkspaceIndex, setExpandedWorkspaceIndex] = useState<any>(null);
   const location = useLocation();
 
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
@@ -12,74 +14,88 @@ const Sidebar: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  useEffect(() => {
+    const getWorkspaces = async () => {
+      try {
+        const data = await fetchWorkspaces(workspaces);
+        setWorkspaces(data);
+      } catch (error) {
+        console.error('Failed to fetch workspaces:', error);
+      }
+    };
+
+    getWorkspaces();
+  }, []);
+
+  const handleWorkspaceClick = (index: number) => {
+    setExpandedWorkspaceIndex(expandedWorkspaceIndex === index ? null : index);
+  };
+
   return (
-    <aside className={`w-[25%] min-w-56 bg-white pl-[4%] py-32 h-screen p-4 max768:w-[230px] max768:min-w-0 ${isSidebarOpen ? 'max768:ml-0' : 'max768:ml-[-230px]'} max768:fixed transition-all duration-300 z-20`}>
+    <aside className={`w-[25%] min-w-56 bg-white pl-[4%] py-16 h-screen p-4 max768:w-[230px] max768:min-w-0 ${isSidebarOpen ? 'max768:ml-0' : 'max768:ml-[-230px]'} max768:fixed transition-all duration-300 z-20`}>
       <div
         className={`fixed top-20 ${isSidebarOpen ? 'left-[-1.5rem] max768:left-[195px]' : 'left-[-1.5rem] max768:left-1'} max768:inline bg-white rounded-full p-1 shadow-2xl cursor-pointer transition-all duration-300`}
         onClick={toggleSidebar}
       >
         <img src={ChevronRight} alt="" className={` ${isSidebarOpen ? 'transform rotate-180' : ''}`} />
       </div>
-      <div className="mb-4">
+      <div className="mb-2">
         <Link to="/boards" className={`text-gray-600 p-2 mb-2 flex items-center ${hoverClass} ${isActive('/boards') ? activeClass : ''}`}>
-          <SquaresFour size={20} className="mr-2" /><span>Boards</span>
+          <i className='fas fa-th-large mr-2'></i><span>Boards</span>
         </Link>
         <Link to="/home" className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/home') ? activeClass : ''}`}>
-          <House size={20} className="mr-2" /><span>Home</span>
+          <i className='fas fa-home mr-2'></i><span>Home</span>
         </Link>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 py-3 border-t border-black">
         <h2 className="text-sm font-semibold text-gray-600 mb-2">Workspaces</h2>
-        <div className="bg-white rounded-md p-2">
-          <div
-            className={`flex items-center justify-between ${hoverClass}`}
-            onClick={() => setIsWorkspaceExpanded(!isWorkspaceExpanded)}
-          >
-            <div className="flex items-center overflow-hidden">
-              <div className="w-4 h-4 bg-red-500 rounded-sm mr-2"></div>
-              <span className="text-black font-medium overflow-hidden text-ellipsis whitespace-nowrap">Kelompok 1 Workspace</span>
-            </div>
-            <CaretDown
-              size={16}
-              className={`text-gray-600 transform transition-transform ${isWorkspaceExpanded ? 'rotate-180' : ''}`}
-            />
-          </div>
+        <div className="bg-white rounded-md">
+          {workspaces.map((workspace, index) => (
+            <div key={index}>
+              <div
+                className={`flex items-center mt-4 justify-between ${hoverClass}`}
+                onClick={() => handleWorkspaceClick(index)}
+              >
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="w-5 h-5 bg-red-500 rounded-sm mr-2"></div>
+                  <span className="text-black font-medium overflow-hidden text-ellipsis whitespace-nowrap">{workspace.name}</span>
+                </div>
+                <i className={`fas fa-chevron-down text-gray-600 transform transition-transform ${expandedWorkspaceIndex === index ? 'rotate-180' : ''}`}></i>
+              </div>
 
-          {isWorkspaceExpanded && (
-            <div className="mt-2 ml-6 space-y-2 text-gray-600">
-              <Link to="/workspace/boards" className={`flex items-center p-1 ${hoverClass} ${isActive('/workspace/boards') ? activeClass : ''}`}>
-                <SquaresFour size={16} className="mr-2" /><span>Boards</span>
-              </Link>
-              <Link to="/workspace/highlights" className={`flex items-center p-1 ${hoverClass} ${isActive('/workspace/highlights') ? activeClass : ''}`}>
-                <Heart size={16} className="mr-2" /><span>Highlights</span>
-              </Link>
-              <Link to="/workspace/reports" className={`flex items-center p-1 ${hoverClass} ${isActive('/workspace/reports') ? activeClass : ''}`}>
-                <ChartBar size={16} className="mr-2" /><span>Reports</span>
-              </Link>
-              <Link to="/workspace/members" className={`flex items-center justify-between p-1 ${hoverClass} ${isActive('/workspace/members') ? activeClass : ''}`}>
-                <div className="flex items-center">
-                  <Users size={16} className="mr-2" /><span>Member</span>
+              {expandedWorkspaceIndex === index && (
+                <div className="ml-6 mt-2 space-y-2 text-gray-600">
+                  <Link to={`/workspace/${workspace.id}/boards`} className={`flex items-center p-1 ${hoverClass} ${isActive(`/workspace/${workspace.id}/boards`) ? activeClass : ''}`}>
+                    <i className='fas fa-th-large mr-2'></i><span>Boards</span>
+                  </Link>
+                  <Link to={`/workspace/${workspace.id}/highlights`} className={`flex items-center p-1 ${hoverClass} ${isActive(`/workspace/${workspace.id}/highlights`) ? activeClass : ''}`}>
+                    <i className='fas fa-heart mr-2'></i><span>Highlights</span>
+                  </Link>
+                  <Link to={`/workspace/${workspace.id}/reports`} className={`flex items-center p-1 ${hoverClass} ${isActive(`/workspace/${workspace.id}/reports`) ? activeClass : ''}`}>
+                    <i className='fas fa-book-open mr-2'></i><span>Reports</span>
+                  </Link>
+                  <Link to={`/workspace/${workspace.id}/members`} className={`flex items-center justify-between p-1 ${hoverClass} ${isActive(`/workspace/${workspace.id}/members`) ? activeClass : ''}`}>
+                    <div className="flex items-center">
+                      <i className='fas fa-user-friends mr-2'></i><span>Members</span>
+                    </div>
+                    <div className="flex items-center">
+                      <i className='fas fa-plus mr-2'></i>
+                    </div>
+                  </Link>
+                  <Link to={`/workspace/${workspace.id}/settings`} className={`flex items-center justify-between p-1 ${hoverClass} ${isActive(`/workspace/${workspace.id}/settings`) ? activeClass : ''}`}>
+                    <div className="flex items-center">
+                      <i className='fas fa-cog mr-2'></i><span>Settings</span>
+                    </div>
+                  </Link>
                 </div>
-                <div className="flex items-center">
-                  <Plus size={16} className="mr-1" />
-                  <CaretDown size={16} />
-                </div>
-              </Link>
-              <Link to="/workspace/settings" className={`flex items-center justify-between p-1 ${hoverClass} ${isActive('/workspace/settings') ? activeClass : ''}`}>
-                <div className="flex items-center">
-                  <Gear size={16} className="mr-2" /><span>Settings</span>
-                </div>
-                <CaretDown size={16} />
-              </Link>
+              )}
             </div>
-          )}
+          ))}
         </div>
       </div>
     </aside>
