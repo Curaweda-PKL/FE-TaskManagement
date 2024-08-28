@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, User, ClipboardText, UsersThree, List } from 'phosphor-react';
+import { List } from 'phosphor-react';
 import useAuth from '../hooks/fetchAuth';
-import { fetchWorkspaces } from '../hooks/fetchWorkspace';
+import { fetchWorkspaces, createWorkspace } from '../hooks/fetchWorkspace';
 import CreateWorkspace from './CreateWorkspace';
 
 function Navbar() {
@@ -17,6 +17,19 @@ function Navbar() {
   const navbarRef = useRef<HTMLDivElement | null>(null);
 
   const { userData, isLoggedIn, handleLogout } = useAuth(() => { }, () => navigate('/'));
+
+  useEffect(() => {
+    fetchWorkspacesData();
+  }, []);
+
+  const fetchWorkspacesData = async () => {
+    try {
+      const fetchedWorkspaces = await fetchWorkspaces(workspaces);
+      setWorkspaces(fetchedWorkspaces);
+    } catch (error) {
+      console.error('Failed to fetch workspaces:', error);
+    }
+  };
 
   const handleToggle = (dropdown: string) => {
     setOpenDropdown(prevDropdown => prevDropdown === dropdown ? null : dropdown);
@@ -38,6 +51,16 @@ function Navbar() {
   const handleCreateWorkspaceClick = () => {
     setShowCreateWorkspace(true);
     setOpenDropdown(null);
+  };
+
+  const handleCreateWorkspace = async (name: string, description: string) => {
+    try {
+      await createWorkspace(name, description, userData?.id);
+      await fetchWorkspacesData();
+      closeCreateWorkspace();
+    } catch (error) {
+      console.error('Failed to create workspace:', error);
+    }
   };
 
   const handleLogoutClick = () => {
@@ -67,14 +90,6 @@ function Navbar() {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchAndSetWorkspaces = async () => {
-      const data = await fetchWorkspaces(workspaces);
-      setWorkspaces(data);
-    };
-
-    fetchAndSetWorkspaces();
-  }, []);
 
   return (
     <nav
@@ -89,10 +104,8 @@ function Navbar() {
           <a href="/boards" className="text-purple-600 font-bold text-2xl font-newsreader">TaskFlow</a>
           <div className="hidden lg:flex items-center space-x-4">
             <div className="relative inline-block">
-              <button
-                onClick={() => handleToggle('workspace')}
-                className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer"
-              >
+              <button onClick={() => handleToggle('workspace')}
+                className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer">
                 Workspace
                 <i className='ph-caret-down ml-1'></i>
               </button>
@@ -119,7 +132,7 @@ function Navbar() {
                   <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
                     <div className="flex">
                       <div className="flex-shrink-0 mr-3">
-                        <ClipboardText size={16} />
+                        <i className='fas fa-clipboard-list' />
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>
@@ -155,7 +168,7 @@ function Navbar() {
                   </div>
                   <div className="border-t border-black pt-2">
                     <div className='border p-2'>
-                      <p className="flex font-semibold border-b pb-2"><UsersThree size={24} />Task Management</p>
+                      <p className="flex font-semibold border-b pb-2"><i className='fas fa-users' />Task Management</p>
                       <div className="flex items-start mt-0 pt-2">
                         <div className="bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-white font-bold mr-3">
                           N
@@ -179,7 +192,7 @@ function Navbar() {
                 className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer"
               >
                 <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center cursor-pointer">
-                  <User size={20} className="text-white" />
+                  <i className="fas fa-user text-white" />
                 </div>
               </button>
               {openDropdown === 'profile' && isLoggedIn && (
@@ -188,7 +201,7 @@ function Navbar() {
                     <h3 className="text-sm font-bold text-gray-900 mb-4">ACCOUNT</h3>
                     <div className="flex items-center mb-4">
                       <div className="w-10 h-10 bg-red-500 rounded-full mr-3 flex items-center justify-center">
-                        <User size={24} className="text-white" />
+                        <i className="fas fa-user text-white" />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-800">{userData?.name}</p>
@@ -206,42 +219,23 @@ function Navbar() {
               )}
             </div>
           </div>
-          <button
-            className="md:hidden"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            <List size={24} />
-          </button>
         </div>
       </div>
       <div
-        className={`md:hidden w-full mt-4 bg-white rounded-md overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-100' : 'max-h-0 opacity-0'
-          }`}
-      >
+        className={`md:hidden w-full mt-4 bg-white rounded-md overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="px-4 py-2">
           <input type="text" placeholder="Search" className="bg-gray-100 rounded-md px-3 py-2 w-full text-sm mb-2" />
         </div>
-        <button
-          onClick={() => handleToggle('workspace')}
-          className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left"
-        >
-          Workspace<i className='ph-caret-down ml-1'></i>
+        <button onClick={() => handleToggle('workspace')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">Workspace<i className='ph-caret-down ml-1'></i>
         </button>
         {openDropdown === 'workspace' && (
           <ul className="absolute left-0 mt-5 bg-white border border-gray-200 rounded-md shadow-lg w-80">
             <li className="p-4">
               <h3 className="text-sm font-semibold text-gray-500">Your workspaces</h3>
               {workspaces.map(workspace => (
-                <div
-                  key={workspace.id}
-                  className="mt-2 flex items-center hover:bg-gray-100 p-2 rounded-md cursor-pointer"
-                  onClick={() => handleWorkspaceClick(workspace.id)}
-                >
+                <div key={workspace.id} className="mt-2 flex items-center hover:bg-gray-100 p-2 rounded-md cursor-pointer" onClick={() => handleWorkspaceClick(workspace.id)}>
                   <div className="w-4 h-4 bg-red-600 mr-2 rounded"></div>
-                  <a
-                    className="text-gray-800 font-semibold hover:text-purple-600"
-                  >
+                  <a className="text-gray-800 font-semibold hover:text-purple-600">
                     {workspace.name}
                   </a>
                 </div>
@@ -250,9 +244,7 @@ function Navbar() {
           </ul>
         )}
         <button
-          onClick={handleCreateClick}
-          className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left"
-        >
+          onClick={handleCreateClick} className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">
           Create
         </button>
         {openDropdown === 'create' && (
@@ -260,7 +252,7 @@ function Navbar() {
             <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
               <div className="flex">
                 <div className="flex-shrink-0 mr-3">
-                  <ClipboardText size={16} />
+                  <i className='fas fa-clipboard-list' />
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>
@@ -272,10 +264,8 @@ function Navbar() {
         )}
 
         <button
-          onClick={() => handleToggle('notification')}
-          className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left"
-        >
-          Notifications<Bell size={16} className="ml-1" />
+          onClick={() => handleToggle('notification')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
+          Notifications<i className="fas fa-bell ml-1" />
         </button>
         {openDropdown === 'notification' && (
           <div className="absolute top-[330px] left-0 bg-gray-50 p-4 m-0 shadow text-black">
@@ -290,7 +280,7 @@ function Navbar() {
             </div>
             <div className="border-t border-black pt-2">
               <div className='border p-2'>
-                <p className="flex font-semibold border-b pb-2"><UsersThree size={24} />Task Management</p>
+                <p className="flex font-semibold border-b pb-2"><i className='fas fa-users' />Task Management</p>
                 <div className="flex items-start mt-0 pt-2">
                   <div className="bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-white font-bold mr-3">
                     N
@@ -308,17 +298,15 @@ function Navbar() {
           </div>
         )}
         <button
-          onClick={() => handleToggle('profile')}
-          className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left"
-        >
-          Profile<User size={16} className="ml-1" />
+          onClick={() => handleToggle('profile')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
+          Profile<i className="fas fa-user ml-1" />
         </button>
         {openDropdown === 'profile' && (
           <ul className="bg-gray-50 px-4 py-2">
             <li className="mb-2">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-red-500 rounded-full mr-2 flex items-center justify-center">
-                  <User size={20} className="text-white" />
+                  <i className="fas fa-user text-white" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">kelompok 1</p>
@@ -343,6 +331,7 @@ function Navbar() {
           setWorkspaceName={setWorkspaceName}
           setWorkspaceDescription={setWorkspaceDescription}
           onClose={closeCreateWorkspace}
+          onCreate={handleCreateWorkspace}
         />
       )}
     </nav>

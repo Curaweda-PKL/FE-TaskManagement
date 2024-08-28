@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import ChevronRight from '../assets/Media/ChevronRight.svg';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
+import { fetchBoards } from '../hooks/fetchBoard';
 
 const SidebarWorkspace: React.FC = () => {
   const location = useLocation();
-  const { workspaceId } = useParams<{ workspaceId: string }>(); // Get the workspaceId from the URL
+  const { workspaceId } = useParams<{ workspaceId: string }>();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
+  const [boards, setBoards] = useState<any[]>([]);
 
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
   const activeClass = "bg-gray-100 text-purple-600";
@@ -35,6 +37,21 @@ const SidebarWorkspace: React.FC = () => {
 
     getWorkspaces();
   }, [workspaceId]);
+
+  useEffect(() => {
+    const getBoards = async () => {
+      if (selectedWorkspace) {
+        try {
+          const data = await fetchBoards(selectedWorkspace.id);
+          setBoards(data);
+        } catch (error) {
+          console.error('Failed to fetch boards:', error);
+        }
+      }
+    };
+
+    getBoards();
+  }, [selectedWorkspace]);
 
   return (
     <>
@@ -77,12 +94,18 @@ const SidebarWorkspace: React.FC = () => {
         </div>
 
         <div className="mb-4 px-4">
-          <h2 className="text-sm font-semibold text-gray-600 mb-2">Your Board</h2>
-          <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/project`} 
-              className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/project`) ? activeClass : ''}`}>
-              <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
-              <span>Project 1</span>
-          </Link>
+          <h2 className="text-sm font-semibold text-gray-600 mb-2">Your Boards</h2>
+          {boards.length > 0 ? (
+            boards.map(board => (
+              <Link key={board.id} to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`} 
+                  className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`) ? activeClass : ''}`}>
+                  <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
+                  <span>{board.name}</span>
+              </Link>
+            ))
+          ) : (
+            <span>No boards available</span>
+          )}
         </div>
       </aside>
     </>
