@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import WorkspaceHeader from '../Component/WorkapaceHeader';
+import WorkspaceHeader from '../Component/WorkspaceHeader';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 
 const WorkspaceMembers: React.FC = () => {

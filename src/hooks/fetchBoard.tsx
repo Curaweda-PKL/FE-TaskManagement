@@ -3,16 +3,12 @@ import config from '../config/baseUrl';
 
 export const fetchBoards = async (workspaceId: any) => {
   try {
-    const response = await axios.post(
-      config + "/board/takeBoard",
-      { workspaceId },
-      {
-        headers: {
-          'Authorization': localStorage.getItem('token'),
-          'Content-Type': 'application/json' 
-        }
+    const response = await axios.get(config + "/board/take/" + workspaceId, {
+      headers: {
+        'Authorization': localStorage.getItem('token'),
+        'Content-Type': 'application/json' 
       }
-    );
+    });
 
     return response.data;  
   } catch (error) {
@@ -23,7 +19,7 @@ export const fetchBoards = async (workspaceId: any) => {
 export const updateBoard = async (boardId: any, name: any, description: any) => {
   try {
     const response = await axios.put(
-      config + "/board/updateBoard",
+      config + "/board/update",
       { boardId, name, description },
       {
         headers: {
@@ -42,7 +38,7 @@ export const updateBoard = async (boardId: any, name: any, description: any) => 
 export const createBoard = async (workspaceId: any, name: any, description: any) => {
   try {
     const response = await axios.post(
-      config + "/board/createBoard",
+      config + "/board/create",
       { workspaceId, name, description },
       {
         headers: {
@@ -62,7 +58,7 @@ export const createBoard = async (workspaceId: any, name: any, description: any)
 export const deleteBoard = async (boardId: any) => {
   try {
     const response = await axios.delete(
-      `${config}/board/deleteBoard`,
+      `${config}/board/delete`,
       {
         headers: {
           'Authorization': `${localStorage.getItem('token')}`,
