@@ -52,12 +52,25 @@ const WorkspaceSettings: React.FC = () => {
   const handleDeleteWorkspace = async () => {
     if (workspaceId) {
       try {
-        await deleteWorkspace(workspaceId);
-        setAlert({ type: 'success', message: 'Workspace deleted successfully.' });
-        setTimeout(() => navigate('/boards'), 500);
+        const response = await deleteWorkspace(workspaceId);
+        
+        // Periksa apakah respons adalah array dan mengandung pesan error
+        if (Array.isArray(response) && response.length > 0 && response[0].message === "not owner in this workspace") {
+          setAlert({ type: 'error', message: 'You are not the owner of this workspace and cannot delete it.' });
+        } else {
+          setAlert({ type: 'success', message: 'Workspace deleted successfully.' });
+          setTimeout(() => navigate('/boards'), 500);
+        }
       } catch (error: any) {
         console.error('Failed to delete workspace:', error);
-        let errorMessage = error.response?.data?.error || 'Failed to delete workspace. Please try again.';
+        let errorMessage = 'Failed to delete workspace. Please try again.';
+        
+        // Periksa apakah error response mengandung pesan spesifik
+        if (error.response?.data && Array.isArray(error.response.data) && 
+            error.response.data.length > 0 && error.response.data[0].message === "not owner in this workspace") {
+          errorMessage = 'You are not the owner of this workspace and cannot delete it.';
+        }
+        
         setAlert({ type: 'error', message: errorMessage });
       }
     }
