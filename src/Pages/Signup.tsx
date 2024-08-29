@@ -18,9 +18,10 @@ function Signup() {
     handleRegister,
     isLoggedIn,
     checkingLogin,
-  } = useAuth(() => {
-    navigate('/signin');
-  });
+  } = useAuth(
+    () => {
+      navigate('/signin');
+    },() => {});
 
   useEffect(() => {
     if (!checkingLogin && isLoggedIn) {

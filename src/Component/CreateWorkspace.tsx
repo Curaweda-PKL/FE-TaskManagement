@@ -9,7 +9,18 @@ const CreateWorkspaceModal = ({
   setWorkspaceName,
   setWorkspaceDescription,
   onClose,
+  onCreate,
+  refreshWorkspaces,
 }) => {
+  const handleCreate = async () => {
+    try {
+      await onCreate(workspaceName, workspaceDescription);
+      await refreshWorkspaces();
+      onClose();
+    } catch (error) {
+      console.error('Failed to create workspace:', error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -49,7 +60,7 @@ const CreateWorkspaceModal = ({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleCreate}
             className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full"
           >
             Continue

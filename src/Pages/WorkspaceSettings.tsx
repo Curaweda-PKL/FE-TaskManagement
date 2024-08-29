@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import WorkspaceHeader from '../Component/WorkapaceHeader';
-import { fetchWorkspaces } from '../hooks/fetchWorkspace';
+import { useParams, useNavigate } from 'react-router-dom';
+import WorkspaceHeader from '../Component/WorkspaceHeader';
+import { fetchWorkspaces, deleteWorkspace } from '../hooks/fetchWorkspace';
 
 const WorkspaceSettings: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: any }>();
   const [activePopup, setActivePopup] = useState<'visibility' | 'delete' | null>(null);
   const [visibility, setVisibility] = useState<'Private' | 'Public'>('Private');
   const [workspace, setWorkspace] = useState<any>(null);
+  const navigate = useNavigate();
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   useEffect(() => {
     const fetchWorkspaceData = async () => {
@@ -37,8 +39,38 @@ const WorkspaceSettings: React.FC = () => {
     closeAllPopups();
   };
 
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  const handleDeleteWorkspace = async () => {
+    if (workspaceId) {
+      try {
+        await deleteWorkspace(workspaceId);
+        setAlert({ type: 'success', message: 'Workspace deleted successfully.' });
+        setTimeout(() => navigate('/boards'), 500);
+      } catch (error: any) {
+        console.error('Failed to delete workspace:', error);
+        let errorMessage = error.response?.data?.error || 'Failed to delete workspace. Please try again.';
+        setAlert({ type: 'error', message: errorMessage });
+      }
+    }
+    closeAllPopups();
+  };
+
   return (
     <div className='min-h-screen'>
+      {alert && (
+        <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+          {alert.message}
+        </div>
+      )}
       <WorkspaceHeader workspace={workspace} />
 
       <div className='py-10 text-black px-16'>
@@ -59,7 +91,7 @@ const WorkspaceSettings: React.FC = () => {
             </button>
           </div>
 
-          <div className='mt-3 cursor-pointer' onClick={(e) => {
+          <div className='mt-3 w-52 cursor-pointer' onClick={(e) => {
             e.stopPropagation();
             togglePopup('delete');
           }}>
@@ -79,7 +111,10 @@ const WorkspaceSettings: React.FC = () => {
                   Are you sure you want to delete this workspace permanently? This can't be undone.
                 </p>
                 <div className="flex justify-center">
-                  <button className="bg-[#FF0000] text-sm text-white font-medium py-1 px-10 rounded-lg hover:bg-red-600">
+                  <button 
+                    onClick={handleDeleteWorkspace}
+                    className="bg-[#FF0000] text-sm text-white font-medium py-1 px-10 rounded-lg hover:bg-red-600"
+                  >
                     Delete
                   </button>
                 </div>

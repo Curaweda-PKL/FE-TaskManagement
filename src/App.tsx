@@ -43,7 +43,7 @@ function App() {
           <Route path="/workspace/:workspaceId/reports" element={isLoggedIn ? <WorkspaceReports /> : <Navigate to="/signin" replace />} />
           <Route path="/workspace/:workspaceId/members" element={isLoggedIn ? <WorkspaceMembers /> : <Navigate to="/signin" replace />} />
           <Route path="/workspace/:workspaceId/settings" element={isLoggedIn ? <WorkspaceSettings /> : <Navigate to="/signin" replace />} />
-          <Route path="/workspace/:workspaceId/project" element={isLoggedIn ? <WorkspaceProject /> : <Navigate to="/signin" replace />} />
+          <Route path="/workspace/:workspaceId/board/:boardId" element={isLoggedIn ? <WorkspaceProject /> : <Navigate to="/signin" replace />} />
         </Route>
       </Routes>
     </Router>

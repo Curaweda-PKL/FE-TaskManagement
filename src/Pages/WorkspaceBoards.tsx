@@ -4,7 +4,7 @@ import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
 import ConfirmationAlert from '../Component/Alert';
-import WorkspaceHeader from '../Component/WorkapaceHeader';
+import WorkspaceHeader from '../Component/WorkspaceHeader';
 
 const WorkspaceBoards: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: any }>();

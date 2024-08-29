@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate} from 'react-router-dom';  // Import Link for navigation
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
 import ConfirmationAlert from '../Component/Alert';
-
-interface Toolbar {
-  id: number;
-  name: string;
-  icon: string;
-}
 
 const Workspace: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,13 +18,7 @@ const Workspace: React.FC = () => {
     isOpen: false,
     boardId: null
   });
-
-  const toolbars: Toolbar[] = [
-    { id: 1, name: "Board", icon: "fa-th-large" },
-    { id: 2, name: "Report", icon: "fa-book-open" },
-    { id: 3, name: "Member", icon: "fa-user" },
-    { id: 4, name: "Settings", icon: "fa-cog" },
-  ];
+  const navigate = useNavigate(); 
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -51,7 +40,7 @@ const Workspace: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const workspaceData = await fetchWorkspaces(Workspace);
+      const workspaceData = await fetchWorkspaces(workspaces);
       const updatedWorkspaces = await Promise.all(
         workspaceData.map(async (workspace: any) => {
           const boards = await fetchBoards(workspace.id);
@@ -62,9 +51,19 @@ const Workspace: React.FC = () => {
       setWorkspaces(updatedWorkspaces);
       setLoading(false);
     } catch (err: any) {
+      handleApiError(err);
       setError(err.message);
       setLoading(false);
       setAlert({ type: 'error', message: 'Failed to fetch workspace data. Please try again later.' });
+    }
+  };
+
+  const handleApiError = (error: any) => {
+    if (error.response?.status === 401) {
+      navigate('/login');  // Redirect to login page if token expired
+    } else {
+      setError(error.message);
+      setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
     }
   };
 
@@ -107,7 +106,6 @@ const Workspace: React.FC = () => {
       setAlert({ type: 'error', message: errorMessage });
     }
   };
-
 
   const openDeleteConfirmation = (boardId: any) => {
     setDeleteConfirmation({ isOpen: true, boardId });
@@ -176,12 +174,22 @@ const Workspace: React.FC = () => {
                 <span className='font-semibold text-[#4A4A4A] text-[15px] overflow-hidden text-ellipsis whitespace-nowrap'>{workspace.name}</span>
               </div>
               <div className='grid grid-cols-4 max850:grid-cols-2 gap-5 max850:gap-2'>
-                {toolbars.map((toolbar) => (
-                  <div key={toolbar.id} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
-                    <i className={`fas ${toolbar.icon} max768:h-[18px] max768:w-[18px] text-[#4A4A4A]`} aria-hidden="true"></i>
-                    <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>{toolbar.name}</span>
-                  </div>
-                ))}
+                <Link to={`/workspace/${workspace.id}/boards-ws`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
+                  <i className='fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Board</span>
+                </Link>
+                <Link to={`/workspace/${workspace.id}/reports`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
+                  <i className='fas fa-book-open max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Report</span>
+                </Link>
+                <Link to={`/workspace/${workspace.id}/members`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
+                  <i className='fas fa-user max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Member</span>
+                </Link>
+                <Link to={`/workspace/${workspace.id}/settings`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
+                  <i className='fas fa-cog max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Settings</span>
+                </Link>
               </div>
             </div>
 
