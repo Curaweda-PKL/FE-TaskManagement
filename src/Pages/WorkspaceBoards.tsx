@@ -13,8 +13,9 @@ const WorkspaceBoards: React.FC = () => {
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, boardId: string | null }>({
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, workspaceId: any, boardId: string | null }>({
     isOpen: false,
+    workspaceId: null,
     boardId: null
   });
 
@@ -70,7 +71,7 @@ const WorkspaceBoards: React.FC = () => {
     }
   };
 
-  const handleEditBoard = async (boardId: any, name: any, description: any) => {
+  const handleEditBoard = async (workspaceId: any, boardId: any, name: any, description: any) => {
     console.log(boardId);
     console.log(name);
     console.log(description);
@@ -87,18 +88,18 @@ const WorkspaceBoards: React.FC = () => {
     }
   };
 
-  const openDeleteConfirmation = (boardId: any) => {
-    setDeleteConfirmation({ isOpen: true, boardId });
+  const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
   };
 
   const closeDeleteConfirmation = () => {
-    setDeleteConfirmation({ isOpen: false, boardId: null });
+    setDeleteConfirmation({ isOpen: false, boardId: null, workspaceId: null });
   };
 
   const handleDeleteBoard = async () => {
-    if (deleteConfirmation.boardId) {
+    if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
       try {
-        const response = await deleteBoard(deleteConfirmation.boardId);
+        const response = await deleteBoard(deleteConfirmation.boardId,  deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
         await fetchBoardsData();
         setAlert({ type: 'success', message: message });
@@ -148,7 +149,7 @@ const WorkspaceBoards: React.FC = () => {
                     className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                     onClick={(e) => {
                       e.stopPropagation();
-                      openDeleteConfirmation(board.id);
+                      openDeleteConfirmation(workspace.id, board.id);
                     }}
                   />
                 </div>
@@ -192,7 +193,7 @@ const WorkspaceBoards: React.FC = () => {
                     className='fas fa-trash text-xl text-white hover:text-red-500 cursor-pointer'
                     onClick={(e) => {
                       e.stopPropagation();
-                      openDeleteConfirmation(board.id);
+                      openDeleteConfirmation(board.id, workspace.id);
                     }}
                   />
                 </div>
