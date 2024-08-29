@@ -75,7 +75,7 @@ const WorkspaceBoards: React.FC = () => {
     console.log(name);
     console.log(description);
     try {
-      const response = await updateBoard(boardId, name, description);
+      const response = await updateBoard(workspaceId, boardId, name, description);
       const message = response?.message || 'Board updated successfully.';
       await fetchBoardsData();
       setEditingBoard(null);

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 
-
 const WorkspaceProject = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
@@ -10,7 +9,7 @@ const WorkspaceProject = () => {
   const data = {
     card: [
       {
-        workspace: "workspace1",
+        card: "workspace1",
         color: "bg-red-500",
         cardList: [
           {
@@ -27,7 +26,7 @@ const WorkspaceProject = () => {
         ]
       },
       {
-        workspace: "workspace2",
+        card: "workspace2",
         color: "bg-yellow-500",
         cardList: [
           {
@@ -73,10 +72,8 @@ const WorkspaceProject = () => {
     <div className="m-h-screen">
       <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
         <div className="flex items-center space-x-7">
-          <h1 className="text-xl text-black font-medium">Project 1</h1>
-          <i className="fas fa-star text-gray-400"></i>
+          <h1 className="text-xl text-black font-medium">Project</h1>
           <div className="flex -space-x-1">
-            <i className="fas fa-user-friends text-gray-400"></i>
           </div>
         </div>
         <button className="bg-purple-600 text-white px-4 py-1 rounded text-sm">
@@ -85,18 +82,18 @@ const WorkspaceProject = () => {
       </header>
 
       <main className="flex px-8 bg-white mb-4">
-        {data.card.map((workspace, index) => (
+        {data.card.map((card, index) => (
           <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
-            <h2 className="text-xl text-center p-5 mb-4 text-gray-700">{workspace.workspace}</h2>
+            <h2 className="text-xl text-center p-5 mb-4 text-gray-700">{card.card}</h2>
             <ul className="space-y-2">
-              {workspace.cardList.map((cardList, index) => (
+              {card.cardList.map((cardList, index) => (
                 <li
                   key={index}
                   className="bg-gray-100 rounded-full p-2 flex justify-between items-center btn"
                   onClick={() => handleOpenPopup(cardList)}
                 >
                   <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full ${workspace.color} mr-2`}></div>
+                    <div className={`w-2 h-2 rounded-full ${card.color} mr-2`}></div>
                     <span className="text-black text-sm">{cardList.title}</span>
                   </div>
                   <button className="text-gray-400 hover:text-gray-600">
@@ -214,7 +211,7 @@ const WorkspaceProject = () => {
             />
             <ul>
               {selectedCardList.members.length > 0 ? (
-                selectedCardList.members.map((member, index) => (
+                selectedCardList.members.map((member: any, index: any) => (
                   <li key={index} className="text-black mb-2 p-3 h-10 flex items-center bg-gray-400 rounded">
                     <i className="fas fa-user mr-2"></i>{member.name}
                   </li>

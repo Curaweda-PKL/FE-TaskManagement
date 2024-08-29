@@ -60,7 +60,7 @@ const Workspace: React.FC = () => {
 
   const handleApiError = (error: any) => {
     if (error.response?.status === 401) {
-      navigate('/login');  // Redirect to login page if token expired
+      navigate('/signin');
     } else {
       setError(error.message);
       setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
@@ -87,9 +87,9 @@ const Workspace: React.FC = () => {
     }
   };
 
-  const handleEditBoard = async (boardId: any, name: string, description: string) => {
+  const handleEditBoard = async (workspaceId: any, boardId: any, name: string, description: string) => {
     try {
-      const response = await updateBoard(boardId, name, description);
+      const response = await updateBoard(workspaceId, boardId, name, description);
       const message = response?.message || 'Board updated successfully.';
       await fetchData();
       setEditingBoard(null);
