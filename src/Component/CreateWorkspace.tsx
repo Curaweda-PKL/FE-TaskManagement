@@ -3,19 +3,26 @@ import { X } from 'phosphor-react';
 import createWork from '../assets/Media/createWork.svg';
 import work from '../assets/Media/work.png';
 
-const CreateWorkspaceModal = ({
+interface CreateWorkspaceProps {
+  workspaceName: any;
+  workspaceDescription: any;
+  setWorkspaceName: (name: any) => void;
+  setWorkspaceDescription: (description: any) => void;
+  onClose: () => void;
+  onCreate: (name: any, description: any) => Promise<void>;
+}
+
+const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
   workspaceName,
   workspaceDescription,
   setWorkspaceName,
   setWorkspaceDescription,
   onClose,
   onCreate,
-  refreshWorkspaces,
 }) => {
   const handleCreate = async () => {
     try {
       await onCreate(workspaceName, workspaceDescription);
-      await refreshWorkspaces();
       onClose();
     } catch (error) {
       console.error('Failed to create workspace:', error);
@@ -50,7 +57,7 @@ const CreateWorkspaceModal = ({
             </label>
             <textarea
               className="w-full px-3 py-2 bg-white border border-gray-300"
-              rows="4"
+              rows={4}
               placeholder="Our workspace is..."
               value={workspaceDescription}
               onChange={(e) => setWorkspaceDescription(e.target.value)}
@@ -83,4 +90,4 @@ const CreateWorkspaceModal = ({
   );
 };
 
-export default CreateWorkspaceModal;
+export default CreateWorkspace;

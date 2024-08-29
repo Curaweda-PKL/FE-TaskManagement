@@ -10,17 +10,17 @@ export const fetchBoards = async (workspaceId: any) => {
       }
     });
 
-    return response.data;  
+    return response.data;
   } catch (error) {
     console.error('Failed to fetch boards:', error);
     throw error;
   }
 };
-export const updateBoard = async (boardId: any, name: any, description: any) => {
+export const updateBoard = async (workspaceId: any, boardId: any, name: any, description: any) => {
   try {
     const response = await axios.put(
       config + "/board/update",
-      { boardId, name, description },
+      { workspaceId, boardId, name, description },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),

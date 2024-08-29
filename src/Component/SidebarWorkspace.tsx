@@ -27,7 +27,7 @@ const SidebarWorkspace: React.FC = () => {
         const data = await fetchWorkspaces(workspaces);
         setWorkspaces(data);
         if (data.length > 0) {
-          const defaultWorkspace = data.find(ws => ws.id === workspaceId);
+          const defaultWorkspace = data.find((ws: any) => ws.id === workspaceId);
           setSelectedWorkspace(defaultWorkspace || data[0]);
         }
       } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Feature from './Feature';
 import Solution from './Solution';
@@ -6,12 +6,12 @@ import useAuth from '../hooks/fetchAuth';
 
 function NavbarHome() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth(() => {});
+  const { isLoggedIn } = useAuth(() => {}, () => {});
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
   const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const navRef = useRef(null);
+  const navRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -40,16 +40,16 @@ function NavbarHome() {
   };
 
   useEffect(() => {
-    function handleClickOutside(event : any) {
-      if (navRef.current && !navRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setIsFeaturesOpen(false);
         setIsSolutionsOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside as unknown as EventListener);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside as unknown as EventListener);
     };
   }, []);
 

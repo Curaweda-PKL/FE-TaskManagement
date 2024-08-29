@@ -51,21 +51,15 @@ const WorkspaceMembers: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Main Content Section */}
           <div className="w-3/4 pl-4">
-            {/* Conditional Rendering */}
             {!showJoinRequests ? (
               <>
-                {/* Workspace Members Section */}
                 <div className="mb-8">
                   <h3 className="text-black text-lg font-semibold">Workspace member (3)</h3>
                   <p className="text-sm text-gray-600 mt-2">
                     Workspace members can view and join all Workspace visible boards and create new boards in the Workspace.
                   </p>
                 </div>
-
-                {/* Invite Section */}
                 <div className="bg-white p-4 rounded-md border mb-8">
                   <h3 className="text-black text-lg font-semibold">Invite members to join you</h3>
                   <p className="text-sm text-gray-600 mt-2">
@@ -76,8 +70,6 @@ const WorkspaceMembers: React.FC = () => {
                     <button className="text-gray-600">Disable invite link</button>
                   </div>
                 </div>
-
-                {/* Search Section */}
                 <div className="mb-8">
                   <input
                     type="text"
@@ -85,10 +77,7 @@ const WorkspaceMembers: React.FC = () => {
                     className="w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-4 text-gray-700"
                   />
                 </div>
-
-                {/* Members Section */}
                 <div className="space-y-4">
-                  {/* Replace with your dynamic member list */}
                   <div className="bg-green-100 p-4 rounded-md flex justify-between items-center">
                     <div className="flex items-center">
                       <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
@@ -134,14 +123,12 @@ const WorkspaceMembers: React.FC = () => {
               </>
             ) : (
               <div>
-                {/* Join Requests Section */}
                 <h3 className="text-black text-lg font-semibold">Join Requests (2)</h3>
                 <p className="text-sm text-gray-600 mt-2">
                   These people have requested to join this workspace. Adding new workspace will
                   automatically update your bill. workspace guest already count toward the free workspace
                   collaborator limit
                 </p>
-                {/* Search Section */}
                 <div className="mb-8">
                   <input
                     type="text"
@@ -149,7 +136,6 @@ const WorkspaceMembers: React.FC = () => {
                     className="w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-4 text-gray-700"
                   />
                 </div>
-                {/* Join Requests Members */}
                 <div className="space-y-4">
                   <div className="bg-green-100 p-4 rounded-md flex justify-between items-center">
                     <div className="flex items-center">

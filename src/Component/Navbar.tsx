@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { List } from 'phosphor-react';
 import useAuth from '../hooks/fetchAuth';
 import { fetchWorkspaces, createWorkspace } from '../hooks/fetchWorkspace';
 import CreateWorkspace from './CreateWorkspace';
@@ -219,6 +218,9 @@ function Navbar() {
               )}
             </div>
           </div>
+          <button
+            className="md:hidden" onClick={toggleMenu} aria-label="Toggle menu"><i className='fas fa-bars text-black' />
+          </button>
         </div>
       </div>
       <div
@@ -252,7 +254,7 @@ function Navbar() {
             <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
               <div className="flex">
                 <div className="flex-shrink-0 mr-3">
-                  <i className='fas fa-clipboard-list' />
+                  <i className='fas fa-clipboard-list'/>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>

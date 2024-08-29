@@ -4,12 +4,18 @@ import { X } from 'phosphor-react';
 interface CreateBoardProps {
   workspaceId: any;
   onClose: () => void;
-  onCreateBoard: (workspaceId: any, name: string, description: string) => void;
+  onCreateBoard: (workspaceId: any, boardId: any, name: string, description: string) => void; // Updated signature
   initialData?: { id: string; name: string; description: string };
   isEditing?: boolean;
 }
 
-const CreateBoard: React.FC<CreateBoardProps> = ({ workspaceId, onClose, onCreateBoard, initialData, isEditing = false }) => {
+const CreateBoard: React.FC<CreateBoardProps> = ({
+  workspaceId,
+  onClose,
+  onCreateBoard,
+  initialData,
+  isEditing = false,
+}) => {
   const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
 
@@ -22,9 +28,9 @@ const CreateBoard: React.FC<CreateBoardProps> = ({ workspaceId, onClose, onCreat
 
   const handleSubmit = () => {
     if (isEditing && initialData) {
-      onCreateBoard(initialData.id, name, description);
+      onCreateBoard(workspaceId, initialData.id, name, description); // Call with workspaceId, boardId, name, description
     } else {
-      onCreateBoard(workspaceId, name, description);
+      onCreateBoard(workspaceId, null, name, description); // Call with workspaceId, no boardId, name, description
     }
   };
 
@@ -32,7 +38,9 @@ const CreateBoard: React.FC<CreateBoardProps> = ({ workspaceId, onClose, onCreat
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden w-full max-w-sm max-h-[90vh] flex flex-col">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">{isEditing ? 'Edit Board' : 'Create Board'}</h3>
+          <h3 className="text-lg font-medium text-gray-900">
+            {isEditing ? 'Edit Board' : 'Create Board'}
+          </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
             <X size={20} />
           </button>
@@ -55,7 +63,7 @@ const CreateBoard: React.FC<CreateBoardProps> = ({ workspaceId, onClose, onCreat
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Board Description*</label>
             <input
-              type="description"
+              type="text"
               className="w-full bg-white px-3 py-2 border rounded-md"
               placeholder="Input your description"
               value={description}

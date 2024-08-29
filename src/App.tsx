@@ -20,7 +20,7 @@ import Profile from './Pages/Profile';
 
 
 function App() {
-  const { isLoggedIn } = useAuth(() => {});
+  const { isLoggedIn } = useAuth(() => {}, () => {});
 
   return (
     <Router>
