@@ -1,15 +1,36 @@
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { fetchBoards } from '../hooks/fetchBoard';
 
 const WorkspaceProject = () => {
+  const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
+  const [boardName, setBoardName] = useState<string>('');
+  const [boards, setBoards] = useState<any[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [selectedCardList, setSelectedCardList] = useState(null);
 
+  useEffect(() => {
+    const getBoards = async () => {
+      if (workspaceId) {
+        try {
+          const data = await fetchBoards(workspaceId);
+          setBoards(data);
+          const board = data.find((b: any) => b.id === boardId);
+          setBoardName(board ? board.name : 'Project');
+        } catch (error) {
+          console.error('Failed to fetch boards:', error);
+        }
+      }
+    };
+
+    getBoards();
+  }, [workspaceId, boardId]);
+
   const data = {
     card: [
       {
-        card: "workspace1",
+        workspace: "workspace1",
         color: "bg-red-500",
         cardList: [
           {
@@ -26,7 +47,7 @@ const WorkspaceProject = () => {
         ]
       },
       {
-        card: "workspace2",
+        workspace: "workspace2",
         color: "bg-yellow-500",
         cardList: [
           {
@@ -72,7 +93,7 @@ const WorkspaceProject = () => {
     <div className="m-h-screen">
       <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
         <div className="flex items-center space-x-7">
-          <h1 className="text-xl text-black font-medium">Project</h1>
+          <h1 className="text-xl text-black font-medium">{boardName}</h1>
           <div className="flex -space-x-1">
           </div>
         </div>
@@ -82,18 +103,18 @@ const WorkspaceProject = () => {
       </header>
 
       <main className="flex px-8 bg-white mb-4">
-        {data.card.map((card, index) => (
+        {data.card.map((workspace, index) => (
           <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
-            <h2 className="text-xl text-center p-5 mb-4 text-gray-700">{card.card}</h2>
+            <h2 className="text-xl text-center p-5 mb-4 text-gray-700">{workspace.workspace}</h2>
             <ul className="space-y-2">
-              {card.cardList.map((cardList, index) => (
+              {workspace.cardList.map((cardList, index) => (
                 <li
                   key={index}
                   className="bg-gray-100 rounded-full p-2 flex justify-between items-center btn"
                   onClick={() => handleOpenPopup(cardList)}
                 >
                   <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full ${card.color} mr-2`}></div>
+                    <div className={`w-2 h-2 rounded-full ${workspace.color} mr-2`}></div>
                     <span className="text-black text-sm">{cardList.title}</span>
                   </div>
                   <button className="text-gray-400 hover:text-gray-600">
@@ -211,7 +232,7 @@ const WorkspaceProject = () => {
             />
             <ul>
               {selectedCardList.members.length > 0 ? (
-                selectedCardList.members.map((member: any, index: any) => (
+                selectedCardList.members.map((member, index) => (
                   <li key={index} className="text-black mb-2 p-3 h-10 flex items-center bg-gray-400 rounded">
                     <i className="fas fa-user mr-2"></i>{member.name}
                   </li>

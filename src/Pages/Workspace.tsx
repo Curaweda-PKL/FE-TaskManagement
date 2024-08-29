@@ -14,8 +14,9 @@ const Workspace: React.FC = () => {
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, boardId: any | null }>({
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, workspaceId: any, boardId: any | null }>({
     isOpen: false,
+    workspaceId: null,
     boardId: null
   });
   const navigate = useNavigate(); 
@@ -60,7 +61,7 @@ const Workspace: React.FC = () => {
 
   const handleApiError = (error: any) => {
     if (error.response?.status === 401) {
-      navigate('/signin');
+      navigate('/signin'); 
     } else {
       setError(error.message);
       setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
@@ -87,7 +88,7 @@ const Workspace: React.FC = () => {
     }
   };
 
-  const handleEditBoard = async (workspaceId: any, boardId: any, name: string, description: string) => {
+  const handleEditBoard = async (workspaceId:any, boardId: any, name: string, description: string) => {
     try {
       const response = await updateBoard(workspaceId, boardId, name, description);
       const message = response?.message || 'Board updated successfully.';
@@ -107,18 +108,18 @@ const Workspace: React.FC = () => {
     }
   };
 
-  const openDeleteConfirmation = (boardId: any) => {
-    setDeleteConfirmation({ isOpen: true, boardId });
+  const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
   };
 
   const closeDeleteConfirmation = () => {
-    setDeleteConfirmation({ isOpen: false, boardId: null });
+    setDeleteConfirmation({ isOpen: false, boardId: null, workspaceId: null });
   };
 
   const handleDeleteBoard = async () => {
-    if (deleteConfirmation.boardId) {
+    if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
       try {
-        const response = await deleteBoard(deleteConfirmation.boardId);
+        const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message;
         await fetchData();
         setAlert({ type: 'success', message: message });
@@ -213,7 +214,7 @@ const Workspace: React.FC = () => {
                       className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                       onClick={(e) => {
                         e.stopPropagation();
-                        openDeleteConfirmation(board.id);
+                        openDeleteConfirmation(workspace.id, board.id);
                       }}
                     />
                   </div>

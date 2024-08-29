@@ -4,7 +4,7 @@ import { X } from 'phosphor-react';
 interface CreateBoardProps {
   workspaceId: any;
   onClose: () => void;
-  onCreateBoard: (workspaceId: any, boardId: any, name: string, description: string) => void; // Updated signature
+  onCreateBoard: (workspaceId: any, name: string, description: string, boardId: any,) => void; // Updated signature
   initialData?: { id: string; name: string; description: string };
   isEditing?: boolean;
 }
@@ -28,9 +28,9 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
 
   const handleSubmit = () => {
     if (isEditing && initialData) {
-      onCreateBoard(workspaceId, initialData.id, name, description); // Call with workspaceId, boardId, name, description
+      onCreateBoard(workspaceId, initialData.id, name, description);
     } else {
-      onCreateBoard(workspaceId, null, name, description); // Call with workspaceId, no boardId, name, description
+      onCreateBoard(workspaceId, name, description, null); 
     }
   };
 
