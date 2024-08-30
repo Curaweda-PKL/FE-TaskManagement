@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
@@ -13,8 +13,9 @@ const WorkspaceBoards: React.FC = () => {
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, boardId: string | null }>({
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, workspaceId: any, boardId: string | null }>({
     isOpen: false,
+    workspaceId: null,
     boardId: null
   });
 
@@ -47,7 +48,6 @@ const WorkspaceBoards: React.FC = () => {
   const fetchBoardsData = async () => {
     try {
       const boardsData = await fetchBoards(workspaceId);
-      console.log('Fetched boards data:', boardsData);
       setBoards(boardsData);
     } catch (error) {
       console.error('Failed to fetch boards:', error);
@@ -70,12 +70,12 @@ const WorkspaceBoards: React.FC = () => {
     }
   };
 
-  const handleEditBoard = async (boardId: any, name: any, description: any) => {
+  const handleEditBoard = async (workspaceId: any, boardId: any, name: any, description: any) => {
     console.log(boardId);
     console.log(name);
     console.log(description);
     try {
-      const response = await updateBoard(boardId, name, description);
+      const response = await updateBoard(workspaceId, boardId, name, description);
       const message = response?.message || 'Board updated successfully.';
       await fetchBoardsData();
       setEditingBoard(null);
@@ -87,18 +87,18 @@ const WorkspaceBoards: React.FC = () => {
     }
   };
 
-  const openDeleteConfirmation = (boardId: any) => {
-    setDeleteConfirmation({ isOpen: true, boardId });
+  const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
   };
 
   const closeDeleteConfirmation = () => {
-    setDeleteConfirmation({ isOpen: false, boardId: null });
+    setDeleteConfirmation({ isOpen: false, boardId: null, workspaceId: null });
   };
 
   const handleDeleteBoard = async () => {
-    if (deleteConfirmation.boardId) {
+    if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
       try {
-        const response = await deleteBoard(deleteConfirmation.boardId);
+        const response = await deleteBoard(deleteConfirmation.boardId,  deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
         await fetchBoardsData();
         setAlert({ type: 'success', message: message });
@@ -133,24 +133,26 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
+              <Link to={`/workspace/${workspace?.id}/board/${board.id}`}>
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                 <h5 className='text-white relative z-10'>{board.name}</h5>
                 <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
                   <i
                     className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e.preventDefault();
                       setEditingBoard(board);
                     }}
                   />
                   <i
                     className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                     onClick={(e) => {
-                      e.stopPropagation();
-                      openDeleteConfirmation(board.id);
+                      e.preventDefault();
+                      openDeleteConfirmation(workspace?.id, board.id);
                     }}
                   />
                 </div>
+                </Link>
               </div>
             ))}
             <div onClick={() => setShowCreateBoard(true)} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>
@@ -175,6 +177,7 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
+                <Link to={`/workspace/${workspace?.id}/board/${board.id}`}>
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                 <h5 className='text-white relative z-10'>{board.name}</h5>
                 <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
@@ -189,10 +192,11 @@ const WorkspaceBoards: React.FC = () => {
                     className='fas fa-trash text-xl text-white hover:text-red-500 cursor-pointer'
                     onClick={(e) => {
                       e.stopPropagation();
-                      openDeleteConfirmation(board.id);
+                      openDeleteConfirmation(board.id, workspace.id);
                     }}
                   />
                 </div>
+              </Link>
               </div>
             ))}
           </div>

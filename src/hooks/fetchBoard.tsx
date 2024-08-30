@@ -10,17 +10,17 @@ export const fetchBoards = async (workspaceId: any) => {
       }
     });
 
-    return response.data;  
+    return response.data;
   } catch (error) {
     console.error('Failed to fetch boards:', error);
     throw error;
   }
 };
-export const updateBoard = async (boardId: any, name: any, description: any) => {
+export const updateBoard = async (workspaceId: any, boardId: any, name: any, description: any) => {
   try {
     const response = await axios.put(
       config + "/board/update",
-      { boardId, name, description },
+      { workspaceId, boardId, name, description },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
@@ -35,7 +35,7 @@ export const updateBoard = async (boardId: any, name: any, description: any) => 
     throw error;
   }
 };
-export const createBoard = async (workspaceId: any, name: any, description: any) => {
+export const createBoard = async (workspaceId: string, name: string, description: string) => {
   try {
     const response = await axios.post(
       config + "/board/create",
@@ -55,7 +55,7 @@ export const createBoard = async (workspaceId: any, name: any, description: any)
   }
 };
 
-export const deleteBoard = async (boardId: any) => {
+export const deleteBoard = async (workspaceId: any, boardId: any) => {
   try {
     const response = await axios.delete(
       `${config}/board/delete`,
@@ -64,7 +64,7 @@ export const deleteBoard = async (boardId: any) => {
           'Authorization': `${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        data: { boardId }
+        data: { workspaceId, boardId }
       }
     );
 

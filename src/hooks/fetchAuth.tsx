@@ -6,6 +6,8 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [oldPassword, setOldPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -91,6 +93,39 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     setUserData(null);
     onLogout();
   };
+
+  const changePassword = async (): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.put(
+        `${config}/user/change-password`,
+        { email, oldPassword, newPassword },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+
+      if (response.status === 200) {
+        console.log('Password changed successfully:', response.data);
+        return true;
+      } else {
+        setError('Failed to change password. Please try again.');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Change Password Error:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Failed to change password. Please try again.');
+      }
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return {
     name,
@@ -99,6 +134,10 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     setEmail,
     password,
     setPassword,
+    oldPassword,
+    setOldPassword,
+    newPassword,
+    setNewPassword,
     loading,
     error,
     isLoggedIn,
@@ -107,6 +146,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     handleLogin,
     handleRegister,
     handleLogout,
+    changePassword,
   };
 };
 

@@ -13,14 +13,14 @@ import WorkspaceHighlights from './Pages/WorkspaceHighlights';
 import WorkspaceReports from './Pages/WorkspaceReports';
 import WorkspaceMembers from './Pages/WorkspaceMembers';
 import WorkspaceSettings from './Pages/WorkspaceSettings';
-import WorkspaceProject from './Pages/WorkspaceProject';
+import WorkspaceProject from './Pages/WorkspaceCard';
 import useAuth from './hooks/fetchAuth';
 import LayoutWorkspace from './Component/LayoutWorkspace';
 import Profile from './Pages/Profile';
 
 
 function App() {
-  const { isLoggedIn } = useAuth(() => {});
+  const { isLoggedIn } = useAuth(() => {}, () => {});
 
   return (
     <Router>

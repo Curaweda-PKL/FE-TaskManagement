@@ -1,11 +1,31 @@
-import { useState } from 'react';
-
-
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { fetchBoards } from '../hooks/fetchBoard';
 
 const WorkspaceProject = () => {
+  const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
+  const [boardName, setBoardName] = useState<string>('');
+  const [boards, setBoards] = useState<any[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [selectedCardList, setSelectedCardList] = useState(null);
+
+  useEffect(() => {
+    const getBoards = async () => {
+      if (workspaceId) {
+        try {
+          const data = await fetchBoards(workspaceId);
+          setBoards(data);
+          const board = data.find((b: any) => b.id === boardId);
+          setBoardName(board ? board.name : 'Project');
+        } catch (error) {
+          console.error('Failed to fetch boards:', error);
+        }
+      }
+    };
+
+    getBoards();
+  }, [workspaceId, boardId]);
 
   const data = {
     card: [
@@ -73,10 +93,8 @@ const WorkspaceProject = () => {
     <div className="m-h-screen">
       <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
         <div className="flex items-center space-x-7">
-          <h1 className="text-xl text-black font-medium">Project 1</h1>
-          <i className="fas fa-star text-gray-400"></i>
+          <h1 className="text-xl text-black font-medium">{boardName}</h1>
           <div className="flex -space-x-1">
-            <i className="fas fa-user-friends text-gray-400"></i>
           </div>
         </div>
         <button className="bg-purple-600 text-white px-4 py-1 rounded text-sm">

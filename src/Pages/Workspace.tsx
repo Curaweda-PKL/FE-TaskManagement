@@ -14,8 +14,9 @@ const Workspace: React.FC = () => {
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, boardId: any | null }>({
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, workspaceId: any, boardId: any | null }>({
     isOpen: false,
+    workspaceId: null,
     boardId: null
   });
   const navigate = useNavigate(); 
@@ -60,7 +61,7 @@ const Workspace: React.FC = () => {
 
   const handleApiError = (error: any) => {
     if (error.response?.status === 401) {
-      navigate('/login');  // Redirect to login page if token expired
+      navigate('/signin'); 
     } else {
       setError(error.message);
       setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
@@ -87,9 +88,9 @@ const Workspace: React.FC = () => {
     }
   };
 
-  const handleEditBoard = async (boardId: any, name: string, description: string) => {
+  const handleEditBoard = async (workspaceId:any, boardId: any, name: string, description: string) => {
     try {
-      const response = await updateBoard(boardId, name, description);
+      const response = await updateBoard(workspaceId, boardId, name, description);
       const message = response?.message || 'Board updated successfully.';
       await fetchData();
       setEditingBoard(null);
@@ -107,18 +108,18 @@ const Workspace: React.FC = () => {
     }
   };
 
-  const openDeleteConfirmation = (boardId: any) => {
-    setDeleteConfirmation({ isOpen: true, boardId });
+  const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
   };
 
   const closeDeleteConfirmation = () => {
-    setDeleteConfirmation({ isOpen: false, boardId: null });
+    setDeleteConfirmation({ isOpen: false, boardId: null, workspaceId: null });
   };
 
   const handleDeleteBoard = async () => {
-    if (deleteConfirmation.boardId) {
+    if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
       try {
-        const response = await deleteBoard(deleteConfirmation.boardId);
+        const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message;
         await fetchData();
         setAlert({ type: 'success', message: message });
@@ -199,6 +200,7 @@ const Workspace: React.FC = () => {
                   key={board.id}
                   className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
                 >
+                  <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
                   <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                   <h5 className='text-white relative z-10'>{board.name}</h5>
                   <div className='absolute right-2 bottom-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
@@ -213,10 +215,11 @@ const Workspace: React.FC = () => {
                       className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                       onClick={(e) => {
                         e.stopPropagation();
-                        openDeleteConfirmation(board.id);
+                        openDeleteConfirmation(workspace.id, board.id);
                       }}
                     />
                   </div>
+                  </Link>
                 </div>
               ))}
               <div onClick={() => openCreateBoard(workspace.id)} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>

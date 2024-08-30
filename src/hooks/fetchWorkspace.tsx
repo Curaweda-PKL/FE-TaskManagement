@@ -3,7 +3,6 @@ import config from '../config/baseUrl';
 
 export const fetchWorkspaces = async (workspaceId: any) => {
   try {
-    console.log(workspaceId);
     const response = await axios.get(
       config + '/workspace/take',      {
         headers: {
