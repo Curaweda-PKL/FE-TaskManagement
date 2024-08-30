@@ -1,12 +1,24 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Navbar from '../Component/Navbar';
-import useAuth from '../hooks/fetchAuth'; // Import the useAuth hook
+import useAuth from '../hooks/fetchAuth';
 
 function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
-  const { userData, isLoggedIn, checkingLogin } = useAuth(() => {}, () => {}); // Use the useAuth hook
+  const {
+    userData,
+    isLoggedIn,
+    checkingLogin,
+    oldPassword,
+    setOldPassword,
+    newPassword,
+    setNewPassword,
+    changePassword,
+    error,
+    loading,
+  } = useAuth(() => {}, () => {});
 
-  // Handle loading and logged-in states
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   if (checkingLogin) {
     return <div>Loading...</div>;
   }
@@ -15,7 +27,23 @@ function Profile() {
     return <div>You are not logged in. Please log in to view your profile.</div>;
   }
 
-  if (userData)
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      alert('New passwords do not match.');
+      return;
+    }
+    
+    const success = await changePassword();
+    if (success) {
+      alert('Password changed successfully!');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      alert('Failed to change password. Please try again.');
+    }
+  };
 
   return (
     <div className='min-h-screen bg-white font-sans text-black'>
@@ -27,8 +55,8 @@ function Profile() {
           <div className='flex items-center mb-6'>
             <div className='w-12 h-12 bg-red-500 rounded-full mr-4'></div>
             <div>
-              <h2 className='font-semibold'>{userData.name}</h2>
-              <p className='text-sm text-gray-600'>{userData.email}</p>
+              <h2 className='font-semibold'>{userData?.name}</h2>
+              <p className='text-sm text-gray-600'>{userData?.email}</p>
             </div>
           </div>
 
@@ -63,7 +91,7 @@ function Profile() {
                       <input
                         type="text"
                         name={field}
-                        value={userData[field] || ''}
+                        value={userData?.[field] || ''}
                         readOnly
                         className='flex-grow border-b pb-1 focus:outline-none focus:border-b-purple-600 bg-white'
                       />
@@ -78,20 +106,42 @@ function Profile() {
                 <h3 className='font-semibold mb-6 text-lg'>Password</h3>
                 <p className='text-sm text-gray-600 mb-4 font-bold'>Change your password</p>
                 <p className='text-sm text-gray-600 mb-10'>When you change your password, we keep you logged in on this device but may log you out of your other devices.</p>
-                <form className='space-y-4'>
+                <form className='space-y-4' onSubmit={handlePasswordChange}>
                   <div>
                     <label className='block text-sm mb-1 font-bold'>Current Password</label>
-                    <input type="password" className='w-full border rounded p-2 bg-white border-black-2' />
+                    <input
+                      type="password"
+                      className='w-full border rounded p-2 bg-white border-black-2'
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className='block text-sm mb-1 font-bold'>New Password</label>
-                    <input type="password" className='w-full border rounded p-2 bg-white border-black-2' />
+                    <input
+                      type="password"
+                      className='w-full border rounded p-2 bg-white border-black-2'
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className='block text-sm mb-1 font-bold'>Confirm New Password</label>
-                    <input type="password" className='w-full border rounded p-2 bg-white border-black-2' />
+                    <input
+                      type="password"
+                      className='w-full border rounded p-2 bg-white border-black-2'
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                   </div>
-                  <button className='bg-purple-600 text-white px-4 py-2 rounded text-sm'>Save</button>
+                  <button
+                    type="submit"
+                    className='bg-purple-600 text-white px-4 py-2 rounded text-sm'
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : 'Save'}
+                  </button>
+                  {error && <p className='text-red-500 mt-2'>{error}</p>}
                 </form>
               </div>
             </div>
