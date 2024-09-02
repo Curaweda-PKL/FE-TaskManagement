@@ -34,7 +34,7 @@ const WorkspaceHighlights: React.FC = () => {
               </div>
               <p className="text-md mt-3 text-white">Kelompok 1 workspace <span className='ml-2 mr-2'>|</span> Project 1 : Team</p>
             </div>
-            <div className="p-4 border-black border">
+            <div className="p-4 border-black border rounded-b-lg">
               <div className="flex items-start">
                 <img src="https://via.placeholder.com/40" alt="User" className="w-10 h-10 rounded-full" />
                 <div className="ml-3">
