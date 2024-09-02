@@ -69,7 +69,7 @@ const WorkspaceProject = () => {
     ]
   };
 
-  const handleOpenPopup = (cardList : any) => {
+  const handleOpenPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
   };
@@ -79,7 +79,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenMemberPopup = (cardList : any) => {
+  const handleOpenMemberPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsMemberPopupOpen(true);
   };
@@ -105,19 +105,19 @@ const WorkspaceProject = () => {
       <main className="flex px-8 bg-white mb-4">
         {data.card.map((workspace, index) => (
           <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
-            <h2 className="text-xl text-center p-5 mb-4 text-gray-700">{workspace.workspace}</h2>
+            <h2 className="text-xl text-center mb-6 text-gray-700">{workspace.workspace}</h2>
             <ul className="space-y-2">
               {workspace.cardList.map((cardList, index) => (
                 <li
                   key={index}
-                  className="bg-gray-100 rounded-full p-2 flex justify-between items-center btn"
+                  className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
                   onClick={() => handleOpenPopup(cardList)}
                 >
                   <div className="flex items-center">
                     <div className={`w-2 h-2 rounded-full ${workspace.color} mr-2`}></div>
                     <span className="text-black text-sm">{cardList.title}</span>
                   </div>
-                  <button className="text-gray-400 hover:text-gray-600">
+                  <button className="text-gray-400">
                     <i className="fas fa-pencil-alt h-3 w-3"></i>
                   </button>
                 </li>
@@ -128,52 +128,96 @@ const WorkspaceProject = () => {
             </button>
           </div>
         ))}
-        <button className="bg-gray-200 text-gray-600 hover:text-gray-800 px-4 py-2 rounded-xl h-10 w-44 text-sm">
-          <i className="fas fa-plus h-3 w-3 mr-3"></i>
-          Add another list
+        <button className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center">
+          <i className="fas fa-plus h-3 w-3 mr-3 group-hover:text-purple-500 transition-colors duration-300"></i>
+          <p className='group-hover:text-purple-500 transition-colors duration-300'>
+            Add Another List
+          </p>
         </button>
       </main>
 
       {isPopupOpen && selectedCardList && (
-        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-          <div className="bg-white p-6 rounded-lg shadow-lg h-fit">
+        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100 overflow-auto">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[500px] overflow-auto w-full max-w-[650px] max768:max-w-[400px]">
             <div className="navbarPopup flex flex-row w-full text-black justify-between">
               <h2 className="navbarPopup-start text-xl font-bold p-2 mb-4">
                 {selectedCardList.title}
               </h2>
               <div
-                className="btn bg-transparent border-hidden close text-lg text-black font-bold hover:bg-white"
+                className="bg-transparent border-hidden close text-lg text-black font-bold hover:bg-white"
                 onClick={handleClosePopup}
               >
                 <i className="fas fa-x"></i>
               </div>
             </div>
-            <div className="cardlist flex flex-row">
-              <div className="cardliststart">
+            <div className="cardlist flex gap-10 max768:flex-col">
+              <div className="cardliststart w-full max768:w-full flex-[3]">
                 <div className="flex flex-row gap-10 mb-3">
                   <div className="memberColor h-6 w-12 bg-red-500 rounded"></div>
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 rounded w-fit bg-gray-300 border-none text-black">
                     <i className="fas fa-eye"></i>Activity
                   </div>
                 </div>
-                <h2 className="text-black mb-3 font-semibold">Description</h2>
-                <textarea
-                  placeholder="Add more detail description..."
-                  className="bg-grey-200 w-80 h-12 mb-6 rounded text-[11px] pl-2 pt-1 bg-gray-300 text-black font-semibold justify-end items-start"
-                ></textarea>
-                <div className="activity flex gap-36">
-                  <span className="text-black font-semibold">Activity</span>
-                  <div className="btn hover:bg-gray-400 btn-neutral h-6 min-h-6 bg-gray-300 border-none text-black">
+                <div>
+                  <h2 className="text-black mb-3 font-semibold text-lg">Description</h2>
+                  <textarea
+                    placeholder="Add more detail description..."
+                    className="bg-grey-200 w-full h-12 mb-7 rounded text-sm pl-2 pt-1 bg-gray-300 text-black font-semibold justify-end items-start"
+                  ></textarea>
+                </div>
+                <div>
+                  <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
+                  <div className='grid grid-cols-2 gap-2 mb-10'>
+                    <div>
+                      <h4 className="text-black text-[12px] font-semibold">Effort</h4>
+                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </div>
+                    <div>
+                      <h4 className="text-black text-[12px] font-semibold">Status</h4>
+                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
+                        <option value="1">To Do</option>
+                        <option value="2">In Progress</option>
+                        <option value="3">Done</option>
+                        <option value="4">In Review</option>
+                        <option value="5">Approved</option>
+                      </select>
+                    </div>
+                    <div>
+                      <h4 className="text-black text-[12px] font-semibold">Risk</h4>
+                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
+                        <option value="1">Highest</option>
+                        <option value="2">High</option>
+                        <option value="3">Medium</option>
+                        <option value="4">Low</option>
+                        <option value="5">Lowest</option>
+                      </select>
+                    </div>
+                    <div>
+                      <h4 className="text-black text-[12px] font-semibold">Project</h4>
+                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="activity flex justify-between mb-3">
+                  <span className="text-black text-lg font-semibold">Activity</span>
+                  <div className="btn hover:bg-gray-400 btn-neutral h-6 min-h-6 bg-gray-300 border-none text-black rounded-md">
                     Show Details
                   </div>
                 </div>
                 <input
                   type="text"
                   placeholder="Write a comment..."
-                  className="h-7 w-80 mt-6 rounded text-xs p-2 bg-gray-300 text-black font-semibold"
+                  className="h-7 w-full rounded text-sm p-2 bg-gray-300 text-black font-semibold"
                 />
               </div>
-              <div className="cardlistend flex flex-col gap-1 pl-20 justify-start">
+              <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1">
                   <i className="fas fa-user"></i>Join
                 </div>
