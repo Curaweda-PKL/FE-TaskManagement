@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 
+interface Workspace {
+  name: string;
+  id: string;
+  description?: string;
+}
+
 interface WorkspaceHeaderProps {
-  workspace: { name: string; id: string };
+  workspace: Workspace;
   showEditIcon?: boolean;
   onEdit?: () => void;
 }
 
-const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({ workspace }) => {
+const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
+  workspace,
+  showEditIcon,
+  onEdit,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -31,14 +41,25 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({ workspace }) => {
 
   return (
     <>
-      <div className="flex items-center justify-between bg-white text-black border-black border-b p-[14px] mx-6 mt-0 mb-2">
+      <div className="flex items-center justify-between bg-white text-black border-black border-b p-[6px] mx-6 mb-2">
         <div className="flex items-center font-sem">
-          <div className="w-11 h-11 bg-red-700 mr-3"></div>
+          <div className="w-16 h-16 bg-red-700 mr-3"></div>
           <div>
             <h1 className="text-xl text-gray-600 font-semibold flex items-center">
               {workspace ? workspace.name : 'Loading...'}
+              {showEditIcon && (
+                <button
+                  onClick={onEdit}
+                  className="ml-2 text-gray-600 hover:text-gray-800"
+                >
+                  <i className="fas fa-pencil text-sm" />
+                </button>
+              )}
             </h1>
-            <p className="text-sm flex items-center mt-1">
+            <p className="text-sm flex items-center text-gray-500">
+              {workspace ? workspace.description : 'Loading...'}
+            </p>
+            <p className="text-sm flex items-center">
               <i className="fas fa-lock mr-1" />
               Private | Workspace id : {workspace ? workspace.id : 'Loading...'}
             </p>

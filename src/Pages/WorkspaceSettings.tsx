@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
-import { fetchWorkspaces, deleteWorkspace } from '../hooks/fetchWorkspace';
+import CreateWorkspace from '../Component/CreateWorkspace';
+import { fetchWorkspaces, deleteWorkspace, updateWorkspace } from '../hooks/fetchWorkspace';
 
 const WorkspaceSettings: React.FC = () => {
-  const { workspaceId } = useParams<{ workspaceId: any }>();
+  const { workspaceId } = useParams<{ workspaceId: string }>();
   const [activePopup, setActivePopup] = useState<'visibility' | 'delete' | null>(null);
   const [visibility, setVisibility] = useState<'Private' | 'Public'>('Private');
   const [workspace, setWorkspace] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [workspaceDescription, setWorkspaceDescription] = useState('');
   const navigate = useNavigate();
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
@@ -18,6 +22,8 @@ const WorkspaceSettings: React.FC = () => {
         const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
         setWorkspace(currentWorkspace);
         setVisibility(currentWorkspace?.visibility || 'Private');
+        setWorkspaceName(currentWorkspace?.name || '');
+        setWorkspaceDescription(currentWorkspace?.description || '');
       } catch (error) {
         console.error('Failed to fetch workspace:', error);
       }
@@ -32,6 +38,7 @@ const WorkspaceSettings: React.FC = () => {
 
   const closeAllPopups = () => {
     setActivePopup(null);
+    setIsEditModalOpen(false);
   };
 
   const handleVisibilityChange = (newVisibility: 'Private' | 'Public') => {
@@ -53,8 +60,6 @@ const WorkspaceSettings: React.FC = () => {
     if (workspaceId) {
       try {
         const response = await deleteWorkspace(workspaceId);
-        
-        // Periksa apakah respons adalah array dan mengandung pesan error
         if (Array.isArray(response) && response.length > 0 && response[0].message === "not owner in this workspace") {
           setAlert({ type: 'error', message: 'You are not the owner of this workspace and cannot delete it.' });
         } else {
@@ -64,8 +69,6 @@ const WorkspaceSettings: React.FC = () => {
       } catch (error: any) {
         console.error('Failed to delete workspace:', error);
         let errorMessage = 'Failed to delete workspace. Please try again.';
-        
-        // Periksa apakah error response mengandung pesan spesifik
         if (error.response?.data && Array.isArray(error.response.data) && 
             error.response.data.length > 0 && error.response.data[0].message === "not owner in this workspace") {
           errorMessage = 'You are not the owner of this workspace and cannot delete it.';
@@ -77,6 +80,21 @@ const WorkspaceSettings: React.FC = () => {
     closeAllPopups();
   };
 
+  const handleEditClick = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateWorkspace = async () => {
+    try {
+      await updateWorkspace(workspaceId, workspaceName, workspaceDescription, workspace.ownerId);
+      setAlert({ type: 'success', message: 'Workspace updated successfully.' });
+      closeAllPopups();
+    } catch (error) {
+      console.error('Failed to update workspace:', error);
+      setAlert({ type: 'error', message: 'Failed to update workspace. Please try again.' });
+    }
+  };
+
   return (
     <div className='min-h-screen'>
       {alert && (
@@ -84,7 +102,7 @@ const WorkspaceSettings: React.FC = () => {
           {alert.message}
         </div>
       )}
-      <WorkspaceHeader workspace={workspace} />
+      <WorkspaceHeader workspace={workspace} showEditIcon={true} onEdit={handleEditClick} />
 
       <div className='py-10 text-black px-16'>
         <h2 className='text-xl font-medium mb-4'>Workspace Settings</h2>
@@ -92,10 +110,10 @@ const WorkspaceSettings: React.FC = () => {
         <div className='mb-6 relative'>
           <h3 className='text-lg mb-2 border-b py-1'>Workspace visibility</h3>
           <div className='flex justify-between items-center'>
-              <div className='flex items-center mb-1'>
-                <i className={`fas ${visibility === 'Private' ? 'fa-lock text-red-600' : 'fa-globe text-green-600'} mr-2`}></i>
-                <span>{visibility} - This Workspace is {visibility === 'Private' ? "private. It's not indexed or visible to those outside the Workspace." : "public. It's visible to everyone."}</span>
-              </div>
+            <div className='flex items-center mb-1'>
+              <i className={`fas ${visibility === 'Private' ? 'fa-lock text-red-600' : 'fa-globe text-green-600'} mr-2`}></i>
+              <span>{visibility} - This Workspace is {visibility === 'Private' ? "private. It's not indexed or visible to those outside the Workspace." : "public. It's visible to everyone."}</span>
+            </div>
             <button onClick={(e) => {
               e.stopPropagation();
               togglePopup('visibility');
@@ -161,6 +179,18 @@ const WorkspaceSettings: React.FC = () => {
                 </button>
               </div>
             </div>
+          )}
+
+          {isEditModalOpen && (
+            <CreateWorkspace
+              workspaceName={workspaceName}
+              workspaceDescription={workspaceDescription}
+              setWorkspaceName={setWorkspaceName}
+              setWorkspaceDescription={setWorkspaceDescription}
+              onClose={() => setIsEditModalOpen(false)}
+              onCreate={handleUpdateWorkspace}
+              isEditMode={true}
+            />
           )}
         </div>
       </div>
