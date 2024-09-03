@@ -70,8 +70,8 @@ const WorkspaceMembers: React.FC = () => {
                 <p className="text-sm mt-2 w-full lg:w-2/3">
                   Anyone with an invite link can join this free Workspace. You can also disable and create a new invite link for this Workspace at any time. Pending invitations count toward the 10 collaborator limit.
                 </p>
-                <div className="items-center mt-4 lg:mt-0 flex flex-col space-x-0 lg:space-x-4 lg:flex-row">
-                <button className="bg-gray-200 px-4 py-2 rounded-md flex items-center mb-2 lg:mb-0"><Link size={16} className='mr-3'/>Invite with link</button>
+                <div className="items-center mt-4 lg:mt-0 flex space-x-0 lg:space-x-4 lg:flex-col flex-row justify-center">
+                <button className="bg-gray-200 px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0"><Link size={16} className='mr-3'/>Invite with link</button>
                 <button className="py-2">Disable invite link</button>
                 </div>
               </div>
@@ -85,102 +85,101 @@ const WorkspaceMembers: React.FC = () => {
             </div>
 
             {/* Members Section */}
-            <div className="space-y-4 text-black w-full lg:w-4/5">
-              {/* Replace with your dynamic member list */}
-              <div className="bg-green-200 p-4 rounded-md flex max1000:flex-col flex-row lg:w-full w-fit justify-between items-center">
-                <div className="flex items-center">
-                  <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
-                  <div>
-                    <h4 className="font-semibold">M Najwan M</h4>
-                    <p className="text-sm text-gray-600">najwannuttaqin@gmail.com</p>
-                  </div>
-                </div>
-                <div className="flex space-x-4 items-center lg:mt-0 mt-2">
-                  <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards (4)</button>
-                  <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Remove</button>
+            <div className="space-y-4 text-black w-full lg:w-5/6">
+            {/* Replace with your dynamic member list */}
+            <div className="bg-yellow-200 p-4 rounded-md flex justify-between items-center flex-wrap">
+              <div className="flex items-center flex-wrap">
+                <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                <div>
+                  <h4 className="font-semibold">Satriya Galank</h4>
+                  <p className="text-sm text-gray-600">bangsatriya@gmail.com</p>
                 </div>
               </div>
-
-              <div className="bg-red-200 p-4 rounded-md flex justify-between items-center">
-                <div className="flex items-center">
-                  <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
-                  <div>
-                    <h4 className="font-semibold">Satriya Galank</h4>
-                    <p className="text-sm text-gray-600">bangsatriya@gmail.com</p>
-                  </div>
-                </div>
-                <div className="flex space-x-4 items-center">
-                  <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards (5)</button>
-                  <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Remove</button>
-                </div>
-              </div>
-
-              <div className="bg-blue-200 p-4 rounded-md flex justify-between items-center">
-                <div className="flex items-center">
-                  <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
-                  <div>
-                    <h4 className="font-semibold">Ucoeps</h4>
-                    <p className="text-sm text-gray-600">cupacups@gmail.com</p>
-                  </div>
-                </div>
-                <div className="flex space-x-4 items-center">
-                  <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards (1)</button>
-                  <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Remove</button>
-                </div>
+              <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
+                <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards (5)</button>
+                <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Remove</button>
               </div>
             </div>
+
+            <div className="bg-red-200 p-4 rounded-md flex justify-between items-center flex-wrap">
+              <div className="flex items-center flex-wrap">
+                <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                <div>
+                  <h4 className="font-semibold">Satriya Galank</h4>
+                  <p className="text-sm text-gray-600">bangsatriya@gmail.com</p>
+                </div>
+              </div>
+              <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
+                <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards (5)</button>
+                <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Remove</button>
+              </div>
+            </div>
+
+            <div className="bg-blue-200 p-4 rounded-md flex justify-between items-center flex-wrap">
+              <div className="flex items-center flex-wrap">
+                <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                <div>
+                  <h4 className="font-semibold">Ucoeps</h4>
+                  <p className="text-sm text-gray-600">cupacups@gmail.com</p>
+                </div>
+              </div>
+              <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
+                <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards (1)</button>
+                <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Remove</button>
+              </div>
+            </div>
+          </div>
           </>
         ) : (
           <div className='mt-8'>
-  {/* Join Requests Section */}
-  <h3 className="text-black text-lg font-semibold">Join Requests (2)</h3>
-  <p className="text-sm text-gray-600 py-3 w-full lg:w-4/5">
-    These people have requested to join this workspace. Adding new workspace will
-    automatically update your bill. workspace guest already count toward the free workspace
-    collaborator limit
-  </p>
-  
-  {/* Search Section */}
-  <div className="mb-8 border-b-[1.5px] border-t-[1.5px] py-5 border-gray-200 ">
-    <input
-      type="text"
-      placeholder="Search members..."
-      className="w-full lg:w-1/3 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700"
-    />
-  </div>
-  
-  {/* Join Requests Members */}
-  <div className="space-y-4 w-full lg:w-4/5 text-black">
-    <div className="bg-green-200 p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center">
-      <div className="flex items-center mb-4 lg:mb-0">
-        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
-        <div>
-          <h4 className="font-semibold">John Doe</h4>
-          <p className="text-sm text-gray-600">johndoe@example.com</p>
-        </div>
-      </div>
-      <div className="flex space-x-4 items-center">
-        <button className="bg-green-200 text-green-600 px-4 py-1 rounded-md">Accept</button>
-        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Reject</button>
-      </div>
-    </div>
+          {/* Join Requests Section */}
+          <h3 className="text-black text-lg font-semibold">Join Requests (2)</h3>
+          <p className="text-sm text-gray-600 py-3 w-full lg:w-4/5">
+            These people have requested to join this workspace. Adding new workspace will
+            automatically update your bill. workspace guest already count toward the free workspace
+            collaborator limit
+          </p>
+          
+          {/* Search Section */}
+          <div className="mb-8 border-b-[1.5px] border-t-[1.5px] py-5 border-gray-200 ">
+            <input
+              type="text"
+              placeholder="Search members..."
+              className="w-full lg:w-1/3 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700"
+            />
+          </div>
+          
+          {/* Join Requests Members */}
+          <div className="space-y-4 w-full lg:w-4/5 text-black">
+            <div className="bg-red-200 p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center">
+              <div className="flex items-center mb-4 lg:mb-0">
+                <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                <div>
+                  <h4 className="font-semibold">John Doe</h4>
+                  <p className="text-sm text-gray-600">johndoe@example.com</p>
+                </div>
+              </div>
+              <div className="flex space-x-4 items-center">
+                <button className="bg-green-200 text-green-600 px-4 py-1 rounded-md">Accept</button>
+                <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Reject</button>
+              </div>
+            </div>
 
-    <div className="bg-yellow-200 p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center">
-      <div className="flex items-center mb-4 lg:mb-0">
-        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
-        <div>
-          <h4 className="font-semibold">Jane Smith</h4>
-          <p className="text-sm text-gray-600">janesmith@example.com</p>
-        </div>
-      </div>
-      <div className="flex space-x-4 items-center">
-        <button className="bg-green-200 text-green-600 px-4 py-1 rounded-md">Accept</button>
-        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Reject</button>
-      </div>
-    </div>
-  </div>
-</div>
-
+            <div className="bg-yellow-200 p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center">
+              <div className="flex items-center mb-4 lg:mb-0">
+                <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                <div>
+                  <h4 className="font-semibold">Jane Smith</h4>
+                  <p className="text-sm text-gray-600">janesmith@example.com</p>
+                </div>
+              </div>
+              <div className="flex space-x-4 items-center">
+                <button className="bg-green-200 text-green-600 px-4 py-1 rounded-md">Accept</button>
+                <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Reject</button>
+              </div>
+            </div>
+          </div>
+        </div>    
         )}
       </div>
     </div>
