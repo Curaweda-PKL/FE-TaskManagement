@@ -4,12 +4,13 @@ import createWork from '../assets/Media/createWork.svg';
 import work from '../assets/Media/work.png';
 
 interface CreateWorkspaceProps {
-  workspaceName: any;
-  workspaceDescription: any;
-  setWorkspaceName: (name: any) => void;
-  setWorkspaceDescription: (description: any) => void;
+  workspaceName: string;
+  workspaceDescription: string;
+  setWorkspaceName: (name: string) => void;
+  setWorkspaceDescription: (description: string) => void;
   onClose: () => void;
-  onCreate: (name: any, description: any) => Promise<void>;
+  onCreate: (name: string, description: string) => Promise<void>;
+  isEditMode: boolean;
 }
 
 const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
@@ -19,13 +20,14 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
   setWorkspaceDescription,
   onClose,
   onCreate,
+  isEditMode,
 }) => {
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     try {
       await onCreate(workspaceName, workspaceDescription);
       onClose();
     } catch (error) {
-      console.error('Failed to create workspace:', error);
+      console.error('Failed to create or edit workspace:', error);
     }
   };
 
@@ -34,7 +36,9 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
       <div className="bg-white shadow-lg overflow-hidden w-full max-w-3xl max-h-[90vh] flex relative">
         <div className="w-full md:w-1/2 p-8 overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-black">Let's Build a Workspace</h2>
+            <h2 className="text-2xl font-bold text-black">
+              {isEditMode ? "Edit Workspace" : "Let's Build a Workspace"}
+            </h2>
           </div>
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -67,10 +71,10 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             </p>
           </div>
           <button
-            onClick={handleCreate}
+            onClick={handleSubmit}
             className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full"
           >
-            Continue
+            {isEditMode ? "Save Changes" : "Continue"}
           </button>
         </div>
         <div className="hidden md:flex w-1/2 items-center justify-center relative">
