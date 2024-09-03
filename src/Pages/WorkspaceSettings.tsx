@@ -21,7 +21,7 @@ const WorkspaceSettings: React.FC = () => {
         const workspaces = await fetchWorkspaces(workspaceId);
         const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
         setWorkspace(currentWorkspace);
-        setVisibility(currentWorkspace?.visibility || 'Private');
+        setVisibility(currentWorkspace?.isPublic ? 'Public' : 'Private');
         setWorkspaceName(currentWorkspace?.name || '');
         setWorkspaceDescription(currentWorkspace?.description || '');
       } catch (error) {
@@ -39,11 +39,6 @@ const WorkspaceSettings: React.FC = () => {
   const closeAllPopups = () => {
     setActivePopup(null);
     setIsEditModalOpen(false);
-  };
-
-  const handleVisibilityChange = (newVisibility: 'Private' | 'Public') => {
-    setVisibility(newVisibility);
-    closeAllPopups();
   };
 
   useEffect(() => {
@@ -85,15 +80,44 @@ const WorkspaceSettings: React.FC = () => {
   };
 
   const handleUpdateWorkspace = async () => {
+    const isPublic = visibility === 'Public';
     try {
-      await updateWorkspace(workspaceId, workspaceName, workspaceDescription, workspace.ownerId);
-      setAlert({ type: 'success', message: 'Workspace updated successfully.' });
-      closeAllPopups();
+        await updateWorkspace(workspaceId, workspaceName, workspaceDescription, workspace.ownerId, isPublic);
+        setAlert({ type: 'success', message: 'Workspace updated successfully.' });
+        const workspaces = await fetchWorkspaces(workspaceId);
+        const updatedWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+        setWorkspace(updatedWorkspace);
+        closeAllPopups();
     } catch (error) {
-      console.error('Failed to update workspace:', error);
-      setAlert({ type: 'error', message: 'Failed to update workspace. Please try again.' });
+        console.error('Failed to update workspace:', error);
+        setAlert({ type: 'error', message: 'Failed to update workspace. Please try again.' });
     }
   };
+
+  const handleVisibilityChange = async (newVisibility: 'Private' | 'Public') => {
+    const isPublic = newVisibility === 'Public';
+    console.log(`Updating visibility to: ${newVisibility}, isPublic: ${isPublic}`);
+    
+    try {
+      await updateWorkspace(workspaceId, workspace.name, workspace.description, workspace.ownerId, isPublic);
+      setVisibility(newVisibility);
+      setWorkspace((prev: any) => ({
+        ...prev,
+        isPublic: isPublic
+      }));
+      setAlert({ type: 'success', message: 'Workspace visibility updated successfully.' });
+      const workspaces = await fetchWorkspaces(workspaceId);
+      const updatedWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      setWorkspace(updatedWorkspace);
+    } catch (error) {
+      console.error('Failed to update workspace visibility:', error);
+      setAlert({ type: 'error', message: 'Failed to update workspace visibility. Please try again.' });
+    }
+
+    closeAllPopups();
+  };
+
+
 
   return (
     <div className='min-h-screen'>

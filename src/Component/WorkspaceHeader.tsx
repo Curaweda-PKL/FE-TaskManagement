@@ -4,6 +4,7 @@ interface Workspace {
   name: string;
   id: string;
   description?: string;
+  isPublic: any;
 }
 
 interface WorkspaceHeaderProps {
@@ -60,8 +61,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               {workspace ? workspace.description : 'Loading...'}
             </p>
             <p className="text-sm flex items-center">
-              <i className="fas fa-lock mr-1" />
-              Private | Workspace id : {workspace ? workspace.id : 'Loading...'}
+              <i className={`fas ${workspace?.isPublic ? 'fa-globe' : 'fa-lock'} mr-1`} />
+              { workspace?.isPublic ? 'Public' : 'Private'} | Workspace id: {workspace ? workspace.id : 'Loading...'}
             </p>
           </div>
         </div>
