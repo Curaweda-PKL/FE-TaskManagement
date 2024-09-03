@@ -101,7 +101,7 @@ function Navbar() {
       <div className="flex items-center justify-between z-[100]">
         <div className="flex items-center space-x-4">
           <a href="/boards" className="text-purple-600 font-bold text-2xl font-newsreader">TaskFlow</a>
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             <div className="relative inline-block">
               <button onClick={() => handleToggle('workspace')}
                 className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer">
