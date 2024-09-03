@@ -47,6 +47,23 @@ const WorkspaceProject = () => {
         ]
       },
       {
+        workspace: "workspace1",
+        color: "bg-red-500",
+        cardList: [
+          {
+            members: [
+              { name: 'fursan' },
+              { name: 'satriya' }
+            ],
+            title: 'cardList1'
+          },
+          {
+            members: [],
+            title: 'cardList2'
+          }
+        ]
+      },
+      {
         workspace: "workspace2",
         color: "bg-yellow-500",
         cardList: [
@@ -90,21 +107,24 @@ const WorkspaceProject = () => {
   };
 
   return (
-    <div className="m-h-screen">
-      <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
-        <div className="flex items-center space-x-7">
-          <h1 className="text-xl text-black font-medium">{boardName}</h1>
-          <div className="flex -space-x-1">
-          </div>
-        </div>
-        <button className="bg-purple-600 text-white px-4 py-1 rounded text-sm">
-          Share
-        </button>
-      </header>
+    <>
+      <header className="fixed flex justify-between h-20 mt-3 w-full bg-gray-100 p-4 items-center mb-6">
+  <div className="flex items-center space-x-7">
+    <h1 className="text-xl text-black font-medium">{boardName}</h1>
+    <div className="flex -space-x-1">
+      {/* Content lainnya di sini */}
+    </div>
+  </div>
+  <button className=" bg-purple-600 text-white px-4 py-1 rounded text-sm md:absolute md:right-5">
+    Share
+  </button>
+</header>
 
-      <main className="flex px-8 bg-white mb-4">
+    <div className="m-h-screen">
+
+      <main className="flex x px-8 bg-white mb-4">
         {data.card.map((workspace, index) => (
-          <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
+          <div key={index} className="bg-white mt-24 rounded-2xl shadow-xl border p-4 mr-4 min-w-64">
             <h2 className="text-xl text-center mb-6 text-gray-700">{workspace.workspace}</h2>
             <ul className="space-y-2">
               {workspace.cardList.map((cardList, index) => (
@@ -123,12 +143,12 @@ const WorkspaceProject = () => {
                 </li>
               ))}
             </ul>
-            <button className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm">
+            <button className="text-gray-500 hover:bg-gray-200 rounded-lg px-3 py-2 hover:text-gray-700 mt-6 w-full text-left text-sm transition-colors duration-300">
               + Add card
             </button>
           </div>
         ))}
-        <button className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center">
+        <button className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-fit min-w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center mt-24">
           <i className="fas fa-plus h-3 w-3 mr-3 group-hover:text-purple-500 transition-colors duration-300"></i>
           <p className='group-hover:text-purple-500 transition-colors duration-300'>
             Add Another List
@@ -289,6 +309,7 @@ const WorkspaceProject = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
