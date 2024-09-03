@@ -231,7 +231,7 @@ function Navbar() {
         <button onClick={() => handleToggle('workspace')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">Workspace<i className='ph-caret-down ml-1'></i>
         </button>
         {openDropdown === 'workspace' && (
-          <ul className="absolute left-0 mt-5 bg-white border border-gray-200 rounded-md shadow-lg w-80">
+          <ul className="absolute left-0 mt-32 bg-white border border-gray-200 w-full">
             <li className="p-4">
               <h3 className="text-sm font-semibold text-gray-500">Your workspaces</h3>
               {workspaces.map(workspace => (
@@ -245,32 +245,13 @@ function Navbar() {
             </li>
           </ul>
         )}
-        <button
-          onClick={handleCreateClick} className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">
-          Create
-        </button>
-        {openDropdown === 'create' && (
-          <ul className="absolute top-[330px] left-0 bg-gray-50 px-4 py-2 w-full shadow">
-            <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
-              <div className="flex">
-                <div className="flex-shrink-0 mr-3">
-                  <i className='fas fa-clipboard-list'/>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">A Workspace is a place to store and manage boards</p>
-            </li>
-          </ul>
-        )}
 
         <button
           onClick={() => handleToggle('notification')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
           Notifications<i className="fas fa-bell ml-1" />
         </button>
         {openDropdown === 'notification' && (
-          <div className="absolute top-[330px] left-0 bg-gray-50 p-4 m-0 shadow text-black">
+          <div className="absolute top-[290px] left-0 bg-gray-50 p-4 m-0 shadow text-black w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Notifications</h2>
               <div className="flex items-center">
@@ -304,7 +285,7 @@ function Navbar() {
           Profile<i className="fas fa-user ml-1" />
         </button>
         {openDropdown === 'profile' && (
-          <ul className="bg-gray-50 px-4 py-2">
+          <ul className="absolute right-0 mt-[50px] bg-gray-50 px-8 py-2 w-full">
             <li className="mb-2">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-red-500 rounded-full mr-2 flex items-center justify-center">
@@ -321,6 +302,26 @@ function Navbar() {
             </li>
             <li className="py-1 border-t border-gray-200" onClick={handleLogoutClick}>
               <p className="text-sm text-gray-700">Log out</p>
+            </li>
+          </ul>
+        )}
+        
+        <button
+          onClick={handleCreateClick} className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">
+          Create
+        </button>
+        {openDropdown === 'create' && (
+          <ul className="left-0 bg-gray-50 px-4 py-2 w-full shadow">
+            <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
+              <div className="flex">
+                <div className="flex-shrink-0 mr-3">
+                  <i className='fas fa-clipboard-list'/>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">A Workspace is a place to store and manage boards</p>
             </li>
           </ul>
         )}
