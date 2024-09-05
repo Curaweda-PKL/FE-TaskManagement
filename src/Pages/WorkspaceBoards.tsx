@@ -133,7 +133,7 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
-              <Link to={`/workspace/${workspace?.id}/board/${board.id}`}>
+              <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                 <h5 className='text-white relative z-10'>{board.name}</h5>
                 <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
@@ -177,7 +177,7 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
-                <Link to={`/workspace/${workspace?.id}/board/${board.id}`}>
+                <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                 <h5 className='text-white relative z-10'>{board.name}</h5>
                 <div className='absolute right-2 gap-3 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>

@@ -65,6 +65,8 @@ const WorkspaceSettings: React.FC = () => {
       } catch (error: any) {
         console.error('Failed to delete workspace:', error);
         let errorMessage = 'Failed to delete workspace. Please try again.';
+        
+        // Periksa apakah error response mengandung pesan spesifik
         if (error.response?.data && Array.isArray(error.response.data) && 
             error.response.data.length > 0 && error.response.data[0].message === "not owner in this workspace") {
           errorMessage = 'You are not the owner of this workspace and cannot delete it.';
