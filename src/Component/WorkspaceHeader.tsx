@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { generateLinkWorkspace, requstJoinWorkspace } from '../hooks/fetchWorkspace'; // Adjust the import path as needed
 
 interface Workspace {
   name: string;
@@ -38,6 +39,45 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   const handleClose = () => {
     setIsRequestOpen(false);
     setIsInviteOpen(false);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      const alertDiv = document.createElement('div');
+      alertDiv.textContent = 'Copied to clipboard!';
+      alertDiv.style.position = 'fixed';
+      alertDiv.style.top = '10px';
+      alertDiv.style.right = '10px';
+      alertDiv.style.backgroundColor = 'green';
+      alertDiv.style.color = 'white';
+      alertDiv.style.padding = '10px';
+      alertDiv.style.borderRadius = '5px';
+      alertDiv.style.zIndex = '1000';
+      document.body.appendChild(alertDiv);
+
+      setTimeout(() => {
+        document.body.removeChild(alertDiv);
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+    });
+  };
+
+  const handleCopyId = () => {
+    if (workspace) {
+      copyToClipboard(workspace.id);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (workspace) {
+      try {
+        const { link } = await generateLinkWorkspace(workspace.id);
+        copyToClipboard(link);
+      } catch (error) {
+        console.error('Failed to generate link:', error);
+      }
+    }
   };
 
   return (
@@ -127,11 +167,17 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               <i className="fas fa-times text-black cursor-pointer" onClick={handleClose} />
             </div>
             <div className="px-4 pb-3 flex flex-col space-y-2">
-              <button className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md">
+              <button
+                className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
+                onClick={handleCopyLink}
+              >
                 <i className="fas fa-link mr-2" />
                 Invite with link
               </button>
-              <button className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md">
+              <button
+                className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
+                onClick={handleCopyId}
+              >
                 <i className="fas fa-link mr-2" />
                 Copy Workspace id
               </button>
