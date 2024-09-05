@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate} from 'react-router-dom';
-import { fetchWorkspaces } from '../hooks/fetchWorkspace';
+import { Link, useNavigate } from 'react-router-dom';
+import { fetchWorkspaces, joinWorkspace } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
 import ConfirmationAlert from '../Component/Alert';
@@ -19,7 +19,8 @@ const Workspace: React.FC = () => {
     workspaceId: null,
     boardId: null
   });
-  const navigate = useNavigate(); 
+  const [joinWorkspaceId, setJoinWorkspaceId] = useState<string>('');
+  const navigate = useNavigate();
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -59,9 +60,29 @@ const Workspace: React.FC = () => {
     }
   };
 
+  const handleJoinWorkspace = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      await joinWorkspace(joinWorkspaceId);
+      const updatedWorkspaces = await fetchWorkspaces(workspaces);
+      setWorkspaces(updatedWorkspaces);
+      closeModal();
+    } catch (error: any) {
+      console.error('Failed to create board:', error);
+      let errorMessage;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else {
+        errorMessage = 'Failed to create board. Please try again.';
+      }
+
+      setAlert({ type: 'error', message: errorMessage });
+    }
+  };
+
   const handleApiError = (error: any) => {
     if (error.response?.status === 401) {
-      navigate('/signin'); 
+      // navigate('/signin');
     } else {
       setError(error.message);
       setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
@@ -83,12 +104,12 @@ const Workspace: React.FC = () => {
       } else {
         errorMessage = 'Failed to create board. Please try again.';
       }
-  
+
       setAlert({ type: 'error', message: errorMessage });
     }
   };
 
-  const handleEditBoard = async (workspaceId:any, boardId: any, name: string, description: string) => {
+  const handleEditBoard = async (workspaceId: any, boardId: any, name: string, description: string) => {
     try {
       const response = await updateBoard(workspaceId, boardId, name, description);
       const message = response?.message || 'Board updated successfully.';
@@ -103,7 +124,7 @@ const Workspace: React.FC = () => {
       } else {
         errorMessage = 'Failed to update board. Please try again.';
       }
-  
+
       setAlert({ type: 'error', message: errorMessage });
     }
   };
@@ -131,7 +152,7 @@ const Workspace: React.FC = () => {
         } else {
           errorMessage = 'An unexpected error occurred';
         }
-        
+
         setAlert({ type: 'error', message: errorMessage });
       } finally {
         closeDeleteConfirmation();
@@ -200,7 +221,7 @@ const Workspace: React.FC = () => {
                   key={board.id}
                   className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
                 >
-                  <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
+                  <Link to={`/workspace/${workspace.id}/board/${board.id}`} className="absolute inset-0"></Link>
                   <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                   <h5 className='text-white relative z-10'>{board.name}</h5>
                   <div className='absolute right-2 bottom-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
@@ -219,7 +240,6 @@ const Workspace: React.FC = () => {
                       }}
                     />
                   </div>
-                  </Link>
                 </div>
               ))}
               <div onClick={() => openCreateBoard(workspace.id)} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>
@@ -259,11 +279,12 @@ const Workspace: React.FC = () => {
         <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-20">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 flex flex-col gap-5">
             <h2 className="text-xl text-center font-bold mb-4 text-black">Join Workspace</h2>
-            <form>
+            <form onSubmit={handleJoinWorkspace}>
               <label htmlFor="workspaceId" className="block mb-2 text-black font-semibold">ID Workspace</label>
               <input
                 type="text"
-                id="workspaceId"
+                value={joinWorkspaceId}
+                onChange={(e) => setJoinWorkspaceId(e.target.value)}
                 placeholder="Type here..."
                 className="w-full p-2 border bg-white border-gray-300 rounded mb-4 text-black"
               />

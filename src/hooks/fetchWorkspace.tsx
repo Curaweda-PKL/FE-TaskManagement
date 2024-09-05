@@ -55,6 +55,7 @@
                 }
             }
         );
+        window.location.reload
         return response.data;  
     } catch (error) {
         console.error('Failed to update workspace:', error);
@@ -78,6 +79,147 @@
       return response.data;  
     } catch (error) {
       console.error('Failed to delete board:', error);
+      throw error;
+    }
+  };
+
+  export const memberWorkspace = async (workspaceId: any) => {
+    try {
+      const response = await axios.get(
+        config + "/workspace/member/" + workspaceId,
+        {
+          headers: {
+            'Authorization': localStorage.getItem('token'),
+            'Content-Type': 'application/json' 
+          }
+        }
+      );
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to create workspace:', error);
+      throw error;
+    }
+  };
+
+  export const joinWorkspace = async (workspaceId: any) => {
+    try {
+      const response = await axios.post(
+        config + "/workspace/join",
+        { workspaceId },
+        {
+            headers: {
+                'Authorization': localStorage.getItem('token'),
+                'Content-Type': 'application/json' 
+            }
+        }
+    );
+      window.location.reload();
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to join workspace:', error);
+      throw error;
+    }
+  };
+
+  export const requstJoinWorkspace = async (workspaceId: any) => {
+    try {
+      const response = await axios.post(
+        `${config}/workspace/request-join`,
+        {
+          headers: {
+            'Authorization': `${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          data: { workspaceId }
+        }
+      );
+
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to join workspace:', error);
+      throw error;
+    }
+  };
+
+  export const requstWorkspace = async (requestId: any, status: any) => {
+    try {
+      const response = await axios.put(
+        `${config}/workspace/request-join`,
+        {
+          headers: {
+            'Authorization': `${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          data: { requestId, status }
+        }
+      );
+
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to join workspace:', error);
+      throw error;
+    }
+  };
+
+  export const joinWithLinkWorkspace = async ( link: any ) => {
+    try {
+      const response = await axios.post(
+        `${config}/workspace/join-with-link`,
+        {
+          headers: {
+            'Authorization': `${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          data: { link }
+        }
+      );
+
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to join workspace:', error);
+      throw error;
+    }
+  };
+
+  export const generateLinkWorkspace = async (workspaceId: any) => {
+    try {
+      const response = await axios.post(
+        `${config}/workspace/generate-link`,
+        { workspaceId },
+        {
+          headers: {
+            'Authorization': localStorage.getItem('token'),
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to generate join link for workspace:', error);
+      throw error;
+    }
+  };
+
+  export const joinRequestWorkspace = async (workspaceId: any) => {
+    try {
+      const response = await axios.get(
+        `${config}/workspace/join-request/${workspaceId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      if (response.status !== 200) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+  
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to fetch join requests:', error);
       throw error;
     }
   };
