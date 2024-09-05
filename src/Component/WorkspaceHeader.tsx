@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { generateLinkWorkspace, requstJoinWorkspace } from '../hooks/fetchWorkspace'; // Adjust the import path as needed
+import React, { useState, useEffect } from 'react';
+import { generateLinkWorkspace, joinRequestsWorkspace } from '../hooks/fetchWorkspace'; // Adjust the import path as needed
 
 interface Workspace {
   name: string;
   id: string;
   description?: string;
   isPublic: any;
+}
+
+interface JoinRequest {
+  id: string;
+  name: string;
+  email: string;
 }
 
 interface WorkspaceHeaderProps {
@@ -22,6 +28,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -31,9 +39,16 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     setIsInviteOpen(true);
   };
 
-  const handleOpenRequest = () => {
+  const handleOpenRequest = async () => {
     setIsModalOpen(false);
     setIsRequestOpen(true);
+    
+    try {
+      const requests = await joinRequestsWorkspace(workspace.id);
+      setJoinRequests(requests);
+    } catch (error) {
+      console.error('Failed to fetch join requests:', error);
+    }
   };
 
   const handleClose = () => {
@@ -41,48 +56,52 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     setIsInviteOpen(false);
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      const alertDiv = document.createElement('div');
-      alertDiv.textContent = 'Copied to clipboard!';
-      alertDiv.style.position = 'fixed';
-      alertDiv.style.top = '10px';
-      alertDiv.style.right = '10px';
-      alertDiv.style.backgroundColor = 'green';
-      alertDiv.style.color = 'white';
-      alertDiv.style.padding = '10px';
-      alertDiv.style.borderRadius = '5px';
-      alertDiv.style.zIndex = '1000';
-      document.body.appendChild(alertDiv);
-
-      setTimeout(() => {
-        document.body.removeChild(alertDiv);
-      }, 2000);
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-    });
+  const showAlert = (message: string, type: 'success' | 'error') => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 3000); // Hide alert after 3 seconds
   };
 
   const handleCopyId = () => {
     if (workspace) {
-      copyToClipboard(workspace.id);
+      navigator.clipboard.writeText(workspace.id)
+        .then(() => {
+          showAlert('Workspace ID copied to clipboard!', 'success');
+        })
+        .catch(() => {
+          showAlert('Failed to copy Workspace ID.', 'error');
+        });
     }
   };
 
   const handleCopyLink = async () => {
     if (workspace) {
       try {
-        const { link } = await generateLinkWorkspace(workspace.id);
-        copyToClipboard(link);
+        const response = await generateLinkWorkspace(workspace.id);
+        const inviteLink = response.link; 
+        
+        if (inviteLink) {
+          navigator.clipboard.writeText(inviteLink);
+          setAlert({ type: 'success', message: 'Invite link copied to clipboard!' });
+          setTimeout(() => setAlert(null), 3000);
+        } else {
+          setAlert({ type: 'error', message: 'Failed to generate invite link.' });
+        }
       } catch (error) {
         console.error('Failed to generate link:', error);
+        setAlert({ type: 'error', message: 'An error occurred while generating the invite link.' });
       }
     }
   };
+  
 
   return (
     <>
       <div className="flex items-center justify-between bg-white text-black border-black border-b p-[6px] mx-6 mb-2">
+        {alert && (
+          <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+            {alert.message}
+          </div>
+        )}
         <div className="flex items-center font-sem">
           <div className="w-16 h-16 bg-red-700 mr-3"></div>
           <div>
@@ -119,7 +138,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </div>
             <div className='bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 transition-colors duration-300 mt-2' onClick={handleOpenRequest}>
               <i className='fas fa-user-plus' />
-              <span className='ml-2'>Join Request (0)</span>
+              <span className='ml-2'>Join Request ({joinRequests.length})</span>
             </div>
           </div>
         </div>
@@ -133,27 +152,29 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               <i className="fas fa-times text-black cursor-pointer" onClick={handleClose} />
             </div>
             <div className="px-4 pb-3">
-              <div className="flex items-center bg-teal-100 p-1 rounded-md">
-                <img
-                  src="https://via.placeholder.com/40"
-                  alt="User Profile"
-                  className="w-8 h-8 rounded-full mr-4"
-                />
-                <div className="flex-1">
-                  <p className="font-semibold text-black">M Najwan M</p>
-                  <p className="text-sm text-gray-600">najwanmuttaqin@gmail.com</p>
+              {joinRequests.map((request) => (
+                <div key={request.id} className="flex items-center bg-teal-100 p-1 rounded-md mb-2">
+                  <img
+                    src="https://via.placeholder.com/40"
+                    alt="User Profile"
+                    className="w-8 h-8 rounded-full mr-4"
+                  />
+                  <div className="flex-1">
+                    <p className="font-semibold text-black">{request.name}</p>
+                    <p className="text-sm text-gray-600">{request.email}</p>
+                  </div>
+                  <div className="flex space-x-2 pr-4">
+                    <button className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded">
+                      <i className="fas fa-check mr-2" />
+                      Accept
+                    </button>
+                    <button className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded">
+                      <i className="fas fa-times mr-2" />
+                      Decline
+                    </button>
+                  </div>
                 </div>
-                <div className="flex space-x-2 pr-4">
-                  <button className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded">
-                    <i className="fas fa-check mr-2" />
-                    Accept
-                  </button>
-                  <button className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded">
-                    <i className="fas fa-times mr-2" />
-                    Decline
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

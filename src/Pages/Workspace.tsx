@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchWorkspaces, joinWorkspace } from '../hooks/fetchWorkspace';
+import axios from 'axios';
+import { fetchWorkspaces, joinWorkspace, requestJoinWorkspace } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
 import ConfirmationAlert from '../Component/Alert';
@@ -20,10 +21,14 @@ const Workspace: React.FC = () => {
     boardId: null
   });
   const [joinWorkspaceId, setJoinWorkspaceId] = useState<string>('');
+  const [isPrivateWorkspace, setIsPrivateWorkspace] = useState(false);
   const navigate = useNavigate();
 
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setIsPrivateWorkspace(false); // Reset when closing modal
+  };
 
   useEffect(() => {
     fetchData();
@@ -63,26 +68,45 @@ const Workspace: React.FC = () => {
   const handleJoinWorkspace = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      await joinWorkspace(joinWorkspaceId);
-      const updatedWorkspaces = await fetchWorkspaces(workspaces);
-      setWorkspaces(updatedWorkspaces);
-      closeModal();
+      const response = await axios.get(`/workspace/${joinWorkspaceId}`); // Check workspace details
+      const workspace = response.data;
+
+      if (workspace.isPublic) {
+        await joinWorkspace(joinWorkspaceId);
+        const updatedWorkspaces = await fetchWorkspaces(workspaces);
+        setWorkspaces(updatedWorkspaces);
+        closeModal();
+      } else {
+        // If workspace is private, prompt for join request
+        setIsPrivateWorkspace(true);
+      }
     } catch (error: any) {
-      console.error('Failed to create board:', error);
+      console.error('Failed to join workspace:', error);
       let errorMessage;
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
       } else {
-        errorMessage = 'Failed to create board. Please try again.';
+        errorMessage = 'Failed to join workspace. Please try again.';
       }
 
       setAlert({ type: 'error', message: errorMessage });
     }
   };
 
+  const handleRequestJoin = async () => {
+    try {
+      await requestJoinWorkspace(joinWorkspaceId);
+      setAlert({ type: 'success', message: 'Join request sent successfully.' });
+      closeModal();
+    } catch (error: any) {
+      console.error('Failed to request join:', error);
+      setAlert({ type: 'error', message: 'Failed to send join request. Please try again.' });
+    }
+  };
+
   const handleApiError = (error: any) => {
     if (error.response?.status === 401) {
-      // navigate('/signin');
+      navigate('/signin');
     } else {
       setError(error.message);
       setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
@@ -279,20 +303,30 @@ const Workspace: React.FC = () => {
         <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-20">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 flex flex-col gap-5">
             <h2 className="text-xl text-center font-bold mb-4 text-black">Join Workspace</h2>
-            <form onSubmit={handleJoinWorkspace}>
-              <label htmlFor="workspaceId" className="block mb-2 text-black font-semibold">ID Workspace</label>
-              <input
-                type="text"
-                value={joinWorkspaceId}
-                onChange={(e) => setJoinWorkspaceId(e.target.value)}
-                placeholder="Type here..."
-                className="w-full p-2 border bg-white border-gray-300 rounded mb-4 text-black"
-              />
-              <div className="flex gap-3 justify-end mt-8">
-                <button type="button" onClick={closeModal} className="bg-gray-200 font-semibold px-4 py-2 rounded hover:bg-gray-300 text-black">Cancel</button>
-                <button type="submit" className="bg-blue-600 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700">Join</button>
+            {!isPrivateWorkspace ? (
+              <form onSubmit={handleJoinWorkspace}>
+                <label htmlFor="workspaceId" className="block mb-2 text-black font-semibold">Workspace ID</label>
+                <input
+                  type="text"
+                  value={joinWorkspaceId}
+                  onChange={(e) => setJoinWorkspaceId(e.target.value)}
+                  placeholder="Type here..."
+                  className="w-full p-2 border bg-white border-gray-300 rounded mb-4 text-black"
+                />
+                <div className="flex gap-3 justify-end mt-8">
+                  <button type="button" onClick={closeModal} className="bg-gray-200 font-semibold px-4 py-2 rounded hover:bg-gray-300 text-black">Cancel</button>
+                  <button type="submit" className="bg-blue-600 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700">Join</button>
+                </div>
+              </form>
+            ) : (
+              <div>
+                <p className="text-black mb-4">This workspace is private. Would you like to send a join request?</p>
+                <div className="flex gap-3 justify-end">
+                  <button type="button" onClick={closeModal} className="bg-gray-200 font-semibold px-4 py-2 rounded hover:bg-gray-300 text-black">Cancel</button>
+                  <button onClick={handleRequestJoin} className="bg-blue-600 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700">Send Request</button>
+                </div>
               </div>
-            </form>
+            )}
           </div>
         </div>
       )}

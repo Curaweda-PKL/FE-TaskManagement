@@ -127,6 +127,39 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     }
   };
   
+  const updateUserName = async (newName: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const response = await axios.put(
+        `${config}/user/update`, // Sesuaikan dengan endpoint yang benar
+        { name: newName },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+  
+      if (response.status === 200) {
+        setUserData(prevData => ({ ...prevData, name: newName }));
+        return true;
+      } else {
+        setError('Failed to update name. Please try again.');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Update Name Error:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Failed to update name. Please try again.');
+      }
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return {
     name,
     setName,
@@ -147,6 +180,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     handleRegister,
     handleLogout,
     changePassword,
+    updateUserName,
   };
 };
 
