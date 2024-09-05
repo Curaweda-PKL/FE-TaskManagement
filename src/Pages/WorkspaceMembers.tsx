@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
-import { fetchWorkspaces, memberWorkspace, joinRequestWorkspace } from '../hooks/fetchWorkspace';
+import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace } from '../hooks/fetchWorkspace';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -22,7 +22,7 @@ const WorkspaceMembers: React.FC = () => {
         setMembers(membersData);
 
         if (showJoinRequests) {
-          const joinRequestsData = await joinRequestWorkspace(workspaceId);
+          const joinRequestsData = await joinRequestsWorkspace(workspaceId);
           setJoinRequests(joinRequestsData);
         }
 
