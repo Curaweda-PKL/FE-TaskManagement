@@ -108,20 +108,28 @@ const WorkspaceProject = () => {
 
   return (
     <>
-      <header className="fixed flex justify-between h-20 mt-3 w-full bg-gray-100 p-4 items-center mb-6">
-  <div className="flex items-center space-x-7">
-    <h1 className="text-xl text-black font-medium">{boardName}</h1>
-    <div className="flex -space-x-1">
-      {/* Content lainnya di sini */}
-    </div>
-  </div>
-  <button className=" bg-purple-600 text-white px-4 py-1 rounded text-sm md:absolute md:right-5">
-    Share
-  </button>
-</header>
-
+      <header className="fixed right-0 flex justify-between h-18 w-full bg-gray-100 p-4 items-center mb-6">
+        <div className="flex items-center space-x-7">
+          <h1 className="text-xl md:ml-64 text-black font-medium">{boardName}</h1>
+        </div>
+        <div className="flex items-center space-x-4">
+        <div className="flex -space-x-2">
+          <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
+          <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
+          <div className="w-8 h-8 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+            <span className="text-xs font-bold text-white">A</span>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
+            <span className="text-xs font-semibold text-gray-600">+1</span>
+          </div>
+        </div>
+        <button className="bg-white text-gray-700 px-3 py-1.5 rounded-lg shadow-md text-sm font-medium flex items-center">
+        <i className="fa-solid mr-2 fa-share-nodes"></i>
+          Share
+        </button>
+        </div>
+      </header>
     <div className="m-h-screen">
-
       <main className="flex x px-8 bg-white mb-4">
         {data.card.map((workspace, index) => (
           <div key={index} className="bg-white mt-24 rounded-2xl shadow-xl border p-4 mr-4 min-w-64">
