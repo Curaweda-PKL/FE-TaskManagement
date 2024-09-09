@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
-import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace } from '../hooks/fetchWorkspace';
+import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace } from '../hooks/fetchWorkspace';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -10,29 +10,38 @@ const WorkspaceMembers: React.FC = () => {
   const [workspace, setWorkspace] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
+  const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
+
+  const fetchWorkspaceData = async () => {
+    try {
+      const workspaces = await fetchWorkspaces(workspaceId);
+      const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      setWorkspace(currentWorkspace);
+      setVisibility(currentWorkspace?.visibility || 'Private');
+      const membersData = await memberWorkspace(workspaceId);
+      setMembers(membersData);
+
+      if (showJoinRequests) {
+        const joinRequestsData = await joinRequestsWorkspace(workspaceId);
+        setJoinRequests(joinRequestsData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspace:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchWorkspaceData = async () => {
-      try {
-        const workspaces = await fetchWorkspaces(workspaceId);
-        const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
-        setWorkspace(currentWorkspace);
-        setVisibility(currentWorkspace?.visibility || 'Private');
-        const membersData = await memberWorkspace(workspaceId);
-        setMembers(membersData);
-
-        if (showJoinRequests) {
-          const joinRequestsData = await joinRequestsWorkspace(workspaceId);
-          setJoinRequests(joinRequestsData);
-        }
-
-      } catch (error) {
-        console.error('Failed to fetch workspace:', error);
-      }
-    };
-
     fetchWorkspaceData();
   }, [workspaceId, showJoinRequests]);
+
+  const handleAccept = async (requestId: string) => {
+    try {
+      await requestWorkspace(requestId, 'accepted');
+      await fetchWorkspaceData();
+    } catch (error) {
+      console.error('Failed to accept join request:', error);
+    }
+  };
 
   return (
     <div className='bg-white min-h-screen'>
@@ -47,13 +56,13 @@ const WorkspaceMembers: React.FC = () => {
               </div>
               <div className="lg:flex lg:flex-col relative lg:space-y-2">
                 <button
-                  className={`rounded-lg px-2 py-1 text-left font-semibold ${!showJoinRequests ? 'bg-purple-200 text-purple-700' : 'bg-white text-black'}`}
+                  className={`rounded-lg px-2 py-1 text-left font-semibold ${hoverClass} ${!showJoinRequests ? 'bg-gray-100 text-purple-600' : 'bg-white text-black'}`}
                   onClick={() => setShowJoinRequests(false)}
                 >
                   Workspace member ({members.length})
                 </button>
                 <button
-                  className={`rounded-lg px-2 py-1 text-left font-semibold ${showJoinRequests ? 'bg-purple-200 text-purple-700' : 'bg-white text-gray-800'}`}
+                  className={`rounded-lg px-2 py-1 text-left font-semibold ${hoverClass} ${showJoinRequests ? 'bg-gray-100 text-purple-600' : 'bg-white text-gray-800'}`}
                   onClick={() => setShowJoinRequests(true)}
                 >
                   Join Request ({joinRequests.length})
@@ -124,19 +133,24 @@ const WorkspaceMembers: React.FC = () => {
                 </div>
                 <div className="space-y-4 w-full lg:w-4/5 text-black">
                   {joinRequests.map((request) => (
-                    <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
-                      <div className="flex items-center mb-4 lg:mb-0">
-                        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
-                        <div>
-                          <h4 className="font-semibold">{request.name}</h4>
-                          <p className="text-sm text-gray-600">{request.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-4 items-center">
-                        <button className="bg-green-200 text-green-600 px-4 py-1 rounded-md">Accept</button>
-                        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Reject</button>
-                      </div>
-                    </div>
+                             <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
+                             <div className="flex items-center mb-4 lg:mb-0">
+                               <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                               <div>
+                                 <h4 className="font-semibold">{request.name}</h4>
+                                 <p className="text-sm text-gray-600">{request.email}</p>
+                               </div>
+                             </div>
+                             <div className="flex space-x-4 items-center">
+                               <button 
+                                 className="bg-green-200 text-green-600 px-4 py-1 rounded-md"
+                                 onClick={() => handleAccept(request.id)}
+                               >
+                                 Accept
+                               </button>
+                               <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Reject</button>
+                             </div>
+                           </div>
                   ))}
                 </div>
               </div>

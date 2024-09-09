@@ -142,7 +142,7 @@ export const requestJoinWorkspace = async (workspaceId: any) => {
   }
 };
 
-export const requstWorkspace = async (requestId: any, status: any) => {
+export const requestWorkspace = async (requestId: any, status: any) => {
   try {
     const response = await axios.put(
       `${config}/workspace/request`,
