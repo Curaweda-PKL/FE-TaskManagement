@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import ChevronRight from '../assets/Media/ChevronRight.svg';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
+import DeleteConfirmation from './DeleteConfirmation';
 
 const SidebarWorkspace: React.FC = () => {
   const location = useLocation();
@@ -11,6 +12,9 @@ const SidebarWorkspace: React.FC = () => {
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
   const [boards, setBoards] = useState<any[]>([]);
+  const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false);
 
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
   const activeClass = "bg-gray-100 text-purple-600";
@@ -19,6 +23,25 @@ const SidebarWorkspace: React.FC = () => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const togglePopup = (boardId: string) => {
+    setActiveBoardId(boardId);
+    setIsPopupVisible(!isPopupVisible);
+  };
+
+  const showDeleteConfirmation = () => {
+    setIsPopupVisible(false);
+    setIsDeleteConfirmationVisible(true);
+  };
+
+  const handleDeleteBoard = () => {
+    console.log('Board deleted');
+    setIsDeleteConfirmationVisible(false);
+  };
+
+  const handleClosePopup = () => {
+    setIsDeleteConfirmationVisible(false);
   };
 
   useEffect(() => {
@@ -56,14 +79,14 @@ const SidebarWorkspace: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed top-20 left-1 max768:inline hidden bg-white rounded-full p-1 shadow-2xl cursor-pointer transition-all duration-300 z-30`}
+        className={`fixed top-2 left-1 max768:inline hidden bg-white rounded-full p-1 shadow-2xl cursor-pointer transition-all duration-300 z-30`}
         onClick={toggleSidebar}
       >
         <img src={ChevronRight} alt="" className={`${isSidebarOpen ? 'transform rotate-180' : ''}`} />
       </div>
       <aside className={`pt-16 w-64 bg-white border-r h-screen max768:fixed max768:top-0 max768:left-0 transition-transform duration-300 z-20 ${isSidebarOpen ? 'max768:translate-x-0' : 'max768:-translate-x-full'}`}>
         <div className="mb-4">
-          <div className={`flex items-center justify-between p-2 border-b w-full p-4`}>
+          <div className={`flex items-center justify-between border-b w-full p-4`}>
             <div className="flex items-center">
               <div className="w-4 h-4 bg-red-500 mr-2"></div>
               <span className="text-black font-medium">{selectedWorkspace ? selectedWorkspace.name : 'Loading...'}</span>
@@ -93,21 +116,53 @@ const SidebarWorkspace: React.FC = () => {
           </Link>
         </div>
 
-        <div className="mb-4 px-4">
+        <div className="mb- px-4">
           <h2 className="text-sm font-semibold text-gray-600 mb-2">Your Boards</h2>
           {boards.length > 0 ? (
             boards.map(board => (
-              <Link key={board.id} to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`} 
-                  className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`) ? activeClass : ''}`}>
-                  <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
-                  <span>{board.name}</span>
-              </Link>
+              <div key={board.id} className="relative flex items-center mb-1 justify-between">
+                <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`} 
+                    className={`text-gray-600 p-2 flex items-center w-full ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`) ? activeClass : ''}`}>
+                    <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
+                    <span>{board.name}</span>
+                    <button onClick={() => togglePopup(board.id)} className="ml-auto">
+                  <i className="fas fa-ellipsis-h"></i>
+                </button>
+                </Link>
+
+                {isPopupVisible && activeBoardId === board.id && (
+                  <div className="absolute right-[-120%] top-0 w-64 bg-white shadow-lg rounded-md p-2 z-50">
+                    <div className="flex items-center justify-between px-4 py-2 border-b">
+                      <span className="font-semibold">{board.name}</span>
+                      <button onClick={() => setIsPopupVisible(false)} className="text-gray-500">
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                    <button 
+                      className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                      onClick={showDeleteConfirmation}
+                    >
+                      Close Board
+                    </button>
+                  </div>
+                )}
+
+              </div>
             ))
           ) : (
             <span>No boards available</span>
           )}
         </div>
       </aside>
+
+      {isDeleteConfirmationVisible && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <DeleteConfirmation
+            onDelete={handleDeleteBoard}
+            onCancel={handleClosePopup}
+          />
+        </div>
+      )}
     </>
   );
 };

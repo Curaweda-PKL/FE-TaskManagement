@@ -3,8 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
-import ConfirmationAlert from '../Component/Alert';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
+import DeleteConfirmation from '../Component/DeleteConfirmation';
 
 const WorkspaceBoards: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: any }>();
@@ -13,11 +13,21 @@ const WorkspaceBoards: React.FC = () => {
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, workspaceId: any, boardId: string | null }>({
-    isOpen: false,
-    workspaceId: null,
-    boardId: null
-  });
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, workspaceId: string | null, boardId: string | null }>({
+      isOpen: false,
+      workspaceId: null,
+      boardId: null
+    });
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  const handleCancel = () => {
+    setShowDeleteConfirmation(false);
+  };
+  
+  const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
+    setShowDeleteConfirmation(true);
+  };
 
   useEffect(() => {
     fetchWorkspaceData();
@@ -37,7 +47,7 @@ const WorkspaceBoards: React.FC = () => {
   const fetchWorkspaceData = async () => {
     try {
       const workspaces = await fetchWorkspaces(workspaceId);
-      const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      const currentWorkspace = workspaces.find((ws: any) => ws?.id === workspaceId);
       setWorkspace(currentWorkspace);
     } catch (error) {
       console.error('Failed to fetch workspace:', error);
@@ -86,11 +96,7 @@ const WorkspaceBoards: React.FC = () => {
       setAlert({ type: 'error', message: errorMessage });
     }
   };
-
-  const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
-    setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
-  };
-
+  
   const closeDeleteConfirmation = () => {
     setDeleteConfirmation({ isOpen: false, boardId: null, workspaceId: null });
   };
@@ -109,8 +115,8 @@ const WorkspaceBoards: React.FC = () => {
       } finally {
         closeDeleteConfirmation();
       }
-    }
-  };
+    } handleCancel();
+  };  
 
   return (
     <div className="bg-white min-h-screen">
@@ -155,6 +161,16 @@ const WorkspaceBoards: React.FC = () => {
                 </Link>
               </div>
             ))}
+            {showDeleteConfirmation && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black opacity-50"></div>
+                <DeleteConfirmation
+                  onDelete={handleDeleteBoard}
+                  onCancel={handleCancel}
+                  itemType="board"
+                />
+            </div>
+            )}
             <div onClick={() => setShowCreateBoard(true)} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>
               <h5 className='text-white text-center'>Create New Board</h5>
             </div>
@@ -191,8 +207,8 @@ const WorkspaceBoards: React.FC = () => {
                   <i
                     className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                     onClick={(e) => {
-                      e.stopPropagation();
-                      openDeleteConfirmation(board.id, workspace.id);
+                      e.preventDefault();
+                      openDeleteConfirmation(workspace?.id, board.id);
                     }}
                   />
                 </div>
@@ -229,12 +245,6 @@ const WorkspaceBoards: React.FC = () => {
           isEditing={true}
         />
       )}
-      <ConfirmationAlert
-        isOpen={deleteConfirmation.isOpen}
-        onClose={closeDeleteConfirmation}
-        onConfirm={handleDeleteBoard}
-        message="Are you sure you want to delete this board? This action cannot be undone."
-      />
     </div>
   );
 };

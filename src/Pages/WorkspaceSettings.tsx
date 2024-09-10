@@ -157,10 +157,14 @@ const WorkspaceSettings: React.FC = () => {
           </div>
 
           {activePopup === 'delete' && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black opacity-50"></div>
             <DeleteConfirmation
               onDelete={handleDeleteWorkspace}
               onCancel={closeAllPopups}
+              itemType="workspace"
             />
+            </div>
           )}
 
           {activePopup === 'visibility' && (

@@ -108,7 +108,7 @@ const WorkspaceProject = () => {
 
   return (
     <>
-      <header className="fixed right-0 flex justify-between h-18 w-full bg-gray-100 p-4 items-center mb-6">
+      <header className="fixed right-0 flex justify-between h-16 w-full bg-gray-100 p-4 items-center mb-6">
         <div className="flex items-center space-x-7">
           <h1 className="text-xl md:ml-64 text-black font-medium">{boardName}</h1>
         </div>

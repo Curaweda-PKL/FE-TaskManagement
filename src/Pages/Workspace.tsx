@@ -5,6 +5,7 @@ import { fetchWorkspaces, joinWorkspace, requestJoinWorkspace } from '../hooks/f
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
 import ConfirmationAlert from '../Component/Alert';
+import DeleteConfirmation from '../Component/DeleteConfirmation';
 
 const Workspace: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,14 +21,16 @@ const Workspace: React.FC = () => {
     workspaceId: null,
     boardId: null
   });
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [joinWorkspaceId, setJoinWorkspaceId] = useState<string>('');
   const [isPrivateWorkspace, setIsPrivateWorkspace] = useState(false);
   const navigate = useNavigate();
+  const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
-    setIsPrivateWorkspace(false); // Reset when closing modal
+    setIsPrivateWorkspace(false);
   };
 
   useEffect(() => {
@@ -68,7 +71,7 @@ const Workspace: React.FC = () => {
   const handleJoinWorkspace = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await axios.get(`/workspace/${joinWorkspaceId}`); // Check workspace details
+      const response = await axios.get(`/workspace/${joinWorkspaceId}`);
       const workspace = response.data;
 
       if (workspace.isPublic) {
@@ -77,7 +80,6 @@ const Workspace: React.FC = () => {
         setWorkspaces(updatedWorkspaces);
         closeModal();
       } else {
-        // If workspace is private, prompt for join request
         setIsPrivateWorkspace(true);
       }
     } catch (error: any) {
@@ -153,8 +155,13 @@ const Workspace: React.FC = () => {
     }
   };
 
+  const handleCancel = () => {
+    setShowDeleteConfirmation(false);
+  };
+
   const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
     setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
+    setShowDeleteConfirmation(true);
   };
 
   const closeDeleteConfirmation = () => {
@@ -164,24 +171,18 @@ const Workspace: React.FC = () => {
   const handleDeleteBoard = async () => {
     if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
       try {
-        const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
-        const message = response?.message;
+        const response = await deleteBoard(deleteConfirmation.boardId,  deleteConfirmation.workspaceId);
+        const message = response?.message || 'Board deleted successfully.';
         await fetchData();
         setAlert({ type: 'success', message: message });
       } catch (error: any) {
-        console.error(error);
-        let errorMessage;
-        if (error.response && error.response.data && error.response.data.error) {
-          errorMessage = error.response.data.error;
-        } else {
-          errorMessage = 'An unexpected error occurred';
-        }
-
+        console.error('Failed to delete board:', error);
+        let errorMessage = error.response?.data?.error || 'Failed to delete board. Please try again.';
         setAlert({ type: 'error', message: errorMessage });
       } finally {
         closeDeleteConfirmation();
       }
-    }
+    } handleCancel();
   };
 
   const openCreateBoard = (workspaceId: any) => {
@@ -205,9 +206,9 @@ const Workspace: React.FC = () => {
       )}
       <section className='flex items-center gap-5'>
         <h1 className='text-black font-bold text-2xl max768:text-xl'>YOUR WORKSPACE</h1>
-        <div className="group flex py-2 px-3 gap-3 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 items-center" onClick={openModal}>
-          <i className='fas fa-user-plus text-gray-700 max768:h-[18px] max768:w-[18px]' />
-          <span className="text-[#4A4A4A] font-semibold text-[15px] group-hover:text-[#7000FF] transition-colors duration-300">Join Workspace</span>
+        <div className={`group flex py-2 px-3 gap-3 bg-[rgba(131,73,255,0.1)] rounded-lg items-center ${hoverClass}`} onClick={openModal}>
+          <i className={`fas fa-user-plus text-gray-700 max768:h-[18px] max768:w-[18px] ${hoverClass}`} />
+          <span className={`text-[#4A4A4A] font-semibold text-[15px] ${hoverClass}`}>Join Workspace</span>
         </div>
       </section>
 
@@ -220,21 +221,21 @@ const Workspace: React.FC = () => {
                 <span className='font-semibold text-[#4A4A4A] text-[15px] overflow-hidden text-ellipsis whitespace-nowrap'>{workspace.name}</span>
               </div>
               <div className='grid grid-cols-4 max850:grid-cols-2 gap-5 max850:gap-2'>
-                <Link to={`/workspace/${workspace.id}/boards-ws`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
-                  <i className='fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
-                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Board</span>
+                <Link to={`/workspace/${workspace.id}/boards-ws`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
+                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
+                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Board</span>
                 </Link>
-                <Link to={`/workspace/${workspace.id}/reports`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
-                  <i className='fas fa-book-open max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
-                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Report</span>
+                <Link to={`/workspace/${workspace.id}/reports`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
+                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
+                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Report</span>
                 </Link>
-                <Link to={`/workspace/${workspace.id}/members`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
-                  <i className='fas fa-user max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
-                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Member</span>
+                <Link to={`/workspace/${workspace.id}/members`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
+                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
+                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Member</span>
                 </Link>
-                <Link to={`/workspace/${workspace.id}/settings`} className='group hover:bg-[rgba(131,73,255,0.2)] transition-colors duration-300 flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center'>
-                  <i className='fas fa-cog max768:h-[18px] max768:w-[18px] text-[#4A4A4A]' aria-hidden="true"></i>
-                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-[#7000FF] transition-colors duration-300'>Settings</span>
+                <Link to={`/workspace/${workspace.id}/settings`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
+                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
+                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Settings</span>
                 </Link>
               </div>
             </div>
@@ -272,13 +273,17 @@ const Workspace: React.FC = () => {
             </div>
           </div>
         ))}
-
-        <ConfirmationAlert
-          isOpen={deleteConfirmation.isOpen}
-          onClose={closeDeleteConfirmation}
-          onConfirm={handleDeleteBoard}
-          message="Are you sure you want to delete this board? This action cannot be undone."
-        />
+        
+        {showDeleteConfirmation && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black opacity-50"></div>
+                <DeleteConfirmation
+                  onDelete={handleDeleteBoard}
+                  onCancel={handleCancel}
+                  itemType="board"
+                />
+            </div>
+            )}
       </section>
 
       {showCreateBoard && (

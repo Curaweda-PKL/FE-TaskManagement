@@ -4,7 +4,7 @@ import config from '../config/baseUrl';
 export const fetchWorkspaces = async (workspaceId: any) => {
   try {
     const response = await axios.get(
-      config + '/workspace/take', {
+      config + '/workspace/take' , {
       headers: {
         'Authorization': localStorage.getItem('token'),
         'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ export const requestJoinWorkspace = async (workspaceId: any) => {
       { workspaceId },
       {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Include Bearer before the token
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       }
@@ -142,25 +142,26 @@ export const requestJoinWorkspace = async (workspaceId: any) => {
   }
 };
 
-export const requstWorkspace = async (requestId: any, status: any) => {
+export const requestWorkspace = async (requestId: any, status: any) => {
   try {
     const response = await axios.put(
       `${config}/workspace/request`,
+      { requestId, status },
       {
         headers: {
-          'Authorization': `${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        data: { requestId, status }
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        }
       }
     );
 
     return response.data;
   } catch (error) {
-    console.error('Failed to join workspace:', error);
+    console.error('Failed to process join request:', error);
     throw error;
   }
 };
+
 
 export const joinWithLinkWorkspace = async (link: any) => {
   try {
