@@ -167,12 +167,12 @@ export const joinWithLinkWorkspace = async (link: any) => {
   try {
     const response = await axios.post(
       `${config}/workspace/join-with-link`,
+      { link },
       {
         headers: {
-          'Authorization': `${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json',
         },
-        data: { link }
       }
     );
 
@@ -217,6 +217,26 @@ export const joinRequestsWorkspace = async (workspaceId: any) => {
     return response.data;
   } catch (error) {
     console.error('Failed to fetching  join request for workspace:', error);
+    throw error;
+  }
+};
+
+export const removeMemberWorkspace = async (workspaceId: any, memberId: any) => {
+  try {
+    const response = await axios.delete(
+      `${config}/workspace/remove-member`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        data: { workspaceId, memberId }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to remove member from workspace:', error);
     throw error;
   }
 };

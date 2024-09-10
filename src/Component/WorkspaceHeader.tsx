@@ -101,7 +101,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
   const handleAccept = async (requestId: string) => {
     try {
-      await requestWorkspace(requestId, 'accept');
+      await requestWorkspace(requestId, 'APPROVED');
       showAlert('Request accepted successfully!', 'success');
       setJoinRequests((prevRequests) =>
         prevRequests.filter((request) => request.id !== requestId)
@@ -114,7 +114,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
   const handleDecline = async (requestId: string) => {
     try {
-      await requestWorkspace(requestId, 'reject');
+      await requestWorkspace(requestId, 'REJECTED');
       showAlert('Request rejected successfully!', 'success');
       setJoinRequests((prevRequests) =>
         prevRequests.filter((request) => request.id !== requestId)

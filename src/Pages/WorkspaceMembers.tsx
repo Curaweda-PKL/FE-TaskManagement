@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
-import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace } from '../hooks/fetchWorkspace';
+import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace } from '../hooks/fetchWorkspace';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -15,26 +15,26 @@ const WorkspaceMembers: React.FC = () => {
   useEffect(() => {
     fetchWorkspaceData();
   }, [workspaceId]);
-  
+
   const fetchWorkspaceData = async () => {
     try {
       const workspaces = await fetchWorkspaces(workspaceId);
       const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
-      
+
       setWorkspace(currentWorkspace);
       setVisibility(currentWorkspace?.visibility || 'Private');
-      
+
       const membersData = await memberWorkspace(workspaceId);
       setMembers(membersData);
-  
+
       const joinRequestsData = await joinRequestsWorkspace(workspaceId);
       setJoinRequests(joinRequestsData);
-  
+
     } catch (error) {
       console.error('Failed to fetch workspace data:', error);
     }
   };
-  
+
 
   const handleJoinRequest = async (requestId: any, status: 'APPROVED' | 'REJECTED') => {
     try {
@@ -48,10 +48,24 @@ const WorkspaceMembers: React.FC = () => {
     }
   };
 
+  const handleRemoveMember = async (memberId: string) => {
+    const confirmation = window.confirm('Are you sure you want to remove this member?');
+    if (!confirmation) return;
+    try {
+      await removeMemberWorkspace(workspaceId, memberId);
+      setMembers((prevMembers) => prevMembers.filter((member) => member?.id !== memberId));
+      alert('Member successfully removed.');
+    } catch (error) {
+      console.error('Failed to remove member:', error);
+      alert('Failed to remove member. Please try again.');
+    }
+  };
+
+
   return (
     <div className='bg-white min-h-screen'>
       <div className="max-w-6xl mx-auto">
-        <WorkspaceHeader workspace={workspace}/>
+        <WorkspaceHeader workspace={workspace} />
         <div className="relative px-6 py-2 lg:flex">
           <div className="w-full lg:w-1/4 bg-white pr-4">
             <div className="mb-8">
@@ -91,7 +105,7 @@ const WorkspaceMembers: React.FC = () => {
                       Anyone with an invite link can join this free Workspace. You can also disable and create a new invite link for this Workspace at any time. Pending invitations count toward the 10 collaborator limit.
                     </p>
                     <div className="items-center mt-4 lg:mt-0 flex space-x-0 lg:space-x-4 lg:flex-col flex-row justify-center">
-                      <button className="bg-gray-200 px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0"><i className='fas fa-link mr-3'/>Invite with link</button>
+                      <button className="bg-gray-200 px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0"><i className='fas fa-link mr-3' />Invite with link</button>
                       <button className="py-2">Disable invite link</button>
                     </div>
                   </div>
@@ -114,8 +128,8 @@ const WorkspaceMembers: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
-                        <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards ({member.boardCount})</button>
-                        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Remove</button>
+                        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
+                          onClick={() => handleRemoveMember(member?.id)}>Remove</button>
                       </div>
                     </div>
                   ))}
@@ -147,7 +161,7 @@ const WorkspaceMembers: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex space-x-4 items-center">
-                      <button
+                        <button
                           onClick={() => handleJoinRequest(request.id, 'APPROVED')}
                           className="bg-green-200 text-green-600 px-4 py-1 rounded-md"
                         >
