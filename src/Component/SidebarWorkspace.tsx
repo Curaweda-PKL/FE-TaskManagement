@@ -160,6 +160,7 @@ const SidebarWorkspace: React.FC = () => {
           <DeleteConfirmation
             onDelete={handleDeleteBoard}
             onCancel={handleClosePopup}
+            itemType="board"
           />
         </div>
       )}
