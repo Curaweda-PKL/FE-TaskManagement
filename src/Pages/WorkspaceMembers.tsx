@@ -12,34 +12,39 @@ const WorkspaceMembers: React.FC = () => {
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
+  useEffect(() => {
+    fetchWorkspaceData();
+  }, [workspaceId]);
+  
   const fetchWorkspaceData = async () => {
     try {
       const workspaces = await fetchWorkspaces(workspaceId);
       const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      
       setWorkspace(currentWorkspace);
       setVisibility(currentWorkspace?.visibility || 'Private');
+      
       const membersData = await memberWorkspace(workspaceId);
       setMembers(membersData);
-
-      if (showJoinRequests) {
-        const joinRequestsData = await joinRequestsWorkspace(workspaceId);
-        setJoinRequests(joinRequestsData);
-      }
+  
+      const joinRequestsData = await joinRequestsWorkspace(workspaceId);
+      setJoinRequests(joinRequestsData);
+  
     } catch (error) {
-      console.error('Failed to fetch workspace:', error);
+      console.error('Failed to fetch workspace data:', error);
     }
   };
+  
 
-  useEffect(() => {
-    fetchWorkspaceData();
-  }, [workspaceId, showJoinRequests]);
-
-  const handleAccept = async (requestId: string) => {
+  const handleJoinRequest = async (requestId: any, status: 'APPROVED' | 'REJECTED') => {
     try {
-      await requestWorkspace(requestId, 'accepted');
-      await fetchWorkspaceData();
+      await requestWorkspace(requestId, status);
+      setJoinRequests((prevRequests) => prevRequests.filter(req => req.id !== requestId));
+      if (status === 'APPROVED') {
+        fetchWorkspaceData();
+      }
     } catch (error) {
-      console.error('Failed to accept join request:', error);
+      console.error(`Failed to ${status} join request:`, error);
     }
   };
 
@@ -133,24 +138,29 @@ const WorkspaceMembers: React.FC = () => {
                 </div>
                 <div className="space-y-4 w-full lg:w-4/5 text-black">
                   {joinRequests.map((request) => (
-                             <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
-                             <div className="flex items-center mb-4 lg:mb-0">
-                               <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
-                               <div>
-                                 <h4 className="font-semibold">{request.name}</h4>
-                                 <p className="text-sm text-gray-600">{request.email}</p>
-                               </div>
-                             </div>
-                             <div className="flex space-x-4 items-center">
-                               <button 
-                                 className="bg-green-200 text-green-600 px-4 py-1 rounded-md"
-                                 onClick={() => handleAccept(request.id)}
-                               >
-                                 Accept
-                               </button>
-                               <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md">Reject</button>
-                             </div>
-                           </div>
+                    <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
+                      <div className="flex items-center mb-4 lg:mb-0">
+                        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                        <div>
+                          <h4 className="font-semibold">{request.name}</h4>
+                          <p className="text-sm text-gray-600">{request.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-4 items-center">
+                      <button
+                          onClick={() => handleJoinRequest(request.id, 'APPROVED')}
+                          className="bg-green-200 text-green-600 px-4 py-1 rounded-md"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleJoinRequest(request.id, 'REJECTED')}
+                          className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

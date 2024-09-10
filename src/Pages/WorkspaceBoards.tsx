@@ -47,7 +47,7 @@ const WorkspaceBoards: React.FC = () => {
   const fetchWorkspaceData = async () => {
     try {
       const workspaces = await fetchWorkspaces(workspaceId);
-      const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      const currentWorkspace = workspaces.find((ws: any) => ws?.id === workspaceId);
       setWorkspace(currentWorkspace);
     } catch (error) {
       console.error('Failed to fetch workspace:', error);

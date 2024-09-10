@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateLinkWorkspace, joinRequestsWorkspace } from '../hooks/fetchWorkspace'; // Adjust the import path as needed
+import { generateLinkWorkspace, joinRequestsWorkspace, requestWorkspace} from '../hooks/fetchWorkspace'; // Adjust the import path as needed
 
 interface Workspace {
   name: string;
@@ -31,24 +31,29 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
 
+  useEffect(() => {
+    const fetchJoinRequests = async () => {
+      if (workspace?.id) {
+        try {
+          const requests = await joinRequestsWorkspace(workspace?.id);
+          setJoinRequests(requests);
+        } catch (error) {
+          console.error('Failed to fetch join requests:', error);
+        }
+      } else {
+        console.error('Workspace ID is undefined');
+      }
+    };
+  
+    fetchJoinRequests();
+  }, [workspace?.id]);
+
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleOpenInvite = () => {
     setIsModalOpen(false);
     setIsInviteOpen(true);
-  };
-
-  const handleOpenRequest = async () => {
-    setIsModalOpen(false);
-    setIsRequestOpen(true);
-    
-    try {
-      const requests = await joinRequestsWorkspace(workspace.id);
-      setJoinRequests(requests);
-    } catch (error) {
-      console.error('Failed to fetch join requests:', error);
-    }
   };
 
   const handleClose = () => {
@@ -58,7 +63,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
   const showAlert = (message: string, type: 'success' | 'error') => {
     setAlert({ type, message });
-    setTimeout(() => setAlert(null), 3000); // Hide alert after 3 seconds
+    setTimeout(() => setAlert(null), 2000);
   };
 
   const handleCopyId = () => {
@@ -77,7 +82,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     if (workspace) {
       try {
         const response = await generateLinkWorkspace(workspace.id);
-        const inviteLink = response.link; 
+        const inviteLink = "http://localhost:4545/j/" + response.link.joinLink; 
         
         if (inviteLink) {
           navigator.clipboard.writeText(inviteLink);
@@ -89,10 +94,37 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       } catch (error) {
         console.error('Failed to generate link:', error);
         setAlert({ type: 'error', message: 'An error occurred while generating the invite link.' });
+        setTimeout(() => setAlert(null), 3000);
       }
     }
   };
-  
+
+  const handleAccept = async (requestId: string) => {
+    try {
+      await requestWorkspace(requestId, 'accept');
+      showAlert('Request accepted successfully!', 'success');
+      setJoinRequests((prevRequests) =>
+        prevRequests.filter((request) => request.id !== requestId)
+      );
+    } catch (error) {
+      showAlert('Failed to accept request.', 'error');
+      console.error('Error accepting request:', error);
+    }
+  };
+
+  const handleDecline = async (requestId: string) => {
+    try {
+      await requestWorkspace(requestId, 'reject');
+      showAlert('Request rejected successfully!', 'success');
+      setJoinRequests((prevRequests) =>
+        prevRequests.filter((request) => request.id !== requestId)
+      );
+    } catch (error) {
+      showAlert('Failed to reject request.', 'error');
+      console.error('Error rejecting request:', error);
+    }
+  };
+
 
   return (
     <>
@@ -136,9 +168,9 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               <i className='fas fa-user-plus' />
               <span className='ml-2'>Invite Workspace Member</span>
             </div>
-            <div className='bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 transition-colors duration-300 mt-2' onClick={handleOpenRequest}>
+            <div className='bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 transition-colors duration-300 mt-2' onClick={() => setIsRequestOpen(true)}>
               <i className='fas fa-user-plus' />
-              <span className='ml-2'>Join Request ({joinRequests.length})</span>
+              <span className='ml-2'>Join Request ({joinRequests?.length})</span>
             </div>
           </div>
         </div>
@@ -153,22 +185,28 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </div>
             <div className="px-4 pb-3">
               {joinRequests.map((request) => (
-                <div key={request.id} className="flex items-center bg-teal-100 p-1 rounded-md mb-2">
+                <div key={request?.id} className="flex items-center bg-teal-100 p-1 rounded-md mb-2">
                   <img
                     src="https://via.placeholder.com/40"
                     alt="User Profile"
                     className="w-8 h-8 rounded-full mr-4"
                   />
                   <div className="flex-1">
-                    <p className="font-semibold text-black">{request.name}</p>
-                    <p className="text-sm text-gray-600">{request.email}</p>
+                    <p className="font-semibold text-black">{request?.name}</p>
+                    <p className="text-sm text-gray-600">{request?.email}</p>
                   </div>
                   <div className="flex space-x-2 pr-4">
-                    <button className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded">
+                  <button
+                      className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded"
+                      onClick={() => handleAccept(request.id)}
+                    >
                       <i className="fas fa-check mr-2" />
                       Accept
                     </button>
-                    <button className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded">
+                    <button
+                      className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded"
+                      onClick={() => handleDecline(request.id)}
+                    >
                       <i className="fas fa-times mr-2" />
                       Decline
                     </button>

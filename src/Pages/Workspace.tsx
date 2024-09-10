@@ -30,7 +30,7 @@ const Workspace: React.FC = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
-    setIsPrivateWorkspace(false); // Reset when closing modal
+    setIsPrivateWorkspace(false);
   };
 
   useEffect(() => {
@@ -71,7 +71,7 @@ const Workspace: React.FC = () => {
   const handleJoinWorkspace = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await axios.get(`/workspace/${joinWorkspaceId}`); // Check workspace details
+      const response = await axios.get(`/workspace/${joinWorkspaceId}`);
       const workspace = response.data;
 
       if (workspace.isPublic) {
@@ -80,7 +80,6 @@ const Workspace: React.FC = () => {
         setWorkspaces(updatedWorkspaces);
         closeModal();
       } else {
-        // If workspace is private, prompt for join request
         setIsPrivateWorkspace(true);
       }
     } catch (error: any) {
