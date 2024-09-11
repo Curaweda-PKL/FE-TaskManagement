@@ -196,7 +196,7 @@ const WorkspaceBoards: React.FC = () => {
                 <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                 <h5 className='text-white relative z-10'>{board.name}</h5>
-                <div className='absolute right-2 gap-3 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                <div className='absolute right-2 gap-3 bottom-2 flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
                   <i
                     className='fas fa-pencil-alt text-white hover:text-yellow-300 cursor-pointer'
                     onClick={(e) => {
