@@ -3,11 +3,17 @@ import React from 'react';
 interface DeleteConfirmationProps {
   onDelete: () => void;
   onCancel: () => void;
-  itemType: 'workspace' | 'board';
+  itemType: 'workspace' | 'board' | 'member';
 }
 
 const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({ onDelete, onCancel, itemType }) => {
-  const title = itemType === 'workspace' ? 'Delete this Workspace?' : 'Delete this board?';
+  const title =
+    itemType === 'workspace'
+      ? 'Delete this Workspace?'
+      : itemType === 'board'
+      ? 'Delete this board?'
+      : 'Delete this member?';
+      
   const description = `Are you sure you want to delete this ${itemType} permanently? This can't be undone.`;
 
   return (

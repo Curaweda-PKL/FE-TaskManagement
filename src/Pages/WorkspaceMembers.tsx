@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
 import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace } from '../hooks/fetchWorkspace';
+import DeleteConfirmation from '../Component/DeleteConfirmation';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -10,11 +11,20 @@ const WorkspaceMembers: React.FC = () => {
   const [workspace, setWorkspace] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
+  const [inviteLinkEnabled, setInviteLinkEnabled] = useState(true);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
   useEffect(() => {
     fetchWorkspaceData();
   }, [workspaceId]);
+
+  const showAlert = (message: string, type: 'success' | 'error') => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 2000);
+  };
 
   const fetchWorkspaceData = async () => {
     try {
@@ -35,7 +45,6 @@ const WorkspaceMembers: React.FC = () => {
     }
   };
 
-
   const handleJoinRequest = async (requestId: any, status: 'APPROVED' | 'REJECTED') => {
     try {
       await requestWorkspace(requestId, status);
@@ -48,24 +57,46 @@ const WorkspaceMembers: React.FC = () => {
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
-    const confirmation = window.confirm('Are you sure you want to remove this member?');
-    if (!confirmation) return;
-    try {
-      await removeMemberWorkspace(workspaceId, memberId);
-      setMembers((prevMembers) => prevMembers.filter((member) => member?.id !== memberId));
-      alert('Member successfully removed.');
-    } catch (error) {
-      console.error('Failed to remove member:', error);
-      alert('Failed to remove member. Please try again.');
+  const handleRemoveMember = (memberId: string) => {
+    setMemberToRemove(memberId);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmRemoveMember = async () => {
+    if (memberToRemove) {
+      try {
+        await removeMemberWorkspace(workspaceId, memberToRemove);
+        setMembers((prevMembers) => prevMembers.filter((member) => member?.id !== memberToRemove));
+        setShowDeleteConfirmation(false);
+        setMemberToRemove(null);
+        showAlert('Member successfully removed.', 'success');
+      } catch (error) {
+        console.error('Failed to remove member:', error);
+        showAlert('Failed to remove member. Please try again.', 'error');
+        
+      }
     }
   };
 
+  const cancelRemoveMember = () => {
+    setShowDeleteConfirmation(false);
+    setMemberToRemove(null);
+  };
+
+  const toggleInviteLink = () => {
+    setInviteLinkEnabled(!inviteLinkEnabled);
+    // TODO: Implement API call to toggle the invite link status on the server
+  };
 
   return (
     <div className='bg-white min-h-screen'>
       <div className="max-w-6xl mx-auto">
-        <WorkspaceHeader workspace={workspace} />
+      {alert && (
+          <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+            {alert.message}
+          </div>
+        )}
+        <WorkspaceHeader workspace={workspace} inviteLinkEnabled={inviteLinkEnabled} />
         <div className="relative px-6 py-2 lg:flex">
           <div className="w-full lg:w-1/4 bg-white pr-4">
             <div className="mb-8">
@@ -102,11 +133,26 @@ const WorkspaceMembers: React.FC = () => {
                   <h3 className="text-lg font-semibold">Invite members to join you</h3>
                   <div className='flex flex-col lg:flex-row justify-between'>
                     <p className="text-sm mt-2 w-full lg:w-2/3">
-                      Anyone with an invite link can join this free Workspace. You can also disable and create a new invite link for this Workspace at any time. Pending invitations count toward the 10 collaborator limit.
+                      {inviteLinkEnabled
+                        ? "Anyone with an invite link can join this free Workspace. You can disable and create a new invite link for this Workspace at any time. Pending invitations count toward the 10 collaborator limit."
+                        : "Invite link is currently disabled. You can re-enable it to allow new members to join using a link."}
                     </p>
                     <div className="items-center mt-4 lg:mt-0 flex space-x-0 lg:space-x-4 lg:flex-col flex-row justify-center">
-                      <button className="bg-gray-200 px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0"><i className='fas fa-link mr-3' />Invite with link</button>
-                      <button className="py-2">Disable invite link</button>
+                      {inviteLinkEnabled ? (
+                        <>
+                          <button className="bg-gray-200 text-black px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0">
+                            <i className='fas fa-link mr-3' />Invite with link
+                          </button>
+                          <button className="py-2 text-gray-500 hover:text-black" onClick={toggleInviteLink}>Disable invite link</button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
+                            <i className='fas fa-link mr-3' />Invite with link
+                          </button>
+                          <button className="bg-gray-200 px-6 py-2 rounded-md  text-black">Disable invite link</button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -128,8 +174,8 @@ const WorkspaceMembers: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
-                        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
-                          onClick={() => handleRemoveMember(member?.id)}>Remove</button>
+                        <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards ({member.boardCount})</button>
+                        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md" onClick={() => handleRemoveMember(member.id)}>Remove</button>
                       </div>
                     </div>
                   ))}
@@ -179,6 +225,17 @@ const WorkspaceMembers: React.FC = () => {
                 </div>
               </div>
             )}
+            
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black opacity-50"></div>
+        <DeleteConfirmation
+          onDelete={confirmRemoveMember}
+          onCancel={cancelRemoveMember}
+          itemType="member"
+        />
+        </div>
+      )}
           </div>
         </div>
       </div>
