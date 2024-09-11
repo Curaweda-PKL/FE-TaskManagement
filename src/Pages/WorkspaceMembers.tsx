@@ -7,7 +7,7 @@ import DeleteConfirmation from '../Component/DeleteConfirmation';
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [showJoinRequests, setShowJoinRequests] = useState(false);
-  const [visibility, setVisibility] = useState<'Private' | 'Public'>('Private');
+  const [, setVisibility] = useState<'Private' | 'Public'>('Private');
   const [workspace, setWorkspace] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);

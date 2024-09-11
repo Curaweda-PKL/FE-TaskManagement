@@ -4,7 +4,6 @@ import axios from 'axios';
 import { fetchWorkspaces, joinWorkspace, requestJoinWorkspace } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
-import ConfirmationAlert from '../Component/Alert';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 
 const Workspace: React.FC = () => {

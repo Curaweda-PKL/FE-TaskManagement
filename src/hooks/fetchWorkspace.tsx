@@ -1,7 +1,7 @@
 import axios from 'axios';
 import config from '../config/baseUrl';
 
-export const fetchWorkspaces = async (workspaceId: any) => {
+export const fetchWorkspaces = async (_workspaceId: any) => {
   try {
     const response = await axios.get(
       config + '/workspace/take' , {
