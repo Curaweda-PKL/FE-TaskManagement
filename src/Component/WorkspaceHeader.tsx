@@ -18,12 +18,14 @@ interface WorkspaceHeaderProps {
   workspace: Workspace;
   showEditIcon?: boolean;
   onEdit?: () => void;
+  inviteLinkEnabled: boolean;
 }
 
 const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   workspace,
   showEditIcon,
   onEdit,
+  inviteLinkEnabled,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
@@ -51,11 +53,6 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleOpenInvite = () => {
-    setIsModalOpen(false);
-    setIsInviteOpen(true);
-  };
-
   const handleClose = () => {
     setIsRequestOpen(false);
     setIsInviteOpen(false);
@@ -79,23 +76,21 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   };
 
   const handleCopyLink = async () => {
-    if (workspace) {
+    if (workspace && workspace.isPublic && inviteLinkEnabled) {
       try {
         const response = await generateLinkWorkspace(workspace.id);
         const inviteLink = "http://localhost:4545/j/" + response.link.joinLink; 
         
-        if (inviteLink) {
-          navigator.clipboard.writeText(inviteLink);
-          setAlert({ type: 'success', message: 'Invite link copied to clipboard!' });
-          setTimeout(() => setAlert(null), 3000);
-        } else {
-          setAlert({ type: 'error', message: 'Failed to generate invite link.' });
-        }
+        navigator.clipboard.writeText(inviteLink);
+        showAlert('Invite link copied to clipboard!', 'success');
       } catch (error) {
         console.error('Failed to generate link:', error);
-        setAlert({ type: 'error', message: 'An error occurred while generating the invite link.' });
-        setTimeout(() => setAlert(null), 3000);
+        showAlert('An error occurred while generating the invite link.', 'error');
       }
+    } else if (!workspace.isPublic) {
+      showAlert('Invite link is not available for private workspaces.', 'error');
+    } else if (!inviteLinkEnabled) {
+      showAlert('Invite link is currently disabled.', 'error');
     }
   };
 
@@ -125,6 +120,10 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     }
   };
 
+  const handleInviteWorkspaceMember = () => {
+    setIsInviteOpen(true);
+    setIsModalOpen(false);
+  };
 
   return (
     <>
@@ -164,13 +163,44 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
           <div className="bg-white pt-8 px-6 pb-5 rounded-md shadow-md w-80 relative right-16 top-0 cursor-pointer">
             <i className='fas fa-times text-lg text-black absolute top-2 right-2 cursor-pointer' onClick={handleCloseModal} />
-            <div className='bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 transition-colors duration-300' onClick={handleOpenInvite}>
+            <div 
+              className="bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-300"
+              onClick={handleInviteWorkspaceMember}
+            >
               <i className='fas fa-user-plus' />
               <span className='ml-2'>Invite Workspace Member</span>
             </div>
-            <div className='bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 transition-colors duration-300 mt-2' onClick={() => setIsRequestOpen(true)}>
+            <div className='bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 transition-colors duration-300 mt-2 cursor-pointer' onClick={() => { setIsRequestOpen(true); setIsModalOpen(false); }}>
               <i className='fas fa-user-plus' />
               <span className='ml-2'>Join Request ({joinRequests?.length})</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+{isInviteOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
+          <div className="bg-white rounded-lg shadow-lg w-[300px] relative right-16">
+            <div className="flex justify-between items-center p-4">
+              <h3 className="text-md text-black font-medium">Invite Member Workspace</h3>
+              <i className="fas fa-times text-black cursor-pointer" onClick={() => setIsInviteOpen(false)} />
+            </div>
+            <div className="px-4 pb-3 flex flex-col space-y-2">
+              <button
+                className={`flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md ${(!workspace.isPublic || !inviteLinkEnabled) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={handleCopyLink}
+                disabled={!workspace.isPublic || !inviteLinkEnabled}
+              >
+                <i className="fas fa-link mr-2" />
+                Invite with link
+              </button>
+              <button
+                className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
+                onClick={handleCopyId}
+              >
+                <i className="fas fa-link mr-2" />
+                Copy Workspace id
+              </button>
             </div>
           </div>
         </div>
@@ -213,33 +243,6 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isInviteOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
-          <div className="bg-white rounded-lg shadow-lg w-[300px] relative right-16">
-            <div className="flex justify-between items-center p-4">
-              <h3 className="text-md text-black font-medium">Invite Member Workspace</h3>
-              <i className="fas fa-times text-black cursor-pointer" onClick={handleClose} />
-            </div>
-            <div className="px-4 pb-3 flex flex-col space-y-2">
-              <button
-                className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
-                onClick={handleCopyLink}
-              >
-                <i className="fas fa-link mr-2" />
-                Invite with link
-              </button>
-              <button
-                className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
-                onClick={handleCopyId}
-              >
-                <i className="fas fa-link mr-2" />
-                Copy Workspace id
-              </button>
             </div>
           </div>
         </div>

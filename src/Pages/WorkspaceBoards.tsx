@@ -125,7 +125,7 @@ const WorkspaceBoards: React.FC = () => {
           {alert.message}
         </div>
       )}
-      <WorkspaceHeader workspace={workspace}/>
+      <WorkspaceHeader workspace={workspace} inviteLinkEnabled={false}/>
 
       <div className='px-6 py-2 text-gray-600'>
         <div className='mb-6'>

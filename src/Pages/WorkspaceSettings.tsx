@@ -129,7 +129,7 @@ const WorkspaceSettings: React.FC = () => {
           {alert.message}
         </div>
       )}
-      <WorkspaceHeader workspace={workspace} showEditIcon={true} onEdit={handleEditClick} />
+      <WorkspaceHeader workspace={workspace} showEditIcon={true} onEdit={handleEditClick} inviteLinkEnabled={false} />
 
       <div className='py-10 text-black px-16'>
         <h2 className='text-xl font-medium mb-4'>Workspace Settings</h2>
