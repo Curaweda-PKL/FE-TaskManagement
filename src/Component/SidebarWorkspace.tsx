@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import ChevronRight from '../assets/Media/ChevronRight.svg';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
-import DeleteConfirmation from './DeleteConfirmation';
+import DeleteConfirmation from './DeleteConfirmation'; // Import DeleteConfirmation
 
 const SidebarWorkspace: React.FC = () => {
   const location = useLocation();
@@ -14,7 +14,7 @@ const SidebarWorkspace: React.FC = () => {
   const [boards, setBoards] = useState<any[]>([]);
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false);
+  const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false); // State for DeleteConfirmation
 
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
   const activeClass = "bg-gray-100 text-purple-600";
@@ -36,12 +36,13 @@ const SidebarWorkspace: React.FC = () => {
   };
 
   const handleDeleteBoard = () => {
+    // Logika untuk menghapus board
     console.log('Board deleted');
-    setIsDeleteConfirmationVisible(false);
+    setIsDeleteConfirmationVisible(false); // Tutup DeleteConfirmation setelah board dihapus
   };
 
   const handleClosePopup = () => {
-    setIsDeleteConfirmationVisible(false);
+    setIsDeleteConfirmationVisible(false); // Tutup DeleteConfirmation tanpa menghapus
   };
 
   useEffect(() => {
@@ -120,7 +121,7 @@ const SidebarWorkspace: React.FC = () => {
           <h2 className="text-sm font-semibold text-gray-600 mb-2">Your Boards</h2>
           {boards.length > 0 ? (
             boards.map(board => (
-              <div key={board.id} className="relative flex items-center mb-1 justify-between">
+              <div key={board.id} className="relative flex items-center justify-between">
                 <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`} 
                     className={`text-gray-600 p-2 flex items-center w-full ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`) ? activeClass : ''}`}>
                     <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
@@ -156,7 +157,7 @@ const SidebarWorkspace: React.FC = () => {
       </aside>
 
       {isDeleteConfirmationVisible && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <DeleteConfirmation
             onDelete={handleDeleteBoard}
             onCancel={handleClosePopup}
