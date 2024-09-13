@@ -47,7 +47,7 @@ const WorkspaceBoards: React.FC = () => {
   const fetchWorkspaceData = async () => {
     try {
       const workspaces = await fetchWorkspaces(workspaceId);
-      const currentWorkspace = workspaces.find((ws: any) => ws?.id === workspaceId);
+      const currentWorkspace = workspaces?.find((ws: any) => ws?.id === workspaceId);
       setWorkspace(currentWorkspace);
     } catch (error) {
       console.error('Failed to fetch workspace:', error);
@@ -75,7 +75,7 @@ const WorkspaceBoards: React.FC = () => {
       setAlert({ type: 'success', message: message });
     } catch (error: any) {
       console.error('Failed to create board:', error);
-      let errorMessage = error.response?.data?.error || 'Failed to create board. Please try again.';
+      let errorMessage = error?.response?.data?.error || 'Failed to create board. Please try again.';
       setAlert({ type: 'error', message: errorMessage });
     }
   };
@@ -92,7 +92,7 @@ const WorkspaceBoards: React.FC = () => {
       setAlert({ type: 'success', message: message });
     } catch (error: any) {
       console.error('Failed to update board:', error);
-      let errorMessage = error.response?.data?.error || 'Failed to update board. Please try again.';
+      let errorMessage = error?.response?.data?.error || 'Failed to update board. Please try again.';
       setAlert({ type: 'error', message: errorMessage });
     }
   };
@@ -110,7 +110,7 @@ const WorkspaceBoards: React.FC = () => {
         setAlert({ type: 'success', message: message });
       } catch (error: any) {
         console.error('Failed to delete board:', error);
-        let errorMessage = error.response?.data?.error || 'Failed to delete board. Please try again.';
+        let errorMessage = error?.response?.data?.error || 'Failed to delete board. Please try again.';
         setAlert({ type: 'error', message: errorMessage });
       } finally {
         closeDeleteConfirmation();
@@ -139,9 +139,9 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
-              <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
+              <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                <h5 className='text-white relative z-10'>{board.name}</h5>
+                <h5 className='text-white relative z-10'>{board?.name}</h5>
                 <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
                   <i
                     className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
@@ -154,7 +154,7 @@ const WorkspaceBoards: React.FC = () => {
                     className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                     onClick={(e) => {
                       e.preventDefault();
-                      openDeleteConfirmation(workspace?.id, board.id);
+                      openDeleteConfirmation(workspace?.id, board?.id);
                     }}
                   />
                 </div>
@@ -193,7 +193,7 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
-                <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
+                <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
                 <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                 <h5 className='text-white relative z-10'>{board.name}</h5>
                 <div className='absolute right-2 gap-3 bottom-2 flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
@@ -208,7 +208,7 @@ const WorkspaceBoards: React.FC = () => {
                     className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
                     onClick={(e) => {
                       e.preventDefault();
-                      openDeleteConfirmation(workspace?.id, board.id);
+                      openDeleteConfirmation(workspace?.id, board?.id);
                     }}
                   />
                 </div>

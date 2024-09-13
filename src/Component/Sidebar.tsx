@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import ChevronRight from '../assets/Media/ChevronRight.svg';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 
 const Sidebar: React.FC = () => {
@@ -41,7 +40,7 @@ const Sidebar: React.FC = () => {
         className={`fixed top-20 ${isSidebarOpen ? 'left-[-1.5rem] max768:left-[195px]' : 'left-[-1.5rem] max768:left-1'} max768:inline bg-white rounded-full p-1 shadow-2xl cursor-pointer transition-all duration-300`}
         onClick={toggleSidebar}
       >
-        <img src={ChevronRight} alt="" className={` ${isSidebarOpen ? 'transform rotate-180' : ''}`} />
+        <i className={`fas fa-chevron-right ${isSidebarOpen ? 'transform rotate-180' : ''}`} />
       </div>
       <div className="mb-2">
         <Link to="/boards" className={`text-gray-600 p-2 mb-2 flex items-center ${hoverClass} ${isActive('/boards') ? activeClass : ''}`}>

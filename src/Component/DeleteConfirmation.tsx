@@ -12,9 +12,11 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({ onDelete, onCan
       ? 'Delete this Workspace?'
       : itemType === 'board'
       ? 'Delete this board?'
-      : 'Delete this member?';
-      
-  const description = `Are you sure you want to delete this ${itemType} permanently? This can't be undone.`;
+      : 'Remove this member?';
+
+  const description = itemType === 'member'
+    ? 'Are you sure you want to remove this member?'
+    : `Are you sure you want to delete this ${itemType} permanently? This can't be undone.`;
 
   return (
     <div className="absolute z-[200] flex justify-center" onClick={(e) => e.stopPropagation()}>
@@ -29,9 +31,11 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({ onDelete, onCan
         <div className="flex justify-center">
           <button
             onClick={onDelete}
-            className="bg-[#FF0000] text-sm text-white font-medium py-1 px-10 rounded-lg hover:bg-red-600"
+            className={`text-sm text-white font-medium py-1 px-10 rounded-lg ${
+              itemType === 'member' ? 'bg-red-500 hover:bg-red-600' : 'bg-[#FF0000] hover:bg-red-600'
+            }`}
           >
-            Delete
+            {itemType === 'member' ? 'Remove' : 'Delete'}
           </button>
         </div>
       </div>
