@@ -89,6 +89,18 @@ const WorkspaceProject = () => {
     ]
   };
 
+  const handleArchive = () => {
+    setIsArchived(true);
+  };
+
+  const handleSendToBoard = () => {
+    setIsArchived(false);
+  };
+
+  const handleDelete = () => {
+    setIsArchivePopupOpen(true);
+  };
+
   const handleOpenPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
@@ -378,14 +390,30 @@ const WorkspaceProject = () => {
                 onClick={() => handleOpenCopyPopup(selectedCardList)}>
                   <i className="fas fa-copy"></i>Copy
                 </div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
-                onClick={() => handleOpenArchivePopup(selectedCardList)}>
+                {!isArchived ? (
+                <div 
+                  className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
+                  onClick={handleArchive}
+                >
                   <i className="fas fa-archive"></i>Archive
                 </div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
-                onClick={() => handleOpenSharePopup(selectedCardList)}>
+              ) : (
+                <>
+                  <div 
+                    className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0" 
+                    onClick={handleSendToBoard}
+                  >
+                    <i className="fas fa-undo"></i>Send to board
+                  </div>
+                  <div 
+                    className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black" 
+                    onClick={handleDelete}
+                  >
+                    <i className="fas fa-trash"></i>Delete
+                  </div>
+                </>
+              )}
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={()=> handleOpenSharePopup(selectedCardList)}>
                   <i className="fas fa-share"></i>Share
                 </div>
 
@@ -488,15 +516,6 @@ const WorkspaceProject = () => {
         isSharePopupOpen={isSharePopupOpen}
         />
       )}
-
-      <button
-        onClick={() => {
-          navigator.clipboard.writeText(selectedCardList.link); 
-          handleOpenSharePopup(); 
-          setTimeout(handleCloseSharePopup, 3000); 
-        }}
-      >
-      </button>
     </div>
   );
 };
