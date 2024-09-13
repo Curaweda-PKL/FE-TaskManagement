@@ -133,10 +133,10 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             {alert.message}
           </div>
         )}
-        <div className="flex items-center font-sem">
-          <div className="w-16 h-16 bg-red-700 mr-3"></div>
+        <div className="flex items-center px-10 font-sem">
+          <div className="w-14 h-14 rounded bg-red-700 mr-3"></div>
           <div>
-            <h1 className="text-xl text-gray-600 font-semibold flex items-center">
+            <h1 className="text-xl -mt-1 text-gray-600 font-semibold flex items-center">
               {workspace ? workspace.name : 'Loading...'}
               {showEditIcon && (
                 <button
@@ -147,7 +147,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 </button>
               )}
             </h1>
-            <p className="text-sm flex items-center text-gray-500">
+            <p className="text-sm flex -mt-1 items-center text-gray-500">
               {workspace ? workspace.description : 'Loading...'}
             </p>
             <p className="text-sm flex items-center">

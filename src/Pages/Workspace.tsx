@@ -170,7 +170,7 @@ const Workspace: React.FC = () => {
   const handleDeleteBoard = async () => {
     if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
       try {
-        const response = await deleteBoard(deleteConfirmation.boardId,  deleteConfirmation.workspaceId);
+        const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
         await fetchData();
         setAlert({ type: 'success', message: message });
@@ -206,8 +206,8 @@ const Workspace: React.FC = () => {
       <section className='flex items-center gap-5'>
         <h1 className='text-black font-bold text-2xl max768:text-xl'>YOUR WORKSPACE</h1>
         <div className={`group flex py-2 px-3 gap-3 bg-[rgba(131,73,255,0.1)] rounded-lg items-center ${hoverClass}`} onClick={openModal}>
-          <i className={`fas fa-user-plus text-gray-700 max768:h-[18px] max768:w-[18px] ${hoverClass}`} />
-          <span className={`text-[#4A4A4A] font-semibold text-[15px] ${hoverClass}`}>Join Workspace</span>
+          <i className='fas fa-user-plus text-gray-700 max768:h-[18px] max768:w-[18px] group-hover:text-purple-600' />
+          <span className='text-[#4A4A4A] font-semibold text-[15px] group-hover:text-purple-600'>Join Workspace</span>
         </div>
       </section>
 
@@ -221,20 +221,20 @@ const Workspace: React.FC = () => {
               </div>
               <div className='grid grid-cols-4 max850:grid-cols-2 gap-5 max850:gap-2'>
                 <Link to={`/workspace/${workspace.id}/boards-ws`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
-                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
-                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Board</span>
+                  <i className='fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Board</span>
                 </Link>
                 <Link to={`/workspace/${workspace.id}/reports`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
-                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
-                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Report</span>
+                  <i className='fas fa-book-open max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Report</span>
                 </Link>
                 <Link to={`/workspace/${workspace.id}/members`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
-                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
-                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Member</span>
+                  <i className='fas fa-users max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Member</span>
                 </Link>
                 <Link to={`/workspace/${workspace.id}/settings`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
-                  <i className={`fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] ${hoverClass}`} aria-hidden="true"></i>
-                  <span className={`text-[#4A4A4A] text-[15px] font-semibold ${hoverClass}`}>Settings</span>
+                  <i className='fas fa-gear max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
+                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Settings</span>
                 </Link>
               </div>
             </div>
@@ -245,7 +245,7 @@ const Workspace: React.FC = () => {
                   key={board.id}
                   className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
                 >
-                  <Link to={`/workspace/${workspace.id}/board/${board.id}`} className="absolute inset-0"></Link>
+                  <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
                   <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                   <h5 className='text-white relative z-10'>{board.name}</h5>
                   <div className='absolute right-2 bottom-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
@@ -264,6 +264,7 @@ const Workspace: React.FC = () => {
                       }}
                     />
                   </div>
+                  </Link>
                 </div>
               ))}
               <div onClick={() => openCreateBoard(workspace.id)} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>
@@ -272,17 +273,17 @@ const Workspace: React.FC = () => {
             </div>
           </div>
         ))}
-        
+
         {showDeleteConfirmation && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black opacity-50"></div>
-                <DeleteConfirmation
-                  onDelete={handleDeleteBoard}
-                  onCancel={handleCancel}
-                  itemType="board"
-                />
-            </div>
-            )}
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <DeleteConfirmation
+              onDelete={handleDeleteBoard}
+              onCancel={handleCancel}
+              itemType="board"
+            />
+          </div>
+        )}
       </section>
 
       {showCreateBoard && (

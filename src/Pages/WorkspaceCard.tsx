@@ -109,7 +109,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenLabelsPopup = (cardList) => {
+  const handleOpenLabelsPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsLabelsPopupOpen(true);
   };
@@ -119,7 +119,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenChecklistPopup = (cardList) => {
+  const handleOpenChecklistPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsChecklistPopupOpen(true);
   };
@@ -129,7 +129,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenDatesPopup = (cardlist) => {
+  const handleOpenDatesPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsDatesPopupOpen(true);
   };
@@ -139,7 +139,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenAttachPopup = (cardlist) => {
+  const handleOpenAttachPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsAttachPopupOpen(true);
   };
@@ -149,7 +149,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenSubmitPopup = (cardlist) => {
+  const handleOpenSubmitPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsSubmitPopupOpen(true);
   };
@@ -159,7 +159,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenCopyPopup = (cardlist) => {
+  const handleOpenCopyPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsCopyPopupOpen(true);
   };
@@ -169,7 +169,7 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleOpenArchivePopup = (cardlist) => {
+  const handleOpenArchivePopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsArchivePopupOpen(true);
   };
@@ -183,7 +183,7 @@ const WorkspaceProject = () => {
     setIsArchived(!isArchived);
   };
 
-  const handleOpenSharePopup = (cardlist) => {
+  const handleOpenSharePopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsSharePopupOpen(true);
   };
