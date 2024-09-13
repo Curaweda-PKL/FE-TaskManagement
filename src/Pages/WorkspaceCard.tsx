@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchBoards } from '../hooks/fetchBoard';
+import MemberPopup from '../Component/member';
+import LabelsPopup from '../Component/label';
 import EditLabel from '../Component/EditLabel';
+import ChecklistPopup from '../Component/checklist';
+import DatesPopup from '../Component/dates';
+import AttachPopup from '../Component/attachment';
+import SubmitPopup from '../Component/submit';
+import CopyPopup from '../Component/copy';
+import SharePopup from '../Component/share';
+
 
 const WorkspaceProject = () => {
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
@@ -11,7 +20,7 @@ const WorkspaceProject = () => {
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [isLabelsPopupOpen, setIsLabelsPopupOpen] = useState(false);
   const [isEditLabelOpen, setIsEditLabelOpen] = useState(false);
-  const [isChecklistPopupOpen, setIsChecklistPopupOpen] = useState(false); 
+  const [isChecklistPopupOpen, setIsChecklistPopupOpen] = useState(false);
   const [isDatesPopupOpen, setIsDatesPopupOpen] = useState(false);
   const [isAttachPopupOpen, setIsAttachPopupOpen] = useState(false);
   const [isSubmitPopupOpen, setIsSubmitPopupOpen] = useState(false);
@@ -40,23 +49,6 @@ const WorkspaceProject = () => {
 
   const data = {
     card: [
-      {
-        workspace: "workspace1",
-        color: "bg-red-500",
-        cardList: [
-          {
-            members: [
-              { name: 'fursan' },
-              { name: 'satriya' }
-            ],
-            title: 'cardList1'
-          },
-          {
-            members: [],
-            title: 'cardList2'
-          }
-        ]
-      },
       {
         workspace: "workspace1",
         color: "bg-red-500",
@@ -188,7 +180,7 @@ const WorkspaceProject = () => {
   };
 
   const handleButtonClick = () => {
-    setIsArchived(!isArchived); 
+    setIsArchived(!isArchived);
   };
 
   const handleOpenSharePopup = (cardlist) => {
@@ -208,34 +200,31 @@ const WorkspaceProject = () => {
   const handleCloseEditLabel = () => {
     setIsEditLabelOpen(false);
   };
-  
+
+  const labels = [
+    { name: 'Level 5', color: 'bg-purple-500' },
+    { name: 'Level 4', color: 'bg-red-500' },
+    { name: 'Level 3', color: 'bg-orange-400' },
+    { name: 'Level 2', color: 'bg-yellow-300' },
+    { name: 'Level 1', color: 'bg-green-500' },
+  ];
+
   return (
-    <>
-      <header className="fixed right-0 flex justify-between h-16 w-full bg-gray-100 p-4 items-center mb-6">
+    <div className="m-h-screen">
+      <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
         <div className="flex items-center space-x-7">
-          <h1 className="text-xl md:ml-64 text-black font-medium">{boardName}</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-        <div className="flex -space-x-2">
-          <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
-          <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
-          <div className="w-8 h-8 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-            <span className="text-xs font-bold text-white">A</span>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
-            <span className="text-xs font-semibold text-gray-600">+1</span>
+          <h1 className="text-xl text-black font-medium">{boardName}</h1>
+          <div className="flex -space-x-1">
           </div>
         </div>
-        <button className="bg-white text-gray-700 px-3 py-1.5 rounded-lg shadow-md text-sm font-medium flex items-center">
-        <i className="fa-solid mr-2 fa-share-nodes"></i>
+        <button className="bg-purple-600 text-white px-4 py-1 rounded text-sm">
           Share
         </button>
-        </div>
       </header>
-    <div className="m-h-screen">
-      <main className="flex x px-8 bg-white mb-4">
+
+      <main className="flex px-8 bg-white mb-4">
         {data.card.map((workspace, index) => (
-          <div key={index} className="bg-white mt-24 rounded-2xl shadow-xl border p-4 mr-4 min-w-64">
+          <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
             <h2 className="text-xl text-center mb-6 text-gray-700">{workspace.workspace}</h2>
             <ul className="space-y-2">
               {workspace.cardList.map((cardList, index) => (
@@ -254,19 +243,19 @@ const WorkspaceProject = () => {
                 </li>
               ))}
             </ul>
-            <button className="text-gray-500 hover:bg-gray-200 rounded-lg px-3 py-2 hover:text-gray-700 mt-6 w-full text-left text-sm transition-colors duration-300">
+            <button className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm">
               + Add card
             </button>
           </div>
         ))}
-        <button className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-fit min-w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center mt-24">
+        <button className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center">
           <i className="fas fa-plus h-3 w-3 mr-3 group-hover:text-purple-500 transition-colors duration-300"></i>
           <p className='group-hover:text-purple-500 transition-colors duration-300'>
             Add Another List
           </p>
         </button>
       </main>
-
+      
       {isPopupOpen && selectedCardList && (
         <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-5 overflow-auto">
           <div className="bg-white p-6 rounded-lg shadow-lg max-h-[500px] overflow-auto w-full max-w-[650px] max768:max-w-[400px]">
@@ -353,146 +342,81 @@ const WorkspaceProject = () => {
                   <i className="fas fa-user"></i>Join
                 </div>
                 <div className="border-b-2 border-black"></div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1" onClick={() => handleOpenMemberPopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1" 
+                onClick={() => handleOpenMemberPopup(selectedCardList)}>
                   <i className="fas fa-user"></i>Member
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenLabelsPopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                onClick={() => handleOpenLabelsPopup(selectedCardList)}>
                   <i className="fas fa-tag"></i>Labels
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenChecklistPopup(selectedCardList)}>
-                  <i className="fas fa-check-square"></i>Checklist
+
+                
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                onClick={() => handleOpenChecklistPopup(selectedCardList)}>
+                  <i className="fas fa-check-square"></i> Checklist
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenDatesPopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
+                onClick={() => handleOpenDatesPopup(selectedCardList)}>
                   <i className="fas fa-clock"></i>Dates
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4" onClick={() => handleOpenAttachPopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4" 
+                onClick={() => handleOpenAttachPopup(selectedCardList)}>
                   <i className="fas fa-paperclip"></i>Attachment
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenSubmitPopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
+                onClick={() => handleOpenSubmitPopup(selectedCardList)}>
                   <i className="fas fa-file-upload"></i>Submit
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenCopyPopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
+                onClick={() => handleOpenCopyPopup(selectedCardList)}>
                   <i className="fas fa-copy"></i>Copy
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenArchivePopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
+                onClick={() => handleOpenArchivePopup(selectedCardList)}>
                   <i className="fas fa-archive"></i>Archive
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={()=> handleOpenSharePopup(selectedCardList)}>
+
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
+                onClick={() => handleOpenSharePopup(selectedCardList)}>
                   <i className="fas fa-share"></i>Share
                 </div>
+
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black">
-                Custom Field
+                  Custom Field
+                </div>
+
               </div>
             </div>
           </div>
         </div>
-        </div>
       )}
 
-{isMemberPopupOpen && selectedCardList && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-            <h2 className="text-xl font-bold mb-4">Members of {selectedCardList.title}</h2>
-            <ul className="space-y-2">
-              {selectedCardList.members.map((member, index) => (
-                <li key={index} className="flex items-center justify-between">
-                  <span>{member.name}</span>
-                  <button className="ml-2">
-                    <i className="fas fa-pencil-alt"></i>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button className="mt-4 bg-gray-300 text-black p-2 rounded w-full">Add new member</button>
-            <button
-              onClick={handleCloseMemberPopup}
-              className="mt-4 bg-purple-600 text-white px-4 py-2 rounded w-full"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-{isLabelsPopupOpen && selectedCardList && (
-        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-          <div className="bg-white p-6 rounded-lg shadow-lg h-fit w-96 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-              onClick={handleCloseLabelsPopup}
-            >
-              <i className="fas fa-times"></i>
-            </button>
-
-            <h2 className="text-lg font-bold mb-4 text-center">Label</h2>
-            <ul className="space-y-2">
-              {[
-                { name: 'Level 5', color: 'bg-purple-500' },
-                { name: 'Level 4', color: 'bg-red-500' },
-                { name: 'Level 3', color: 'bg-orange-400' },
-                { name: 'Level 2', color: 'bg-yellow-300' },
-                { name: 'Level 1', color: 'bg-green-500' },
-              ].map((label, index) => (
-                <li key={index} className="flex items-center justify-between">
-                  <div className="flex items-center w-full">
-                    <input type="checkbox" className="mr-2 accent-gray-500" />
-                    <div className={`w-full h-8 rounded-md ${label.color} flex items-center px-2`}>
-                      <span className="text-white font-semibold">{label.name}</span>
-                    </div>
-                  </div>
-                  <button className="ml-2 text-gray-400 hover:text-gray-600">
-                    <i className="fas fa-pencil-alt"></i>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button
-              className="mt-4 w-full py-2 bg-gray-300 hover:bg-gray-400 rounded-md text-gray-800 font-semibold"
-              onClick={handleCreateNewLabel}
-            >
-              Create new label
-            </button>
-          </div>
-        </div>
-      )}
-
-{isChecklistPopupOpen && selectedCardList && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-    <div className="relative bg-white p-4 rounded-lg shadow-lg w-80">
-      <button 
-        onClick={handleCloseChecklistPopup} 
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-      >
-        ✕
-      </button>
-
-      <h2 className="text-center text-sm font-bold mb-4">Add Checklist</h2>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Title
-        </label>
-        <input 
-          type="text" 
-          placeholder="Checklist" 
-          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+      {isMemberPopupOpen && selectedCardList && (
+       <MemberPopup
+       selectedCardList={selectedCardList}
+       isMemberPopupOpen={isMemberPopupOpen}
+       handleCloseMemberPopup={handleCloseMemberPopup}
         />
-      </div>
+      )}
 
-      <div className="flex justify-center mt-4">
-        <button 
-          onClick={handleCloseChecklistPopup} 
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
-        >
-          Add
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-      {isEditLabelOpen && (
+      {isLabelsPopupOpen && selectedCardList && (
+       <LabelsPopup 
+       isOpen={isLabelsPopupOpen} 
+       onClose={handleCloseLabelsPopup} 
+       labels={labels}
+       onCreateNewLabel={handleCreateNewLabel}
+        />
+      )}
+ 
+        {isEditLabelOpen && (
         <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
           <EditLabel
             labelName=""
@@ -504,252 +428,76 @@ const WorkspaceProject = () => {
         </div>
       )}
 
+      {isChecklistPopupOpen && selectedCardList && (
+       <div>
+       <ChecklistPopup
+         isOpen={isChecklistPopupOpen}
+         onClose={handleCloseChecklistPopup}
+         selectedCardList={selectedCardList}
+         />
+     </div>
+      )}
 
-
-{isDatesPopupOpen && selectedCardList && (
-  <div
-    className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100"
-    onClick={handleCloseDatesPopup} 
-  >
-    <div
-      className="bg-white p-6 rounded-lg shadow-lg w-80 relative"
-      onClick={(e) => e.stopPropagation()} 
-    >
-      <button
-        onClick={handleCloseDatesPopup}
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-      >
-        &times;
-      </button>
-      <h2 className="text-xl font-bold mb-4">
-        {selectedCardList.title} - Dates
-      </h2>
-      <div className="flex justify-between items-center mb-4">
-        <button className="text-gray-500">&lt;</button>
-        <span className="text-gray-800 font-semibold">August 2024</span>
-        <button className="text-gray-500">&gt;</button>
-      </div>
-      <div className="grid grid-cols-7 text-center text-gray-600 mb-4">
-        <span>Sun</span>
-        <span>Mon</span>
-        <span>Tue</span>
-        <span>Wed</span>
-        <span>Thu</span>
-        <span>Fri</span>
-        <span>Sat</span>
-
-        {Array.from({ length: 31 }, (_, index) => (
-          <button
-            key={index}
-            className={`py-2 ${
-              index === 9 ? 'bg-blue-200 text-blue-600' : index === 25 ? 'bg-blue-600 text-white' : 'text-gray-800'
-            } rounded-full hover:bg-gray-200`}
-          >
-            {index + 1}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center mb-4">
-        <input type="checkbox" id="due-date-checkbox" className="mr-2" />
-        <label htmlFor="due-date-checkbox" className="text-gray-700">Due Date</label>
-      </div>
-      <div className="flex space-x-2 mb-4">
-        <input type="date" className="border border-gray-300 p-2 rounded w-full" placeholder="MM/DD/YYYY" />
-        <input type="time" className="border border-gray-300 p-2 rounded w-full" />
-      </div>
-      <div className="flex flex-col mb-4">
-        <label htmlFor="reminder" className="text-gray-700 mb-2">Set Due Date Reminder</label>
-        <select id="reminder" className="border border-gray-300 p-2 rounded w-full text-gray-800">
-          <option value="1">1 - Day before</option>
-          {/* Additional options can be added here */}
-        </select>
-      </div>
-      <div className="flex justify-between mt-4">
-        <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Save</button>
-        <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Remove</button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-{isAttachPopupOpen && selectedCardList && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-    <div className="relative bg-white p-4 rounded-lg shadow-lg w-80">
-      <button 
-        onClick={handleCloseAttachPopup} 
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-      >
-        ✕
-      </button>
-
-      <h2 className="text-center text-sm font-bold mb-4">Attach</h2>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Attach a file from your computer
-        </label>
-        <div className="bg-gray-200 text-center text-gray-600 text-sm p-4 rounded-lg cursor-pointer">
-          Choose a file
-        </div>
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Search or paste a link
-        </label>
-        <div className="bg-gray-200 text-sm p-2 rounded-lg cursor-pointer">
-        </div>
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Display text (optional)
-        </label>
-        <div className="bg-gray-200 text-sm p-2 rounded-lg cursor-pointer">
-        </div>
-      </div>
-      
-      <div className="flex justify-end gap-2 mt-4">
-        <button 
-          onClick={handleCloseAttachPopup} 
-          className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded"
-        >
-          Cancel
-        </button>
-        <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
-          Insert
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-{isSubmitPopupOpen && selectedCardList && (
-  <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-    <div className="relative bg-white p-4 rounded-lg shadow-lg w-80">
-      <button
-      onClick={handleCloseSubmitPopup} 
-      className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-      >
-        ✕
-      </button>
-
-      <h2 className="text-center text-sm font-bold mb-4">Submit</h2>
-
-      <div className="mb-4">
-        <span className="block text-sm font-medium text-gray-700 mb-2">Your work</span>
-        <div className="bg-gray-200 text-center text-gray-600 text-sm p-4 rounded-lg cursor-pointer">
-          Add or create
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <button 
-          onClick={handleCloseSubmitPopup} 
-          className="bg-purple-600 hover:bg-purple-700 text-white w-full py-2 rounded"
-        >
-          Mark as done
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-{isCopyPopupOpen && selectedCardList && (
-  <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-      <h2 className="text-center text-sm font-bold mb-4">Card Copy</h2>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-        <input 
-          type="text" 
-          className="block w-full text-sm text-gray-500 bg-gray-200 rounded-lg focus:outline-none" 
-          placeholder="Akhson" 
-          disabled
+      {isDatesPopupOpen && selectedCardList && (
+        <DatesPopup
+        isDatesPopupOpen={isDatesPopupOpen}
+        selectedCardList={selectedCardList}
+        handleCloseDatesPopup={handleCloseDatesPopup}
         />
-      </div>
+      )}
 
-      <div className="mb-4">
-        <span className="block text-sm font-medium text-gray-700 mb-2">Keep...</span>
-        <div className="space-y-2">
-          <div className="flex items-center">
-            <input type="checkbox" checked className="form-checkbox h-4 w-4 text-purple-600 rounded" />
-            <label className="ml-2 text-sm text-gray-700">Members</label>
-          </div>
-          <div className="flex items-center">
-            <input type="checkbox" checked className="form-checkbox h-4 w-4 text-purple-600 rounded" />
-            <label className="ml-2 text-sm text-gray-700">Attachments</label>
-          </div>
-          <div className="flex items-center">
-            <input type="checkbox" checked className="form-checkbox h-4 w-4 text-purple-600 rounded" />
-            <label className="ml-2 text-sm text-gray-700">Comments</label>
+      {isAttachPopupOpen && selectedCardList && (
+        <AttachPopup
+         isAttachPopupOpen={isArchivePopupOpen}
+         selectedCardList={selectedCardList}
+         handleCloseAttachPopup={handleCloseAttachPopup}
+         />
+      )}
+
+      {isSubmitPopupOpen && selectedCardList && (
+       <SubmitPopup
+       isSubmitPopupOpen={isSubmitPopupOpen}
+       selectedCardList={selectedCardList}
+       handleCloseSubmitPopup={handleCloseSubmitPopup}
+       />
+      )}
+
+      {isCopyPopupOpen && selectedCardList && (
+       <CopyPopup
+       isCopyPopupOpen={isCopyPopupOpen}
+       selectedCardList={selectedCardList}
+       handleCloseCopyPopup={handleCloseSubmitPopup}
+       />
+      )}
+
+      {isArchivePopupOpen && selectedCardList && (
+        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">{selectedCardList.title} - Archive</h2>
+            <p className="mb-4 text-sm text-gray-700"> Are you sure you want to archive this card? You can restore it later from the archived items. </p>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={handleCloseArchivePopup} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded" > Cancel </button>
+              <button onClick={handleOpenArchivePopup} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded" > Delete </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Copy to...</label>
-        <input 
-          type="text" 
-          className="block w-full text-sm text-gray-500 bg-gray-200 rounded-lg focus:outline-none mb-4" 
-          placeholder="Project 1" 
-          disabled
+      {isSharePopupOpen && (
+        <SharePopup
+        isSharePopupOpen={isSharePopupOpen}
         />
-        <div className="flex justify-between space-x-2">
-          <select className="block w-1/2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none">
-            <option>Team</option>
-          </select>
-          <select className="block w-1/2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none">
-            <option>1</option>
-          </select>
-        </div>
-      </div>
+      )}
 
-      <div className="flex justify-center mt-6">
-        <button 
-          onClick={handleCloseCopyPopup} 
-          className="bg-purple-600 hover:bg-purple-700 text-white w-full py-2 rounded"
-        >
-          Create
-        </button>
-      </div>
+      <button
+        onClick={() => {
+          navigator.clipboard.writeText(selectedCardList.link); 
+          handleOpenSharePopup(); 
+          setTimeout(handleCloseSharePopup, 3000); 
+        }}
+      >
+      </button>
     </div>
-  </div>
-)}
-
-{isArchivePopupOpen && selectedCardList && (
-   <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100"> 
-   <div className="bg-white p-6 rounded-lg shadow-lg w-96"> 
-    <h2 className="text-xl font-bold mb-4">{selectedCardList.title} - Archive</h2> 
-    <p className="mb-4 text-sm text-gray-700"> Are you sure you want to archive this card? You can restore it later from the archived items. </p> 
-    <div className="flex justify-end gap-2 mt-4"> 
-      <button onClick={handleCloseArchivePopup} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded" > Cancel </button>
-       <button onClick={handleOpenArchivePopup} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded" > Delete </button> 
-       </div> 
-       </div> 
-       </div>
-        )}
-
-  {isSharePopupOpen && (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
-    <i className="fas fa-copy mr-2"></i>Link copied to clipboard!
-  </div>
-)}
-
-<button 
-  onClick={() => {
-    navigator.clipboard.writeText(selectedCardList.link); // Copy link to clipboard
-    handleOpenSharePopup(); // Show notification popup
-    setTimeout(handleCloseSharePopup, 3000); // Automatically close popup after 3 seconds
-  }} 
-  >
-</button>
-    </div>
-    </>
   );
 };
 
