@@ -97,6 +97,18 @@ const WorkspaceProject = () => {
     ]
   };
 
+  const handleArchive = () => {
+    setIsArchived(true);
+  };
+
+  const handleSendToBoard = () => {
+    setIsArchived(false);
+  };
+
+  const handleDelete = () => {
+    setIsArchivePopupOpen(true);
+  };
+
   const handleOpenPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
@@ -374,9 +386,29 @@ const WorkspaceProject = () => {
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenCopyPopup(selectedCardList)}>
                   <i className="fas fa-copy"></i>Copy
                 </div>
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenArchivePopup(selectedCardList)}>
+                {!isArchived ? (
+                <div 
+                  className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
+                  onClick={handleArchive}
+                >
                   <i className="fas fa-archive"></i>Archive
                 </div>
+              ) : (
+                <>
+                  <div 
+                    className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0" 
+                    onClick={handleSendToBoard}
+                  >
+                    <i className="fas fa-undo"></i>Send to board
+                  </div>
+                  <div 
+                    className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black" 
+                    onClick={handleDelete}
+                  >
+                    <i className="fas fa-trash"></i>Delete
+                  </div>
+                </>
+              )}
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={()=> handleOpenSharePopup(selectedCardList)}>
                   <i className="fas fa-share"></i>Share
                 </div>
@@ -721,17 +753,32 @@ const WorkspaceProject = () => {
   </div>
 )}
 
-{isArchivePopupOpen && selectedCardList && (
-   <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100"> 
-   <div className="bg-white p-6 rounded-lg shadow-lg w-96"> 
-    <h2 className="text-xl font-bold mb-4">{selectedCardList.title} - Archive</h2> 
-    <p className="mb-4 text-sm text-gray-700"> Are you sure you want to archive this card? You can restore it later from the archived items. </p> 
-    <div className="flex justify-end gap-2 mt-4"> 
-      <button onClick={handleCloseArchivePopup} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded" > Cancel </button>
-       <button onClick={handleOpenArchivePopup} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded" > Delete </button> 
-       </div> 
-       </div> 
-       </div>
+        {isArchivePopupOpen && selectedCardList && (
+          <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100"> 
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96"> 
+            <h2 className="text-xl font-bold mb-4">{selectedCardList.title} - Archive</h2> 
+            <p className="mb-4 text-sm text-gray-700"> 
+              Are you sure you want to archive this card? You can restore it later from the archived items. 
+            </p> 
+            <div className="flex justify-end gap-2 mt-4"> 
+              <button 
+                onClick={handleCloseArchivePopup} 
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded"
+              > 
+                Cancel 
+              </button>
+              <button 
+                onClick={() => {
+                  handleArchive();
+                  handleCloseArchivePopup();
+                }} 
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+              > 
+                Archive 
+              </button> 
+            </div> 
+          </div> 
+        </div>
         )}
 
   {isSharePopupOpen && (
