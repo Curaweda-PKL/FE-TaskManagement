@@ -4,8 +4,8 @@ const LabelsPopup = ({ isOpen, onClose, labels, onCreateNewLabel }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-      <div className="bg-white p-6 rounded-lg shadow-lg h-fit w-96 relative">
+    <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white p-4 rounded-lg shadow-lg h-fit w-72 relative">
         <button
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
           onClick={onClose}

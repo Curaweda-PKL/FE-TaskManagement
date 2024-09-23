@@ -11,7 +11,6 @@ import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import SharePopup from '../Component/share';
 
-
 const WorkspaceProject = () => {
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const [boardName, setBoardName] = useState<string>('');
@@ -29,6 +28,9 @@ const WorkspaceProject = () => {
   const [isArchived, setIsArchived] = useState(false);
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
   const [selectedCardList, setSelectedCardList] = useState(null);
+  const [isEditCard, setIsEditCard] = useState(false);
+  const [editingCard, setEditingCard] = useState(null);
+  const [activeCardRect, setActiveCardRect] = useState(null);
 
   useEffect(() => {
     const getBoards = async () => {
@@ -89,6 +91,14 @@ const WorkspaceProject = () => {
     ]
   };
 
+  const handleEditCard = (cardList, event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setActiveCardRect(rect);
+    setIsEditCard(true);
+    setIsPopupOpen(false);
+    setEditingCard(cardList);
+  }
+
   const handleArchive = () => {
     setIsArchived(true);
   };
@@ -109,6 +119,7 @@ const WorkspaceProject = () => {
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     setSelectedCardList(null);
+    setIsEditCard(false);
   };
 
   const handleOpenMemberPopup = (cardList: any) => {
@@ -118,7 +129,6 @@ const WorkspaceProject = () => {
 
   const handleCloseMemberPopup = () => {
     setIsMemberPopupOpen(false);
-    setSelectedCardList(null);
   };
 
   const handleOpenLabelsPopup = (cardList: any) => {
@@ -128,7 +138,6 @@ const WorkspaceProject = () => {
 
   const handleCloseLabelsPopup = () => {
     setIsLabelsPopupOpen(false);
-    setSelectedCardList(null);
   };
 
   const handleOpenChecklistPopup = (cardList: any) => {
@@ -138,7 +147,6 @@ const WorkspaceProject = () => {
 
   const handleCloseChecklistPopup = () => {
     setIsChecklistPopupOpen(false);
-    setSelectedCardList(null);
   };
 
   const handleOpenDatesPopup = (cardlist: any) => {
@@ -148,7 +156,6 @@ const WorkspaceProject = () => {
 
   const handleCloseDatesPopup = () => {
     setIsDatesPopupOpen(false);
-    setSelectedCardList(null);
   };
 
   const handleOpenAttachPopup = (cardlist: any) => {
@@ -158,7 +165,6 @@ const WorkspaceProject = () => {
 
   const handleCloseAttachPopup = () => {
     setIsAttachPopupOpen(false);
-    setSelectedCardList(null);
   };
 
   const handleOpenSubmitPopup = (cardlist: any) => {
@@ -168,19 +174,14 @@ const WorkspaceProject = () => {
 
   const handleCloseSubmitPopup = () => {
     setIsSubmitPopupOpen(false);
-    setSelectedCardList(null);
+    setIsCopyPopupOpen(false);
   };
 
   const handleOpenCopyPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsCopyPopupOpen(true);
   };
-
-  const handleCloseCopyPopup = () => {
-    setIsCopyPopupOpen(false);
-    setSelectedCardList(null);
-  };
-
+  
   const handleOpenArchivePopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsArchivePopupOpen(true);
@@ -191,24 +192,15 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
   };
 
-  const handleButtonClick = () => {
-    setIsArchived(!isArchived);
-  };
-
   const handleOpenSharePopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsSharePopupOpen(true);
   };
-
-  const handleCloseSharePopup = () => {
-    setIsSharePopupOpen(false);
-    setSelectedCardList(null);
-  };
-
+  
   const handleCreateNewLabel = () => {
     setIsEditLabelOpen(true);
   };
-
+  
   const handleCloseEditLabel = () => {
     setIsEditLabelOpen(false);
   };
@@ -236,13 +228,15 @@ const WorkspaceProject = () => {
 
       <main className="flex px-8 bg-white mb-4">
         {data.card.map((workspace, index) => (
-          <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
+          <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-60">
             <h2 className="text-xl text-center mb-6 text-gray-700">{workspace.workspace}</h2>
             <ul className="space-y-2">
               {workspace.cardList.map((cardList, index) => (
                 <li
                   key={index}
-                  className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
+                  className={`rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer transition-colors duration-300 ${
+                    editingCard === cardList ? 'bg-white shadow-md z-50 relative' : 'bg-gray-100 hover:bg-gray-200 z-50'
+                  }`}
                   onClick={() => handleOpenPopup(cardList)}
                 >
                   <div className="flex items-center">
@@ -250,7 +244,13 @@ const WorkspaceProject = () => {
                     <span className="text-black text-sm">{cardList.title}</span>
                   </div>
                   <button className="text-gray-400">
-                    <i className="fas fa-pencil-alt h-3 w-3"></i>
+                  <i 
+                    className="fas fa-pencil-alt h-3 w-3" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditCard(cardList, e);
+                    }}
+                  ></i>
                   </button>
                 </li>
               ))}
@@ -269,7 +269,7 @@ const WorkspaceProject = () => {
       </main>
       
       {isPopupOpen && selectedCardList && (
-        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-5 overflow-auto">
+        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20 overflow-auto">
           <div className="bg-white p-6 rounded-lg shadow-lg max-h-[500px] overflow-auto w-full max-w-[650px] max768:max-w-[400px]">
             <div className="navbarPopup flex flex-row w-full text-black justify-between">
               <h2 className="navbarPopup-start text-xl font-bold p-2 mb-4">
@@ -427,6 +427,38 @@ const WorkspaceProject = () => {
         </div>
       )}
 
+      {isEditCard && (
+        <>
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40">
+            <div 
+              className="absolute bg-transparent"
+              style={{
+                top: `${activeCardRect.top}px`,
+                left: `${activeCardRect.left}px`,
+                width: `${activeCardRect.width}px`,
+                height: `${activeCardRect.height}px`,
+              }}
+            ></div>
+          </div>
+          
+          <div 
+            className="fixed z-50"
+            style={{
+              top: `${activeCardRect.bottom}px`,
+              left: `${activeCardRect.right}px`,
+            }}
+          >
+            <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Open Card</a>
+              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Edit Labels</a>
+              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Change Member</a>
+              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Edit Dates</a>
+              <a href="#" onClick={handleClosePopup} className="block px-4 py-2 text-sm text-white bg-purple-500 hover:bg-purple-600" role="menuitem">Simpan</a>
+            </div>
+          </div>
+        </>
+      )}
+
       {isMemberPopupOpen && selectedCardList && (
        <MemberPopup
        selectedCardList={selectedCardList}
@@ -476,7 +508,7 @@ const WorkspaceProject = () => {
 
       {isAttachPopupOpen && selectedCardList && (
         <AttachPopup
-         isAttachPopupOpen={isArchivePopupOpen}
+        isAttachPopupOpen={isAttachPopupOpen}
          selectedCardList={selectedCardList}
          handleCloseAttachPopup={handleCloseAttachPopup}
          />
@@ -494,7 +526,7 @@ const WorkspaceProject = () => {
        <CopyPopup
        isCopyPopupOpen={isCopyPopupOpen}
        selectedCardList={selectedCardList}
-       handleCloseCopyPopup={handleCloseSubmitPopup}
+       close={handleCloseSubmitPopup}
        />
       )}
 
