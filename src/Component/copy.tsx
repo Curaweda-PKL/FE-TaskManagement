@@ -1,18 +1,26 @@
 import React from 'react';
 
-const CopyPopup = ({ isCopyPopupOpen, selectedCardList, handleCloseCopyPopup }) => {
+const CopyPopup = ({ isCopyPopupOpen, selectedCardList, close }) => {
   if (!isCopyPopupOpen || !selectedCardList) return null;
 
   return (
     <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+      <div className="bg-white text-black p-6 rounded-lg shadow-lg w-80 relative"> {/* Menambahkan relative */}
+        {/* Tombol X di pojok kanan atas */}
+        <button
+          onClick={close}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg"
+        >
+          &times;
+        </button>
+
         <h2 className="text-center text-sm font-bold mb-4">Card Copy</h2>
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
           <input
             type="text"
-            className="block w-full text-sm text-gray-500 bg-gray-200 rounded-lg focus:outline-none"
+            className="block w-full text-sm p-1 text-gray-500 bg-gray-200 rounded-lg focus:outline-none"
             placeholder="Akhson"
             disabled
           />
@@ -40,7 +48,7 @@ const CopyPopup = ({ isCopyPopupOpen, selectedCardList, handleCloseCopyPopup }) 
           <label className="block text-sm font-medium text-gray-700 mb-2">Copy to...</label>
           <input
             type="text"
-            className="block w-full text-sm text-gray-500 bg-gray-200 rounded-lg focus:outline-none mb-4"
+            className="block w-full p-1 text-sm text-gray-500 bg-gray-200 rounded-lg focus:outline-none mb-4"
             placeholder="Project 1"
             disabled
           />
@@ -56,7 +64,7 @@ const CopyPopup = ({ isCopyPopupOpen, selectedCardList, handleCloseCopyPopup }) 
 
         <div className="flex justify-center mt-6">
           <button
-            onClick={handleCloseCopyPopup}
+            onClick={close}
             className="bg-purple-600 hover:bg-purple-700 text-white w-full py-2 rounded"
           >
             Create
