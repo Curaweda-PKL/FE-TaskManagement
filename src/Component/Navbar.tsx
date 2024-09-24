@@ -335,6 +335,7 @@ function Navbar() {
           setWorkspaceDescription={setWorkspaceDescription}
           onClose={closeCreateWorkspace}
           onCreate={handleCreateWorkspace}
+          isEditMode={false}
         />
       )}
     </nav>
