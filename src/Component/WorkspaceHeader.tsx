@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateLinkWorkspace, joinRequestsWorkspace, requestWorkspace} from '../hooks/fetchWorkspace'; // Adjust the import path as needed
+import { generateLinkWorkspace, joinRequestsWorkspace, requestWorkspace} from '../hooks/fetchWorkspace';
 
 interface Workspace {
   name: string;

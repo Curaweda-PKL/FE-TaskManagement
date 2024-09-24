@@ -133,7 +133,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   
     try {
       const response = await axios.put(
-        `${config}/user/update`, // Sesuaikan dengan endpoint yang benar
+        `${config}/user/update`,
         { name: newName },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -141,7 +141,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       );
   
       if (response.status === 200) {
-        setUserData(prevData => ({ ...prevData, name: newName }));
+        setUserData(prevData => Object.assign({}, prevData, { name: newName }));
         return true;
       } else {
         setError('Failed to update name. Please try again.');
@@ -157,6 +157,30 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       return false;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateProfilePhoto = async (userId: string, photoUrl: string) => {
+    try {
+      const response = await axios.put(
+        `${config}/user/update-photo`,
+        { userId, photoUrl },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to update profile photo:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error('Failed to update profile photo. Please try again.');
+      }
     }
   };
   
@@ -181,6 +205,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     handleLogout,
     changePassword,
     updateUserName,
+    updateProfilePhoto
   };
 };
 

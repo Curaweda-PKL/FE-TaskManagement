@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchBoards } from '../hooks/fetchBoard';
+import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
+import { fetchCardList, createCardList, updateCardList, deleteCardList } from '../hooks/fetchCardList';
+import CreateCard from '../Component/createCard';
 import MemberPopup from '../Component/member';
 import LabelsPopup from '../Component/label';
 import EditLabel from '../Component/EditLabel';
@@ -11,13 +14,18 @@ import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import SharePopup from '../Component/share';
 
+
 const WorkspaceProject = () => {
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const [boardName, setBoardName] = useState<string>('');
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [boards, setBoards] = useState<any[]>([]);
+  const [cardData, setCardData] = useState<any[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [isLabelsPopupOpen, setIsLabelsPopupOpen] = useState(false);
+  const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
+  const [currentCard, setCurrentCard] = useState(null);
   const [isEditLabelOpen, setIsEditLabelOpen] = useState(false);
   const [isChecklistPopupOpen, setIsChecklistPopupOpen] = useState(false);
   const [isDatesPopupOpen, setIsDatesPopupOpen] = useState(false);
@@ -27,77 +35,21 @@ const WorkspaceProject = () => {
   const [isArchivePopupOpen, setIsArchivePopupOpen] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
-  const [selectedCardList, setSelectedCardList] = useState(null);
-  const [isEditCard, setIsEditCard] = useState(false);
-  const [editingCard, setEditingCard] = useState(null);
-  const [activeCardRect, setActiveCardRect] = useState(null);
+  const [selectedCardList, setSelectedCardList] = useState<any | null>(null);
 
-  useEffect(() => {
-    const getBoards = async () => {
-      if (workspaceId) {
-        try {
-          const data = await fetchBoards(workspaceId);
-          setBoards(data);
-          const board = data.find((b: any) => b.id === boardId);
-          setBoardName(board ? board.name : 'Project');
-        } catch (error) {
-          console.error('Failed to fetch boards:', error);
-        }
-      }
-    };
-
-    getBoards();
-  }, [workspaceId, boardId]);
-
-  const data = {
-    card: [
-      {
-        workspace: "workspace1",
-        color: "bg-red-500",
-        cardList: [
-          {
-            members: [
-              { name: 'fursan' },
-              { name: 'satriya' }
-            ],
-            title: 'cardList1'
-          },
-          {
-            members: [],
-            title: 'cardList2'
-          }
-        ]
-      },
-      {
-        workspace: "workspace2",
-        color: "bg-yellow-500",
-        cardList: [
-          {
-            members: [
-              { name: 'Rayndra' },
-              { name: 'Ajib' }
-            ],
-            title: 'cardList1'
-          },
-          {
-            members: [
-              { name: 'Salwa' },
-              { name: 'Masnur' }
-            ],
-            title: 'cardList2'
-          }
-        ]
-      }
-    ]
+  const handleOpenCreateCard = () => {
+    setIsCreateCardOpen(true);
   };
 
-  const handleEditCard = (cardList, event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    setActiveCardRect(rect);
-    setIsEditCard(true);
-    setIsPopupOpen(false);
-    setEditingCard(cardList);
-  }
+  const handleCloseCreateCard = () => {
+    setIsCreateCardOpen(false);
+    setCurrentCard(null);
+  };
+
+  const handleOpenEditCard = (card: any) => {
+    setCurrentCard(card);
+    setIsCreateCardOpen(true);
+  };
 
   const handleArchive = () => {
     setIsArchived(true);
@@ -105,10 +57,6 @@ const WorkspaceProject = () => {
 
   const handleSendToBoard = () => {
     setIsArchived(false);
-  };
-
-  const handleDelete = () => {
-    setIsArchivePopupOpen(true);
   };
 
   const handleOpenPopup = (cardList: any) => {
@@ -119,7 +67,6 @@ const WorkspaceProject = () => {
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     setSelectedCardList(null);
-    setIsEditCard(false);
   };
 
   const handleOpenMemberPopup = (cardList: any) => {
@@ -129,6 +76,7 @@ const WorkspaceProject = () => {
 
   const handleCloseMemberPopup = () => {
     setIsMemberPopupOpen(false);
+    setSelectedCardList(null);
   };
 
   const handleOpenLabelsPopup = (cardList: any) => {
@@ -138,6 +86,7 @@ const WorkspaceProject = () => {
 
   const handleCloseLabelsPopup = () => {
     setIsLabelsPopupOpen(false);
+    setSelectedCardList(null);
   };
 
   const handleOpenChecklistPopup = (cardList: any) => {
@@ -147,6 +96,7 @@ const WorkspaceProject = () => {
 
   const handleCloseChecklistPopup = () => {
     setIsChecklistPopupOpen(false);
+    setSelectedCardList(null);
   };
 
   const handleOpenDatesPopup = (cardlist: any) => {
@@ -156,6 +106,7 @@ const WorkspaceProject = () => {
 
   const handleCloseDatesPopup = () => {
     setIsDatesPopupOpen(false);
+    setSelectedCardList(null);
   };
 
   const handleOpenAttachPopup = (cardlist: any) => {
@@ -165,6 +116,7 @@ const WorkspaceProject = () => {
 
   const handleCloseAttachPopup = () => {
     setIsAttachPopupOpen(false);
+    setSelectedCardList(null);
   };
 
   const handleOpenSubmitPopup = (cardlist: any) => {
@@ -174,36 +126,27 @@ const WorkspaceProject = () => {
 
   const handleCloseSubmitPopup = () => {
     setIsSubmitPopupOpen(false);
-    setIsCopyPopupOpen(false);
+    setSelectedCardList(null);
   };
 
   const handleOpenCopyPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsCopyPopupOpen(true);
   };
-  
-  const handleOpenArchivePopup = (cardlist: any) => {
-    setSelectedCardList(cardlist);
-    setIsArchivePopupOpen(true);
-  };
-
-  const handleCloseArchivePopup = () => {
-    setIsArchivePopupOpen(false);
-    setSelectedCardList(null);
-  };
 
   const handleOpenSharePopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsSharePopupOpen(true);
   };
-  
+
   const handleCreateNewLabel = () => {
     setIsEditLabelOpen(true);
   };
-  
+
   const handleCloseEditLabel = () => {
     setIsEditLabelOpen(false);
   };
+
 
   const labels = [
     { name: 'Level 5', color: 'bg-purple-500' },
@@ -213,13 +156,106 @@ const WorkspaceProject = () => {
     { name: 'Level 1', color: 'bg-green-500' },
   ];
 
+  if (cardData) console.log(cardData)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const boardData = await fetchBoards(workspaceId);
+        setBoards(boardData);
+        const board = boardData.find((b: any) => b.id === boardId);
+        setBoardName(board ? board.name : 'Project');
+
+        if (boardId) {
+          const cardResponse = await fetchCard(boardId);
+          if (cardResponse && cardResponse) {
+            const updatedCardData = await Promise.all(
+              cardResponse.map(async (card: any) => {
+                if (card && card.id) {
+                  const cardListData = await fetchCardList(card.id);
+                  return { ...card, cardList: cardListData || [] };
+                }
+                return { ...card, cardList: [] };
+              })
+            );
+            setCardData(updatedCardData);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [workspaceId, boardId]);
+
+  const handleCreateCard = async (cardName: string) => {
+    try {
+      await createCard(boardId, cardName);
+      const updatedCardData = await fetchCard(boardId);
+      if (updatedCardData && updatedCardData) {
+        const updatedCardWithLists = await Promise.all(
+          updatedCardData.map(async (card: any) => {
+            if (card && card.id) {
+              const cardListData = await fetchCardList(card.id);
+              return { ...card, cardList: cardListData || [] };
+            }
+            return { ...card, cardList: [] };
+          })
+        );
+        setCardData(updatedCardWithLists);
+      }
+    } catch (error) {
+      console.error('Error creating or fetching cards:', error);
+    }
+  };
+
+  const handleEditCard = async (cardId: any, cardName: string) => {
+    try {
+      await updateCard(cardId, cardName);
+      const updatedCardData = await fetchCard(boardId);
+      if (updatedCardData) {
+        const updatedCardWithLists = await Promise.all(
+          updatedCardData.map(async (card: any) => {
+            if (card && card.id) {
+              const cardListData = await fetchCardList(card.id);
+              return { ...card, cardList: cardListData || [] };
+            }
+            return { ...card, cardList: [] };
+          })
+        );
+        setCardData(updatedCardWithLists);
+      }
+    } catch (error) {
+      console.error('Error updating or fetching cards:', error);
+    }
+  };
+
+  const handleDeleteCard = async (card: any) => {
+    try {
+      await deleteCard(card.id);
+      const updatedCardData = cardData.filter((item: any) => item.id !== card.id);
+      setCardData(updatedCardData);
+    } catch (error) {
+      console.error("Error deleting card:", error);
+    }
+  };
+
+  const handleDeleteCardList = async (card: any) => {
+    try {
+      await deleteCardList(card.id);
+      const updatedCardData = cardData.filter((item: any) => item.id !== card.id);
+      setCardData(updatedCardData);
+    } catch (error) {
+      console.error("Error deleting card:", error);
+    }
+  };
+
   return (
-    <div className="m-h-screen">
+    <div className="min-h-screen flex flex-col">
       <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
         <div className="flex items-center space-x-7">
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
-          <div className="flex -space-x-1">
-          </div>
         </div>
         <button className="bg-purple-600 text-white px-4 py-1 rounded text-sm">
           Share
@@ -227,53 +263,91 @@ const WorkspaceProject = () => {
       </header>
 
       <main className="flex px-8 bg-white mb-4">
-        {data.card.map((workspace, index) => (
-          <div key={index} className="bg-white rounded-2xl shadow-xl border p-4 mr-4 w-60">
-            <h2 className="text-xl text-center mb-6 text-gray-700">{workspace.workspace}</h2>
-            <ul className="space-y-2">
-              {workspace.cardList.map((cardList, index) => (
-                <li
-                  key={index}
-                  className={`rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer transition-colors duration-300 ${
-                    editingCard === cardList ? 'bg-white shadow-md z-50 relative' : 'bg-gray-100 hover:bg-gray-200 z-50'
-                  }`}
-                  onClick={() => handleOpenPopup(cardList)}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full ${workspace.color} mr-2`}></div>
-                    <span className="text-black text-sm">{cardList.title}</span>
+        {cardData.length === 0 ? (
+          <p className="mr-6">No cards available</p>
+        ) : (
+          cardData.map((card, index) => (
+            <div key={index} className="relative bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
+              <button
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                onClick={() => setDropdownOpen(dropdownOpen === index ? null : index)}
+              >
+                <i className="fas fa-ellipsis-h"></i>
+              </button>
+              <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
+              <ul className="space-y-2">
+                {card.cardList?.map((cardList: any, index: any) => (
+                  <li
+                    key={index}
+                    className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
+                    onClick={() => handleOpenPopup(cardList)}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-2 h-2 rounded-full ${card?.color} mr-2`}></div>
+                      <span className="text-black text-sm">{cardList?.name}</span>
+                    </div>
+                    <button className="text-gray-400">
+                      <i className="fas fa-pencil-alt h-3 w-3"></i>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              <button className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm">
+                + Add list
+              </button>
+              <div className="relative">
+                {dropdownOpen === index && (
+                  <div className="absolute right-0 w-28 bg-white shadow-xl rounded-lg z-10">
+                    <ul className="py-2">
+                      <li
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                        onClick={() => handleOpenEditCard(card)}
+                      >
+                        Edit
+                      </li>
+                      <li
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                        onClick={() => handleDeleteCard(card)}
+                      >
+                        Delete
+                      </li>
+                    </ul>
                   </div>
-                  <button className="text-gray-400">
-                  <i 
-                    className="fas fa-pencil-alt h-3 w-3" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditCard(cardList, e);
-                    }}
-                  ></i>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm">
-              + Add card
-            </button>
-          </div>
-        ))}
-        <button className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center">
+                )}
+              </div>
+            </div>
+          ))
+        )}
+        <button
+          className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center"
+          onClick={handleOpenCreateCard}
+        >
           <i className="fas fa-plus h-3 w-3 mr-3 group-hover:text-purple-500 transition-colors duration-300"></i>
-          <p className='group-hover:text-purple-500 transition-colors duration-300'>
-            Add Another List
+          <p className="group-hover:text-purple-500 transition-colors duration-300">
+            Add Card
           </p>
         </button>
       </main>
-      
+
+      {isCreateCardOpen && (
+        <CreateCard
+          workspaceId={workspaceId}
+          boardId={boardId}
+          onClose={handleCloseCreateCard}
+          onCreateCard={handleCreateCard}
+          onUpdateCard={handleEditCard}
+          initialData={currentCard}
+          isEditing={true}
+        />
+      )}
+
       {isPopupOpen && selectedCardList && (
-        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20 overflow-auto">
+        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-5 overflow-auto">
           <div className="bg-white p-6 rounded-lg shadow-lg max-h-[500px] overflow-auto w-full max-w-[650px] max768:max-w-[400px]">
             <div className="navbarPopup flex flex-row w-full text-black justify-between">
               <h2 className="navbarPopup-start text-xl font-bold p-2 mb-4">
-                {selectedCardList.title}
+                {selectedCardList.name}
               </h2>
               <div
                 className="bg-transparent border-hidden close text-lg text-black font-bold hover:bg-white"
@@ -299,43 +373,6 @@ const WorkspaceProject = () => {
                 </div>
                 <div>
                   <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
-                  <div className='grid grid-cols-2 gap-2 mb-10'>
-                    <div>
-                      <h4 className="text-black text-[12px] font-semibold">Effort</h4>
-                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                      </select>
-                    </div>
-                    <div>
-                      <h4 className="text-black text-[12px] font-semibold">Status</h4>
-                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
-                        <option value="1">To Do</option>
-                        <option value="2">In Progress</option>
-                        <option value="3">Done</option>
-                        <option value="4">In Review</option>
-                        <option value="5">Approved</option>
-                      </select>
-                    </div>
-                    <div>
-                      <h4 className="text-black text-[12px] font-semibold">Risk</h4>
-                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
-                        <option value="1">Highest</option>
-                        <option value="2">High</option>
-                        <option value="3">Medium</option>
-                        <option value="4">Low</option>
-                        <option value="5">Lowest</option>
-                      </select>
-                    </div>
-                    <div>
-                      <h4 className="text-black text-[12px] font-semibold">Project</h4>
-                      <select className='rounded-md bg-gray-300 text-black w-full text-sm font-semibold py-1 px-2' name="" id="">
-                      </select>
-                    </div>
-                  </div>
                 </div>
                 <div className="activity flex justify-between mb-3">
                   <span className="text-black text-lg font-semibold">Activity</span>
@@ -355,65 +392,65 @@ const WorkspaceProject = () => {
                 </div>
                 <div className="border-b-2 border-black"></div>
 
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1" 
-                onClick={() => handleOpenMemberPopup(selectedCardList)}>
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1"
+                  onClick={() => handleOpenMemberPopup(selectedCardList)}>
                   <i className="fas fa-user"></i>Member
                 </div>
 
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                onClick={() => handleOpenLabelsPopup(selectedCardList)}>
+                  onClick={() => handleOpenLabelsPopup(selectedCardList)}>
                   <i className="fas fa-tag"></i>Labels
                 </div>
 
-                
+
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                onClick={() => handleOpenChecklistPopup(selectedCardList)}>
+                  onClick={() => handleOpenChecklistPopup(selectedCardList)}>
                   <i className="fas fa-check-square"></i> Checklist
                 </div>
 
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
-                onClick={() => handleOpenDatesPopup(selectedCardList)}>
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                  onClick={() => handleOpenDatesPopup(selectedCardList)}>
                   <i className="fas fa-clock"></i>Dates
                 </div>
 
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4" 
-                onClick={() => handleOpenAttachPopup(selectedCardList)}>
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4"
+                  onClick={() => handleOpenAttachPopup(selectedCardList)}>
                   <i className="fas fa-paperclip"></i>Attachment
                 </div>
 
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
-                onClick={() => handleOpenSubmitPopup(selectedCardList)}>
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                  onClick={() => handleOpenSubmitPopup(selectedCardList)}>
                   <i className="fas fa-file-upload"></i>Submit
                 </div>
 
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
-                onClick={() => handleOpenCopyPopup(selectedCardList)}>
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                  onClick={() => handleOpenCopyPopup(selectedCardList)}>
                   <i className="fas fa-copy"></i>Copy
                 </div>
                 {!isArchived ? (
-                <div 
-                  className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" 
-                  onClick={handleArchive}
-                >
-                  <i className="fas fa-archive"></i>Archive
-                </div>
-              ) : (
-                <>
-                  <div 
-                    className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0" 
-                    onClick={handleSendToBoard}
+                  <div
+                    className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                    onClick={handleArchive}
                   >
-                    <i className="fas fa-undo"></i>Send to board
+                    <i className="fas fa-archive"></i>Archive
                   </div>
-                  <div 
-                    className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black" 
-                    onClick={handleDelete}
-                  >
-                    <i className="fas fa-trash"></i>Delete
-                  </div>
-                </>
-              )}
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={()=> handleOpenSharePopup(selectedCardList)}>
+                ) : (
+                  <>
+                    <div
+                      className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0"
+                      onClick={handleSendToBoard}
+                    >
+                      <i className="fas fa-undo"></i>Send to board
+                    </div>
+                    <div
+                      className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black"
+                      onClick={handleDeleteCardList}
+                    >
+                      <i className="fas fa-trash"></i>Delete
+                    </div>
+                  </>
+                )}
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenSharePopup(selectedCardList)}>
                   <i className="fas fa-share"></i>Share
                 </div>
 
@@ -427,56 +464,24 @@ const WorkspaceProject = () => {
         </div>
       )}
 
-      {isEditCard && (
-        <>
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40">
-            <div 
-              className="absolute bg-transparent"
-              style={{
-                top: `${activeCardRect.top}px`,
-                left: `${activeCardRect.left}px`,
-                width: `${activeCardRect.width}px`,
-                height: `${activeCardRect.height}px`,
-              }}
-            ></div>
-          </div>
-          
-          <div 
-            className="fixed z-50"
-            style={{
-              top: `${activeCardRect.bottom}px`,
-              left: `${activeCardRect.right}px`,
-            }}
-          >
-            <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Open Card</a>
-              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Edit Labels</a>
-              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Change Member</a>
-              <a href="#" className="block my-3 px-4 py-2 text-sm  rounded-md shadow-lg  text-gray-700 bg-white hover:bg-gray-100">Edit Dates</a>
-              <a href="#" onClick={handleClosePopup} className="block px-4 py-2 text-sm text-white bg-purple-500 hover:bg-purple-600" role="menuitem">Simpan</a>
-            </div>
-          </div>
-        </>
-      )}
-
       {isMemberPopupOpen && selectedCardList && (
-       <MemberPopup
-       selectedCardList={selectedCardList}
-       isMemberPopupOpen={isMemberPopupOpen}
-       handleCloseMemberPopup={handleCloseMemberPopup}
+        <MemberPopup
+          selectedCardList={selectedCardList}
+          isMemberPopupOpen={isMemberPopupOpen}
+          handleCloseMemberPopup={handleCloseMemberPopup}
         />
       )}
 
       {isLabelsPopupOpen && selectedCardList && (
-       <LabelsPopup 
-       isOpen={isLabelsPopupOpen} 
-       onClose={handleCloseLabelsPopup} 
-       labels={labels}
-       onCreateNewLabel={handleCreateNewLabel}
+        <LabelsPopup
+          isOpen={isLabelsPopupOpen}
+          onClose={handleCloseLabelsPopup}
+          labels={labels}
+          onCreateNewLabel={handleCreateNewLabel}
         />
       )}
- 
-        {isEditLabelOpen && (
+
+      {isEditLabelOpen && (
         <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
           <EditLabel
             labelName=""
@@ -489,63 +494,50 @@ const WorkspaceProject = () => {
       )}
 
       {isChecklistPopupOpen && selectedCardList && (
-       <div>
-       <ChecklistPopup
-         isOpen={isChecklistPopupOpen}
-         onClose={handleCloseChecklistPopup}
-         selectedCardList={selectedCardList}
-         />
-     </div>
+        <div>
+          <ChecklistPopup
+            isOpen={isChecklistPopupOpen}
+            onClose={handleCloseChecklistPopup}
+            selectedCardList={selectedCardList}
+          />
+        </div>
       )}
 
       {isDatesPopupOpen && selectedCardList && (
         <DatesPopup
-        isDatesPopupOpen={isDatesPopupOpen}
-        selectedCardList={selectedCardList}
-        handleCloseDatesPopup={handleCloseDatesPopup}
+          isDatesPopupOpen={isDatesPopupOpen}
+          selectedCardList={selectedCardList}
+          handleCloseDatesPopup={handleCloseDatesPopup}
         />
       )}
 
       {isAttachPopupOpen && selectedCardList && (
         <AttachPopup
-        isAttachPopupOpen={isAttachPopupOpen}
-         selectedCardList={selectedCardList}
-         handleCloseAttachPopup={handleCloseAttachPopup}
-         />
+          isAttachPopupOpen={isArchivePopupOpen}
+          selectedCardList={selectedCardList}
+          handleCloseAttachPopup={handleCloseAttachPopup}
+        />
       )}
 
       {isSubmitPopupOpen && selectedCardList && (
-       <SubmitPopup
-       isSubmitPopupOpen={isSubmitPopupOpen}
-       selectedCardList={selectedCardList}
-       handleCloseSubmitPopup={handleCloseSubmitPopup}
-       />
+        <SubmitPopup
+          isSubmitPopupOpen={isSubmitPopupOpen}
+          selectedCardList={selectedCardList}
+          handleCloseSubmitPopup={handleCloseSubmitPopup}
+        />
       )}
 
       {isCopyPopupOpen && selectedCardList && (
-       <CopyPopup
-       isCopyPopupOpen={isCopyPopupOpen}
-       selectedCardList={selectedCardList}
-       close={handleCloseSubmitPopup}
-       />
-      )}
-
-      {isArchivePopupOpen && selectedCardList && (
-        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">{selectedCardList.title} - Archive</h2>
-            <p className="mb-4 text-sm text-gray-700"> Are you sure you want to archive this card? You can restore it later from the archived items. </p>
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={handleCloseArchivePopup} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded" > Cancel </button>
-              <button onClick={handleOpenArchivePopup} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded" > Delete </button>
-            </div>
-          </div>
-        </div>
+        <CopyPopup
+          isCopyPopupOpen={isCopyPopupOpen}
+          selectedCardList={selectedCardList}
+          handleCloseCopyPopup={handleCloseSubmitPopup}
+        />
       )}
 
       {isSharePopupOpen && (
         <SharePopup
-        isSharePopupOpen={isSharePopupOpen}
+          isSharePopupOpen={isSharePopupOpen}
         />
       )}
     </div>

@@ -5,8 +5,7 @@ const CopyPopup = ({ isCopyPopupOpen, selectedCardList, close }) => {
 
   return (
     <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
-      <div className="bg-white text-black p-6 rounded-lg shadow-lg w-80 relative"> {/* Menambahkan relative */}
-        {/* Tombol X di pojok kanan atas */}
+      <div className="bg-white text-black p-6 rounded-lg shadow-lg w-80 relative">
         <button
           onClick={close}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg"

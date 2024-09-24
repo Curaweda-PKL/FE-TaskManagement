@@ -130,9 +130,9 @@ function Profile() {
               <div className='max-w-md md:w-1/2 w-4/5'>
                 <h3 className='font-bold mb-2'>Profile photo and header image</h3>
                 <div className='w-full h-24 bg-gray-200 relative rounded-t-lg shadow-xl'>
-                  <div className='w-12 h-12 bg-red-500 rounded-full absolute bottom-0 left-4 transform translate-y-1/2 z-20'></div>
+                  <div className='w-16 h-16 bg-red-500 rounded-full absolute bottom-0 left-4 transform translate-y-1/2 z-20'></div>
                 </div>
-                <div className='w-full h-24 bg-white relative border-t-2 border-black rounded-b-lg shadow-lg'></div>
+                <div className='w-full h-24 bg-white relative border-t border-black rounded-b-lg shadow-lg'></div>
                 <h3 className='font-bold mb-4 mt-7'>About you</h3>
                 <div className='flex flex-col space-y-4 text-black'>
                   <div className='flex flex-col space-y-2'>

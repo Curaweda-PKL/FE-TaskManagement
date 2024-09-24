@@ -124,12 +124,10 @@ const SidebarWorkspace: React.FC = () => {
               const isOnBoardPage = location.pathname === boardUrl;
 
               return (
-                <div key={board.id} className="relative flex items-center justify-between">
+                <div key={board.id} className="relative flex items-center justify-between mb-1">
                   <Link to={boardUrl} className={`text-gray-600 p-2 flex items-center w-full ${hoverClass} ${isActive(boardUrl) ? activeClass : ''}`}>
                     <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
                     <span>{board.name}</span>
-
-                    {/* Only trigger navigation to board if not on the board page */}
                     <button
                       onClick={(e) => {
                         if (!isOnBoardPage) {
@@ -148,7 +146,7 @@ const SidebarWorkspace: React.FC = () => {
                   {isPopupVisible && activeBoardId === board.id && isOnBoardPage && (
                     <div className="absolute right-[-120%] top-0 w-64 bg-white shadow-lg rounded-md p-2 z-50">
                       <div className="flex items-center justify-between px-4 py-2 border-b">
-                        <span className="font-semibold">{board.name}</span>
+                        <span className="text-black">{board.name}</span>
                         <button onClick={() => setIsPopupVisible(false)} className="text-gray-500">
                           <i className="fas fa-times"></i>
                         </button>

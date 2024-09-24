@@ -6,10 +6,9 @@ interface EditLabelProps {
   labelPercentage: number;
   onSave: () => void;
   onCancel: () => void;
-  onOpen: () => void;
 }
 
-const EditLabel: React.FC<EditLabelProps> = ({ labelName, labelColor, labelPercentage, onSave, onCancel, onOpen }) => {
+const EditLabel: React.FC<EditLabelProps> = ({ labelName, labelColor, labelPercentage, onSave, onCancel }) => {
   return (
     <div className="flex justify-center z-100 items-center fixed inset-0 bg-black bg-opacity-50" onClick={(e) => e.stopPropagation()}>
       <div className="bg-white shadow-xl rounded-lg p-6 max-w-sm w-full">
