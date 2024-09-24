@@ -258,85 +258,100 @@ const WorkspaceProject = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="flex bg-gray-100 p-4 justify-between items-center mb-6">
+      <header className="flex bg-gray-100 p-4 mb-10 justify-between items-center">
         <div className="flex items-center space-x-7">
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
         </div>
-        <button className="bg-purple-600 text-white px-4 py-1 rounded text-sm">
-          Share
-        </button>
-      </header>
-
-      <main className="flex px-8 bg-white mb-4">
-        {cardData.length === 0 ? (
-          <p className="mr-6">No cards available</p>
-        ) : (
-          cardData.map((card, index) => (
-            <div key={index} className="relative bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64">
-              <button
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-                onClick={() => setDropdownOpen(dropdownOpen === index ? null : index)}
-              >
-                <i className="fas fa-ellipsis-h"></i>
-              </button>
-              <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
-              <ul className="space-y-2">
-                {card.cardList?.map((cardList: any, index: any) => (
-                  <li
-                    key={index}
-                    className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
-                    onClick={() => handleOpenPopup(cardList)}
-                  >
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full ${card?.color} mr-2`}></div>
-                      <span className="text-black text-sm">{cardList?.name}</span>
-                    </div>
-                    <button className="text-gray-400">
-                      <i className="fas fa-pencil-alt h-3 w-3"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePopUpCard(cardList, e);
-                      }}></i>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              <button className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm">
-                + Add list
-              </button>
-              <div className="relative">
-                {dropdownOpen === index && (
-                  <div className="absolute right-0 w-28 bg-white shadow-xl rounded-lg z-10">
-                    <ul className="py-2">
-                      <li
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
-                        onClick={() => handleOpenEditCard(card)}
-                      >
-                        Edit
-                      </li>
-                      <li
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
-                        onClick={() => handleDeleteCard(card)}
-                      >
-                        Delete
-                      </li>
-                    </ul>
-                  </div>
-                )}
-              </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex -space-x-2">
+            <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
+            <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
+            <div className="w-8 h-8 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+              <span className="text-xs font-bold text-white">A</span>
             </div>
-          ))
-        )}
-        <button
-          className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center"
-          onClick={handleOpenCreateCard}
-        >
-          <i className="fas fa-plus h-3 w-3 mr-3 group-hover:text-purple-500 transition-colors duration-300"></i>
-          <p className="group-hover:text-purple-500 transition-colors duration-300">
-            Add Card
-          </p>
-        </button>
+            <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
+              <span className="text-xs font-semibold text-gray-600">+1</span>
+            </div>
+          </div>
+          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
+            <i className="fa w-4 h-4 mr-2" />
+            Share
+          </button>
+        </div>
+      </header>
+      
+      <main className="flex-1 overflow-x-auto">
+        <div className="flex px-8 bg-white mb-4 h-full">
+          {cardData.length === 0 ? (
+            <p className="mr-6">No cards available</p>
+          ) : (
+            cardData.map((card, index) => (
+              <div key={index} className="relative bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64 flex-shrink-0">
+                <button
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setDropdownOpen(dropdownOpen === index ? null : index)}
+                >
+                  <i className="fas fa-ellipsis-h"></i>
+                </button>
+                <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
+                <ul className="space-y-2">
+                  {card.cardList?.map((cardList, index) => (
+                    <li
+                      key={index}
+                      className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
+                      onClick={() => handleOpenPopup(cardList)}
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-2 h-2 rounded-full ${card?.color} mr-2`}></div>
+                        <span className="text-black text-sm">{cardList?.name}</span>
+                      </div>
+                      <button className="text-gray-400">
+                        <i className="fas fa-pencil-alt h-3 w-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePopUpCard(cardList, e);
+                        }}></i>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <button className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm">
+                  + Add list
+                </button>
+                <div className="relative">
+                  {dropdownOpen === index && (
+                    <div className="absolute right-0 w-28 bg-white shadow-xl rounded-lg z-10">
+                      <ul className="py-2">
+                        <li
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                          onClick={() => handleOpenEditCard(card)}
+                        >
+                          Edit
+                        </li>
+                        <li
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                          onClick={() => handleDeleteCard(card)}
+                        >
+                          Delete
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+          <button
+            className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center flex-shrink-0"
+            onClick={handleOpenCreateCard}
+          >
+            <i className="fas fa-plus h-3 w-3 mr-3 group-hover:text-purple-500 transition-colors duration-300"></i>
+            <p className="group-hover:text-purple-500 transition-colors duration-300">
+              Add Card
+            </p>
+          </button>
+        </div>
       </main>
 
       {isCreateCardOpen && (
