@@ -4,6 +4,8 @@ import useAuth from '../hooks/fetchAuth';
 
 function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [photo, setPhoto] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const {
     userData,
     isLoggedIn,
@@ -16,7 +18,9 @@ function Profile() {
     error,
     loading,
     updateUserName,
-  } = useAuth(() => {}, () => {});
+    updateProfilePhoto,
+    deleteProfilePhoto
+  } = useAuth(() => { }, () => { });
 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [editedName, setEditedName] = useState('');
@@ -29,17 +33,17 @@ function Profile() {
       setEditedName(userData.name || '');
     }
   }, [userData]);
-  
+
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => {
         setAlert(null);
       }, 2000);
-  
+
       return () => clearTimeout(timer);
     }
   }, [alert]);
-  
+
 
   if (checkingLogin) {
     return <div>Loading...</div>;
@@ -55,7 +59,7 @@ function Profile() {
       setAlert({ type: 'error', message: 'New passwords do not match.' });
       return;
     }
-    
+
     const success = await changePassword();
     if (success) {
       setAlert({ type: 'success', message: 'Password changed successfully!' });
@@ -86,6 +90,30 @@ function Profile() {
       setAlert({ type: 'error', message: 'Gagal memperbarui nama. Silakan coba lagi.' });
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const handlePhotoUpload = async (event: any) => {
+    const file = event.target.files[0];
+    if (file && userData) {
+      try {
+        const updatedPhoto = await updateProfilePhoto(userData.id, file);
+        setPhoto(updatedPhoto);
+      } catch (error) {
+        console.error('Error uploading photo:', error);
+      }
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    if (userData) {
+      try {
+        await deleteProfilePhoto(userData.id);
+        setPhoto(null);
+        setShowModal(false);
+      } catch (error) {
+        console.error('Error deleting photo:', error);
+      }
     }
   };
 
@@ -130,7 +158,26 @@ function Profile() {
               <div className='max-w-md md:w-1/2 w-4/5'>
                 <h3 className='font-bold mb-2'>Profile photo and header image</h3>
                 <div className='w-full h-24 bg-gray-200 relative rounded-t-lg shadow-xl'>
-                  <div className='w-16 h-16 bg-red-500 rounded-full absolute bottom-0 left-4 transform translate-y-1/2 z-20'></div>
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt="Profile"
+                      className='w-16 h-16 rounded-full absolute bottom-0 left-4 transform translate-y-1/2 z-20 object-cover cursor-pointer'
+                      onClick={() => setShowModal(true)}
+                    />
+                  ) : (
+                    <div className='w-16 h-16 bg-red-500 rounded-full absolute bottom-0 left-4 transform translate-y-1/2 z-20 flex justify-center items-center group'>
+                      <label htmlFor="profilePhotoUpload" className='cursor-pointer relative'>
+                        <i className="fa-solid fa-plus text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
+                        <input
+                          type="file"
+                          id="profilePhotoUpload"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={handlePhotoUpload}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
                 <div className='w-full h-24 bg-white relative border-t border-black rounded-b-lg shadow-lg'></div>
                 <h3 className='font-bold mb-4 mt-7'>About you</h3>
@@ -176,7 +223,40 @@ function Profile() {
                   </div>
                 </div>
               </div>
+
+              {showModal && (
+                <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+                  <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+                    <h3 className="text-lg font-bold mb-4">Manage Photo</h3>
+                    <button
+                      onClick={handlePhotoUpload}
+                      className="w-full bg-purple-600 text-white py-2 px-4 mb-3 rounded hover:bg-purple-700"
+                    >
+                      Change Photo
+                    </button>
+                    <button
+                      onClick={handleDeletePhoto}
+                      className="w-full bg-red-500 text-white py-2 px-4 mb-3 rounded hover:bg-red-600"
+                    >
+                      Delete Photo
+                    </button>
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="w-full bg-gray-200 text-black py-2 px-4 rounded hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+              <input
+                type="file"
+                id="profilePhotoUpload"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
             </div>
+
           ) : (
             <div className="flex justify-center">
               <div className='max-w-md'>

@@ -20,11 +20,14 @@ const WorkspaceProject = () => {
   const [boardName, setBoardName] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [boards, setBoards] = useState<any[]>([]);
+  const [isAddingList, setIsAddingList] = useState({});
+  const [newListName, setNewListName] = useState({});
   const [cardData, setCardData] = useState<any[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [isLabelsPopupOpen, setIsLabelsPopupOpen] = useState(false);
   const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
+  const [isEditCardOpen, setIsEditCardOpen] = useState(false);
   const [currentCard, setCurrentCard] = useState(null);
   const [isEditLabelOpen, setIsEditLabelOpen] = useState(false);
   const [isChecklistPopupOpen, setIsChecklistPopupOpen] = useState(false);
@@ -32,7 +35,6 @@ const WorkspaceProject = () => {
   const [isAttachPopupOpen, setIsAttachPopupOpen] = useState(false);
   const [isSubmitPopupOpen, setIsSubmitPopupOpen] = useState(false);
   const [isCopyPopupOpen, setIsCopyPopupOpen] = useState(false);
-  const [isArchivePopupOpen, setIsArchivePopupOpen] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
   const [selectedCardList, setSelectedCardList] = useState<any | null>(null);
@@ -51,9 +53,15 @@ const WorkspaceProject = () => {
 
   const handleOpenEditCard = (card: any) => {
     setCurrentCard(card);
-    setIsCreateCardOpen(true);
+    setIsEditCardOpen(true);
   };
-  const handlePopUpCard = (cardList, event) => {
+
+  const handleCloseEditCard = () => {
+    setIsEditCardOpen(false);
+    setCurrentCard(null);
+  };
+
+  const handlePopUpCard = (cardList: any, event: any) => {
     const rect = event.currentTarget.closest('li').getBoundingClientRect();
     setActiveCardRect(rect);
     setIsEditCard(true);
@@ -256,13 +264,34 @@ const WorkspaceProject = () => {
     }
   };
 
+  const handleAddCardList = async (cardId: any, listName: string) => {
+    if (listName.trim() === '') return;
+
+    try {
+      const newCardList = await createCardList(cardId, boardId, listName, '', 0, '', '');
+      const updatedCardData = cardData.map(card => {
+        if (card.cardId === cardId) {
+          return { ...card, cardList: [...card.cardList, newCardList] };
+        }
+        return card;
+      });
+
+      setCardData(updatedCardData);
+      setNewListName('');
+      setIsAddingList(false);
+    } catch (error) {
+      console.error("Failed to add card list:", error);
+    }
+  };
+
+  
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="flex bg-gray-100 p-4 mb-10 justify-between items-center">
+      <header className="flex bg-gray-100 p-4 mb-9 justify-between items-center">
         <div className="flex items-center space-x-7">
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <div className="flex -space-x-2">
             <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
             <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
@@ -273,13 +302,13 @@ const WorkspaceProject = () => {
               <span className="text-xs font-semibold text-gray-600">+1</span>
             </div>
           </div>
-          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
-            <i className="fa w-4 h-4 mr-2" />
+          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm font-medium flex items-center">
+            <i className="fas fa-share-nodes mr-2" />
             Share
           </button>
         </div>
       </header>
-      
+
       <main className="flex-1 overflow-x-auto">
         <div className="flex px-8 bg-white mb-4 h-full">
           {cardData.length === 0 ? (
@@ -295,7 +324,7 @@ const WorkspaceProject = () => {
                 </button>
                 <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
                 <ul className="space-y-2">
-                  {card.cardList?.map((cardList, index) => (
+                  {card.cardList?.map((cardList: any, index: any) => (
                     <li
                       key={index}
                       className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
@@ -307,10 +336,10 @@ const WorkspaceProject = () => {
                       </div>
                       <button className="text-gray-400">
                         <i className="fas fa-pencil-alt h-3 w-3"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePopUpCard(cardList, e);
-                        }}></i>
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePopUpCard(cardList, e);
+                          }}></i>
                       </button>
                     </li>
                   ))}
@@ -359,6 +388,18 @@ const WorkspaceProject = () => {
           workspaceId={workspaceId}
           boardId={boardId}
           onClose={handleCloseCreateCard}
+          onCreateCard={handleCreateCard}
+          onUpdateCard={handleEditCard}
+          initialData={currentCard}
+          isEditing={false}
+        />
+      )}
+
+      {isEditCardOpen && (
+        <CreateCard
+          workspaceId={workspaceId}
+          boardId={boardId}
+          onClose={handleCloseEditCard}
           onCreateCard={handleCreateCard}
           onUpdateCard={handleEditCard}
           initialData={currentCard}
@@ -491,7 +532,7 @@ const WorkspaceProject = () => {
       {isEditCard && (
         <>
           <div className="fixed inset-0 bg-black bg-opacity-50 z-20">
-            <div 
+            <div
               className="absolute bg-white rounded-md items-center"
               style={{
                 top: `${activeCardRect.top}px`,
@@ -510,17 +551,17 @@ const WorkspaceProject = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       setIsEditCard(false);
-                    }} 
+                    }}
                     className="block rounded-md py-2 w-24 mb-2 text-sm text-center text-white bg-purple-500 hover:bg-purple-600"
                   >
                     Save
                   </a>
                 </>
               )}
-              </div>
+            </div>
           </div>
-          
-          <div 
+
+          <div
             className="fixed z-20"
             style={{
               top: `${activeCardRect.top - 50}px`,
