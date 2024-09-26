@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
@@ -13,7 +13,7 @@ import AttachPopup from '../Component/attachment';
 import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import SharePopup from '../Component/share';
-
+import DeleteConfirmation from '../Component/DeleteConfirmation';
 
 const WorkspaceProject = () => {
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
@@ -24,6 +24,7 @@ const WorkspaceProject = () => {
   const [newListName, setNewListName] = useState({});
   const [cardData, setCardData] = useState<any[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [isLabelsPopupOpen, setIsLabelsPopupOpen] = useState(false);
   const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
@@ -41,6 +42,16 @@ const WorkspaceProject = () => {
   const [editingCard, setEditingCard] = useState(null);
   const [activeCardRect, setActiveCardRect] = useState(null);
   const [isEditCard, setIsEditCard] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  const handleDeletePopUp = (card: any) =>{
+    setShowDeleteConfirmation(true);
+    setCurrentCard(card);
+  }
+
+  const handleCancelPopUp = () =>{
+    setShowDeleteConfirmation(false);
+  }
 
   const handleOpenCreateCard = () => {
     setIsCreateCardOpen(true);
@@ -80,6 +91,7 @@ const WorkspaceProject = () => {
   const handleOpenPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
+    setIsEditCard(false);
   };
 
   const handleClosePopup = () => {
@@ -90,19 +102,23 @@ const WorkspaceProject = () => {
   const handleOpenMemberPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsMemberPopupOpen(true);
+    setIsEditCard(false);
   };
 
   const handleCloseMemberPopup = () => {
     setIsMemberPopupOpen(false);
+    setIsEditCard(true);
   };
 
   const handleOpenLabelsPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsLabelsPopupOpen(true);
+    setIsEditCard(false);
   };
 
   const handleCloseLabelsPopup = () => {
     setIsLabelsPopupOpen(false);
+    setIsEditCard(true);
   };
 
   const handleOpenChecklistPopup = (cardList: any) => {
@@ -117,10 +133,12 @@ const WorkspaceProject = () => {
   const handleOpenDatesPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsDatesPopupOpen(true);
+    setIsEditCard(false);
   };
 
   const handleCloseDatesPopup = () => {
     setIsDatesPopupOpen(false);
+    setIsEditCard(true);
   };
 
   const handleOpenAttachPopup = (cardlist: any) => {
@@ -168,6 +186,19 @@ const WorkspaceProject = () => {
     { name: 'Level 2', color: 'bg-yellow-300' },
     { name: 'Level 1', color: 'bg-green-500' },
   ];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   if (cardData) console.log(cardData)
 
@@ -249,9 +280,11 @@ const WorkspaceProject = () => {
       await deleteCard(card.id);
       const updatedCardData = cardData.filter((item: any) => item.id !== card.id);
       setCardData(updatedCardData);
+      setDropdownOpen(null);
     } catch (error) {
       console.error("Error deleting card:", error);
     }
+    setShowDeleteConfirmation(false);
   };
 
   const handleDeleteCardList = async (card: any) => {
@@ -302,8 +335,8 @@ const WorkspaceProject = () => {
               <span className="text-xs font-semibold text-gray-600">+1</span>
             </div>
           </div>
-          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm font-medium flex items-center">
-            <i className="fas fa-share-nodes mr-2" />
+          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
+            <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
             Share
           </button>
         </div>
@@ -315,13 +348,14 @@ const WorkspaceProject = () => {
             <p className="mr-6">No cards available</p>
           ) : (
             cardData.map((card, index) => (
-              <div key={index} className="relative bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64 flex-shrink-0">
+              <div key={index} className="relative bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64 h-fit flex-shrink-0">
                 <button
                   className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                   onClick={() => setDropdownOpen(dropdownOpen === index ? null : index)}
                 >
                   <i className="fas fa-ellipsis-h"></i>
                 </button>
+
                 <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
                 <ul className="space-y-2">
                   {card.cardList?.map((cardList: any, index: any) => (
@@ -348,19 +382,19 @@ const WorkspaceProject = () => {
                 <button className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm">
                   + Add list
                 </button>
-                <div className="relative">
+                <div className="absolute top-10 right-2 z-20" >
                   {dropdownOpen === index && (
-                    <div className="absolute right-0 w-28 bg-white shadow-xl rounded-lg z-10">
+                    <div className="w-28 bg-white shadow-xl rounded-lg" ref={dropdownRef}>
                       <ul className="py-2">
                         <li
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                          className="px-4 py-2 rounded-t-lg hover:bg-gray-100 cursor-pointer text-gray-700"
                           onClick={() => handleOpenEditCard(card)}
                         >
                           Edit
                         </li>
                         <li
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
-                          onClick={() => handleDeleteCard(card)}
+                          className="px-4 py-2 rounded-b-lg hover:bg-gray-100 hover:text-red-500 cursor-pointer text-gray-700"
+                          onClick={() => handleDeletePopUp(card)}
                         >
                           Delete
                         </li>
@@ -584,6 +618,20 @@ const WorkspaceProject = () => {
             </div>
           </div>
         </>
+      )}
+
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-50"></div>
+            <DeleteConfirmation
+              initialData={currentCard}
+              onDelete={() => handleDeleteCard(currentCard)}
+              onCancel={handleCancelPopUp}
+              itemType="card"
+              workspaceId={workspaceId}
+              boardId={boardId}
+            />
+        </div>
       )}
 
       {isMemberPopupOpen && selectedCardList && (
