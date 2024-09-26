@@ -160,11 +160,11 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     }
   };
 
-  const updateProfilePhoto = async (userId: string, photoUrl: string) => {
+  const updateProfilePhoto = async (userId: string, file: any) => {
     try {
       const response = await axios.put(
-        `${config}/user/update-photo`,
-        { userId, photoUrl },
+        `${config}/user/update-PhotoProfile`,
+        { userId, file },
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -181,6 +181,26 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       } else {
         throw new Error('Failed to update profile photo. Please try again.');
       }
+    }
+  };
+
+  const deleteProfilePhoto = async (id: any) => {
+    try {
+      const response = await axios.delete(
+        `${config}/user/delete-PhotoProfile` + id,
+        {
+          headers: {
+            'Authorization': `${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          data: { id }
+        }
+      );
+  
+      return response.data;  
+    } catch (error) {
+      console.error('Failed to delete board:', error);
+      throw error;
     }
   };
   
@@ -205,7 +225,8 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     handleLogout,
     changePassword,
     updateUserName,
-    updateProfilePhoto
+    updateProfilePhoto,
+    deleteProfilePhoto
   };
 };
 
