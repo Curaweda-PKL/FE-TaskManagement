@@ -39,7 +39,7 @@ function Profile() {
   const fetchUserProfilePhoto = async () => {
     if (userData) {
       try {
-        const userPhoto = await getPhotoProfile(userData?.id);
+        const userPhoto = await getPhotoProfile(userData?.id, File);
         setPhoto(userPhoto);
       } catch (error) {
         console.error('Error fetching photo profile:', error);
@@ -112,11 +112,16 @@ function Profile() {
       try {
         const updatedPhoto = await updateProfilePhoto(userData?.id, file);
         setPhoto(updatedPhoto);
+        setAlert({ type: 'success', message: 'Foto profil berhasil diupdate!' });
+        fetchUserProfilePhoto();
       } catch (error) {
         console.error('Error uploading photo:', error);
+        setAlert({ type: 'error', message: 'Gagal mengunggah foto. Coba lagi.' });
       }
     }
   };
+
+  
 
   const handleDeletePhoto = async () => {
     if (userData) {

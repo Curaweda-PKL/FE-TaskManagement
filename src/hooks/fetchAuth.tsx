@@ -160,7 +160,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     }
   };
 
-  const getProfilePhoto = async (id: string): Promise<any> => {
+  const getProfilePhoto = async (id: any): Promise<any> => {
     try {
       const response = await axios.get(
         `${config}/user/get-PhotoProfile/${id}`,
