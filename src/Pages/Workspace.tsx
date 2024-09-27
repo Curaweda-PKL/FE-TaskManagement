@@ -60,7 +60,7 @@ const Workspace: React.FC = () => {
       setWorkspaces(updatedWorkspaces);
       setLoading(false);
     } catch (err: any) {
-      handleApiError(err);
+      // handleApiError(err);
       setError(err.message);
       setLoading(false);
       setAlert({ type: 'error', message: 'Failed to fetch workspace data. Please try again later.' });
@@ -105,14 +105,14 @@ const Workspace: React.FC = () => {
     }
   };
 
-  const handleApiError = (error: any) => {
-    if (error.response?.status === 401) {
-      navigate('/signin');
-    } else {
-      setError(error.message);
-      setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
-    }
-  };
+  // const handleApiError = (error: any) => {
+  //   if (error.response?.status === 401) {
+  //     navigate('/signin');
+  //   } else {
+  //     setError(error.message);
+  //     setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
+  //   }
+  // };
 
   const handleCreateBoard = async (workspaceId: string, name: string, description: string) => {
     try {

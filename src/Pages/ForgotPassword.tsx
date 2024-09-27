@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import useAuth from '../hooks/fetchAuth';
 
 function ForgotPassword() {
-  const navigate = useNavigate();
+  const { forgotPassword } = useAuth(() => {}, () => {});
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setLoading(true);
+    console.log("Email to be sent:", email);
     setError('');
 
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (submitted) return;
+
+    setSubmitted(true);
+
     try {
-      alert('Email instruksi reset password telah dikirim.');
-      navigate('/resetpassword');
+      const success = await forgotPassword(email, setLoading, setError);
+      if (success) {
+        alert('Email instruksi reset password telah dikirim.');
+      }
     } catch (err) {
       setError('Gagal mengirim email. Silakan coba lagi.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -32,12 +43,14 @@ function ForgotPassword() {
         {error && <p className="text-red-500 text-center mt-2 text-sm">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-4 sm:mt-6">
           <div className="mb-4">
-            <p className="text-gray-600 mb-2 text-sm sm:text-base"></p>
             <input
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                console.log(e.target.value);
+                setEmail(e.target.value);
+              }}
               className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500 text-sm sm:text-base"
               required
             />
@@ -45,7 +58,7 @@ function ForgotPassword() {
           <button
             type="submit"
             className="w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200 text-sm sm:text-base"
-            disabled={loading}
+            disabled={loading || submitted}
           >
             {loading ? 'Sending...' : 'Send Email'}
           </button>

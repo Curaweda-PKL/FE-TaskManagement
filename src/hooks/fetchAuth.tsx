@@ -160,15 +160,42 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     }
   };
 
-  const updateProfilePhoto = async (userId: string, file: any) => {
+  const getProfilePhoto = async (id: string): Promise<any> => {
     try {
-      const response = await axios.put(
-        `${config}/user/update-PhotoProfile`,
-        { userId, file },
+      const response = await axios.get(
+        `${config}/user/get-PhotoProfile/${id}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch profile photo:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error('Failed to fetch profile photo. Please try again.');
+      }
+    }
+  };
+  
+
+  const updateProfilePhoto = async (userId: string, file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('file', file);
+  
+      const response = await axios.post(
+        `${config}/user/update-PhotoProfile`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data'
           }
         }
       );
@@ -183,6 +210,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       }
     }
   };
+  
 
   const deleteProfilePhoto = async (id: any) => {
     try {
@@ -201,6 +229,84 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     } catch (error) {
       console.error('Failed to delete board:', error);
       throw error;
+    }
+  };
+  
+  
+  const forgotPassword = async (email: any): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const response = await axios.post(`${config}/user/forgot-password`, { email });
+      if (response.status === 200) {
+        console.log('Forgot password email sent:', response.data);
+        return true;
+      } else {
+        setError('Failed to send forgot password email. Please try again.');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Forgot Password Error:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Failed to send forgot password email. Please try again.');
+      }
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  const forgotTokenVerify = async (token: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const response = await axios.post(`${config}/user/forgot-token-verify`, { token });
+      if (response.status === 200) {
+        console.log('Token verified successfully:', response.data);
+        return true;
+      } else {
+        setError('Token verification failed. Please try again.');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Token Verification Error:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Token verification failed. Please try again.');
+      }
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const forgotChangePassword = async (token: string, newPassword: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const response = await axios.post(`${config}/user/forgot-change-password`, { token, newPassword });
+      if (response.status === 200) {
+        console.log('Password changed successfully:', response.data);
+        return true;
+      } else {
+        setError('Failed to change password. Please try again.');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Change Password Error:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Failed to change password. Please try again.');
+      }
+      return false;
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -225,8 +331,12 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     handleLogout,
     changePassword,
     updateUserName,
+    getProfilePhoto,
     updateProfilePhoto,
-    deleteProfilePhoto
+    deleteProfilePhoto,
+    forgotPassword,
+    forgotTokenVerify,
+    forgotChangePassword
   };
 };
 

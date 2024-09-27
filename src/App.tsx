@@ -30,7 +30,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
-        <Route path="/resetpassword" element={<ResetPassword />} />
+        <Route path="/r/:token" element={<ResetPassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/signin" replace />} />

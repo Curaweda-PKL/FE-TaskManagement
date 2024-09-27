@@ -19,7 +19,8 @@ function Profile() {
     loading,
     updateUserName,
     updateProfilePhoto,
-    deleteProfilePhoto
+    deleteProfilePhoto,
+    getPhotoProfile
   } = useAuth(() => { }, () => { });
 
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -30,9 +31,21 @@ function Profile() {
 
   useEffect(() => {
     if (userData) {
-      setEditedName(userData.name || '');
+      setEditedName(userData?.name || '');
+      fetchUserProfilePhoto();
     }
   }, [userData]);
+
+  const fetchUserProfilePhoto = async () => {
+    if (userData) {
+      try {
+        const userPhoto = await getPhotoProfile(userData?.id);
+        setPhoto(userPhoto);
+      } catch (error) {
+        console.error('Error fetching photo profile:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (alert) {
@@ -94,10 +107,10 @@ function Profile() {
   };
 
   const handlePhotoUpload = async (event: any) => {
-    const file = event.target.files[0];
+    const file = event?.target?.files[0];
     if (file && userData) {
       try {
-        const updatedPhoto = await updateProfilePhoto(userData.id, file);
+        const updatedPhoto = await updateProfilePhoto(userData?.id, file);
         setPhoto(updatedPhoto);
       } catch (error) {
         console.error('Error uploading photo:', error);
@@ -108,7 +121,7 @@ function Profile() {
   const handleDeletePhoto = async () => {
     if (userData) {
       try {
-        await deleteProfilePhoto(userData.id);
+        await deleteProfilePhoto(userData?.id);
         setPhoto(null);
         setShowModal(false);
       } catch (error) {
@@ -125,8 +138,8 @@ function Profile() {
           <h1 className='text-xl font-semibold mb-4'>ACCOUNT</h1>
 
           {alert && (
-            <div className={`p-4 mb-4 w-1/5 rounded-md fixed text-center 5 right-5 top-14 z-[102] ${alert.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              {alert.message}
+            <div className={`p-4 mb-4 w-1/5 rounded-md fixed text-center 5 right-5 top-14 z-[102] ${alert?.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {alert?.message}
             </div>
           )}
 
