@@ -24,7 +24,7 @@ const CopyPopup = ({ isCopyPopupOpen, selectedCardList, close }) => {
             disabled
           />
         </div>
-
+        
         <div className="mb-4">
           <span className="block text-sm font-medium text-gray-700 mb-2">Keep...</span>
           <div className="space-y-2">
