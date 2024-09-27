@@ -7,6 +7,7 @@ import CreateWorkspace from './CreateWorkspace';
 function Navbar() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [photo, setPhoto] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
@@ -15,10 +16,11 @@ function Navbar() {
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const navbarRef = useRef<HTMLDivElement | null>(null);
 
-  const { userData, isLoggedIn, handleLogout } = useAuth(() => { }, () => navigate('/'));
+  const { userData, isLoggedIn, handleLogout, getProfilePhoto } = useAuth(() => { }, () => navigate('/'));
 
   useEffect(() => {
     fetchWorkspacesData();
+    fetchUserProfilePhoto();
   }, []);
 
   const fetchWorkspacesData = async () => {
@@ -28,6 +30,16 @@ function Navbar() {
     } catch (error) {
       console.error('Failed to fetch workspaces:', error);
     }
+  };
+
+  const fetchUserProfilePhoto = async () => {
+    try {
+      const userPhoto = await getProfilePhoto();
+      setPhoto(userPhoto.photoProfile.downloadUrl);
+    } catch (error) {
+      console.error('Error fetching photo profile:', error);
+    }
+
   };
 
   const handleToggle = (dropdown: string) => {
@@ -190,18 +202,30 @@ function Navbar() {
                 onClick={() => handleToggle('profile')}
                 className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer"
               >
-                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center cursor-pointer">
-                  <i className="fas fa-user text-white" />
-                </div>
+                {photo ? (
+                  <img
+                    src={photo}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full"
+                  />
+                ) : (
+                  <i className="fas fa-user text-gray-500" />
+                )}
               </button>
               {openDropdown === 'profile' && isLoggedIn && (
                 <ul className="fixed right-0 mt-4 bg-white border border-gray-200 rounded-md shadow-lg w-72">
                   <li className="p-4">
                     <h3 className="text-sm font-bold text-gray-900 mb-4">ACCOUNT</h3>
                     <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 bg-red-500 rounded-full mr-3 flex items-center justify-center">
-                        <i className="fas fa-user text-white" />
-                      </div>
+                      {photo ? (
+                        <img
+                          src={photo}
+                          alt="Profile"
+                          className="w-10 h-10 rounded-full mr-2"
+                        />
+                      ) : (
+                        <i className="fas fa-user text-xl text-gray-500 mr-2" />
+                      )}
                       <div>
                         <p className="text-sm font-semibold text-gray-800">{userData?.name}</p>
                         <p className="text-xs text-gray-500">{userData?.email}</p>
@@ -292,8 +316,8 @@ function Navbar() {
                   <i className="fas fa-user text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">kelompok 1</p>
-                  <p className="text-xs text-gray-500">@kelompok1</p>
+                  <p className="text-sm font-semibold text-gray-800">{userData?.name}</p>
+                  <p className="text-xs text-gray-500">{userData?.email}</p>
                 </div>
               </div>
             </li>
@@ -305,7 +329,7 @@ function Navbar() {
             </li>
           </ul>
         )}
-        
+
         <button
           onClick={handleCreateClick} className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">
           Create
@@ -315,7 +339,7 @@ function Navbar() {
             <li className="p-4 hover:bg-gray-100 cursor-pointer" onClick={handleCreateWorkspaceClick}>
               <div className="flex">
                 <div className="flex-shrink-0 mr-3">
-                  <i className='fas fa-clipboard-list'/>
+                  <i className='fas fa-clipboard-list' />
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Create Workspace</h3>

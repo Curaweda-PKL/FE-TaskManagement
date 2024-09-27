@@ -16,11 +16,11 @@ export const fetchCardList = async (cardId: any) => {
       throw error;
     }
   };
-  export const updateCardList = async (cardId: any, boardId: any, name: any, description: any, score: any, startDate: any, endDate: any) => {
+  export const updateCardList = async ( id: any, name: any, description: any, score: any) => {
     try {
       const response = await axios.put(
         config + "/cardlist/update",
-        {cardId, name, boardId, score, startDate, endDate, description},
+        {id, name, score, description},
         {
           headers: {
             'Authorization': localStorage.getItem('token'),
@@ -35,11 +35,11 @@ export const fetchCardList = async (cardId: any) => {
       throw error;
     }
   };
-  export const createCardList = async (cardId: any, boardId: any, name: any, description: any, score: any, startDate: any, endDate: any) => {
+  export const createCardList = async (cardId: any, name: any, description: any, score: any) => {
     try {
       const response = await axios.post(
         config + "/cardlist/create",
-        { boardId, name, cardId, description, score, startDate, endDate},
+        { name, cardId, description, score},
         {
           headers: {
             'Authorization': localStorage.getItem('token'),
@@ -54,7 +54,7 @@ export const fetchCardList = async (cardId: any) => {
       throw error;
     }
   };
-export const deleteCardList = async (cardId: any) => {
+export const deleteCardList = async (cardListId: any) => {
     try {
       const response = await axios.delete(
         `${config}/cardlist/delete`,
@@ -63,7 +63,7 @@ export const deleteCardList = async (cardId: any) => {
             'Authorization': `${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
           },
-          data: {cardId}
+          data: {id: cardListId}
         }
       );
   

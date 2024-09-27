@@ -160,10 +160,10 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     }
   };
 
-  const getProfilePhoto = async (id: any): Promise<any> => {
+  const getProfilePhoto = async (): Promise<any> => {
     try {
       const response = await axios.get(
-        `${config}/user/get-PhotoProfile/${id}`,
+        `${config}/user/get-PhotoProfile`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,

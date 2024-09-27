@@ -20,7 +20,7 @@ function Profile() {
     updateUserName,
     updateProfilePhoto,
     deleteProfilePhoto,
-    getPhotoProfile
+    getProfilePhoto
   } = useAuth(() => { }, () => { });
 
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -39,8 +39,8 @@ function Profile() {
   const fetchUserProfilePhoto = async () => {
     if (userData) {
       try {
-        const userPhoto = await getPhotoProfile(userData?.id, File);
-        setPhoto(userPhoto);
+        const userPhoto = await getProfilePhoto();
+        setPhoto(userPhoto.photoProfile.downloadUrl);
       } catch (error) {
         console.error('Error fetching photo profile:', error);
       }
@@ -121,8 +121,6 @@ function Profile() {
     }
   };
 
-  
-
   const handleDeletePhoto = async () => {
     if (userData) {
       try {
@@ -149,7 +147,15 @@ function Profile() {
           )}
 
           <div className='flex items-center mb-6'>
-            <div className='w-12 h-12 bg-red-500 rounded-full mr-4'></div>
+            {photo ? (
+              <img
+                src={photo}
+                alt="Profile"
+                className="w-12 h-12 rounded-full mr-4"
+              />
+            ) : (
+              <i className="fas fa-user text-2xl text-gray-500 mr-4" />
+            )}
             <div>
               <h2 className='font-semibold'>{userData?.name}</h2>
               <p className='text-sm text-gray-600'>{userData?.email}</p>
@@ -184,7 +190,7 @@ function Profile() {
                       onClick={() => setShowModal(true)}
                     />
                   ) : (
-                    <div className='w-16 h-16 bg-red-500 rounded-full absolute bottom-0 left-4 transform translate-y-1/2 z-20 flex justify-center items-center group'>
+                    <div className='w-16 h-16 bg-gray-400 rounded-full absolute bottom-0 left-4 transform translate-y-1/2 z-20 flex justify-center items-center group'>
                       <label htmlFor="profilePhotoUpload" className='cursor-pointer relative'>
                         <i className="fa-solid fa-plus text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
                         <input

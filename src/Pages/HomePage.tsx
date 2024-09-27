@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import NavbarHome from '../Component/NavbarHome';
 import Triangle from '../assets/Media/triangle.png';
