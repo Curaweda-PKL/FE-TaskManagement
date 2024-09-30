@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
-import { fetchBoards } from '../hooks/fetchBoard';
+import { fetchBoards, deleteBoard } from '../hooks/fetchBoard';
 import DeleteConfirmation from './DeleteConfirmation';
 
 const SidebarWorkspace: React.FC = () => {
@@ -14,7 +14,13 @@ const SidebarWorkspace: React.FC = () => {
   const [boards, setBoards] = useState<any[]>([]);
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false); // State for DeleteConfirmation
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, workspaceId: any, boardId: any | null }>({
+    isOpen: false,
+    workspaceId: null,
+    boardId: null
+  });
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
   const activeClass = "bg-gray-100 text-purple-600";
@@ -30,18 +36,27 @@ const SidebarWorkspace: React.FC = () => {
     setIsPopupVisible(!isPopupVisible);
   };
 
-  const showDeleteConfirmation = () => {
-    setIsPopupVisible(false);
-    setIsDeleteConfirmationVisible(true);
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  const handleCancel = () => {
+    setShowDeleteConfirmation(false);
   };
 
-  const handleDeleteBoard = () => {
-    console.log('Board deleted');
-    setIsDeleteConfirmationVisible(false);
+  const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
+    setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
+    setShowDeleteConfirmation(true);
   };
 
-  const handleClosePopup = () => {
-    setIsDeleteConfirmationVisible(false);
+  const closeDeleteConfirmation = () => {
+    setDeleteConfirmation({ isOpen: false, boardId: null, workspaceId: null });
   };
 
   useEffect(() => {
@@ -60,6 +75,23 @@ const SidebarWorkspace: React.FC = () => {
 
     getWorkspaces();
   }, [workspaceId]);
+
+  const handleDeleteBoard = async () => {
+    if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
+      try {
+        const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
+        const message = response?.message || 'Board deleted successfully.';
+        await fetchBoards(selectedWorkspace.id);
+        setAlert({ type: 'success', message: message });
+      } catch (error: any) {
+        console.error('Failed to delete board:', error);
+        let errorMessage = error.response?.data?.error || 'Failed to delete board. Please try again.';
+        setAlert({ type: 'error', message: errorMessage });
+      } finally {
+        closeDeleteConfirmation();
+      }
+    } handleCancel();
+  };
 
   useEffect(() => {
     const getBoards = async () => {
@@ -84,6 +116,11 @@ const SidebarWorkspace: React.FC = () => {
       >
         <i className={`fas fa-chevron-right ${isSidebarOpen ? 'transform rotate-180' : ''}`} />
       </div>
+      {alert && (
+        <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+          {alert.message}
+        </div>
+      )}
       <aside className={`pt-16 w-64 bg-white border-r h-screen max768:fixed max768:top-0 max768:left-0 transition-transform duration-300 z-20 ${isSidebarOpen ? 'max768:translate-x-0' : 'max768:-translate-x-full'}`}>
         <div className="mb-4">
           <div className={`flex items-center justify-between border-b w-full p-4`}>
@@ -153,7 +190,11 @@ const SidebarWorkspace: React.FC = () => {
                       </div>
                       <button
                         className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
-                        onClick={showDeleteConfirmation}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          openDeleteConfirmation(selectedWorkspace.id, board.id);
+                        }}
                       >
                         Close Board
                       </button>
@@ -168,15 +209,16 @@ const SidebarWorkspace: React.FC = () => {
         </div>
       </aside>
 
-      {isDeleteConfirmationVisible && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <DeleteConfirmation
-            onDelete={handleDeleteBoard}
-            onCancel={handleClosePopup}
-            itemType="board"
-          />
-        </div>
-      )}
+      {showDeleteConfirmation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <DeleteConfirmation
+              onDelete={handleDeleteBoard}
+              onCancel={handleCancel}
+              itemType="board"
+            />
+          </div>
+        )}
     </>
   );
 };

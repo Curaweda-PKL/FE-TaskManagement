@@ -307,10 +307,10 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleUpdateListName = async (id, newName) => {
+  const handleUpdateListName = async (id: any, description: any, score: any, newName: any) => {
     try {
-      await updateCardList(id, newName );
-      await fetchCardList(cardId);
+      await updateCardList(id, description, score, newName );
+      await fetchCardList(id);
       const updatedCardData = cardData.map(card => ({
         ...card,
         cardList: card.cardList.map(list => 
@@ -327,7 +327,7 @@ const WorkspaceProject = () => {
   useEffect(() => {
     const handleClickOutside = (event: any) => {
       if (inputRef.current && !inputRef.current.contains(event.target)) {
-        handleUpdateListName(selectedCardList.id, selectedCardList.name);
+        handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.score);
       }
     };
 
