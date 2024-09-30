@@ -65,6 +65,8 @@ const WorkspaceSettings: React.FC = () => {
       } catch (error: any) {
         console.error('Failed to delete workspace:', error);
         let errorMessage = 'Failed to delete workspace. Please try again.';
+        
+        // Periksa apakah error response mengandung pesan spesifik
         if (error.response?.data && Array.isArray(error.response.data) && 
             error.response.data.length > 0 && error.response.data[0].message === "not owner in this workspace") {
           errorMessage = 'You are not the owner of this workspace and cannot delete it.';
@@ -127,7 +129,7 @@ const WorkspaceSettings: React.FC = () => {
           {alert.message}
         </div>
       )}
-      <WorkspaceHeader workspace={workspace} showEditIcon={true} onEdit={handleEditClick} />
+      <WorkspaceHeader workspace={workspace} showEditIcon={true} onEdit={handleEditClick} inviteLinkEnabled={false} />
 
       <div className='py-10 text-black px-16'>
         <h2 className='text-xl font-medium mb-4'>Workspace Settings</h2>
@@ -158,6 +160,7 @@ const WorkspaceSettings: React.FC = () => {
             <DeleteConfirmation
               onDelete={handleDeleteWorkspace}
               onCancel={closeAllPopups}
+              itemType='workspace'
             />
           )}
 

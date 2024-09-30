@@ -1,13 +1,12 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import NavbarHome from '../Component/NavbarHome';
 import Triangle from '../assets/Media/triangle.png';
 import Ellipse from '../assets/Media/ellipse.png';
 import Board from '../assets/Media/board.png';
 import Feature from '../assets/Media/feature.png';
-import Bug from '../assets/Media/bug.png'
-import Web from '../assets/Media/website.png'
-import Analysis from '../assets/Media/analysis.png'
+import Bug from '../assets/Media/bug.png';
+import Web from '../assets/Media/website.png';
+import Analysis from '../assets/Media/analysis.png';
 
 function HomePage() {
   const cardData = [

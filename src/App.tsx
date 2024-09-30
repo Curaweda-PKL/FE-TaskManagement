@@ -14,6 +14,7 @@ import WorkspaceReports from './Pages/WorkspaceReports';
 import WorkspaceMembers from './Pages/WorkspaceMembers';
 import WorkspaceSettings from './Pages/WorkspaceSettings';
 import WorkspaceProject from './Pages/WorkspaceCard';
+import JoinWorkspace from './Component/joinWorkspace';
 import useAuth from './hooks/fetchAuth';
 import LayoutWorkspace from './Component/LayoutWorkspace';
 import Profile from './Pages/Profile';
@@ -25,10 +26,11 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/j/:joinLink" element={<JoinWorkspace />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
-        <Route path="/resetpassword" element={<ResetPassword />} />
+        <Route path="/r/:token" element={<ResetPassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/signin" replace />} />
