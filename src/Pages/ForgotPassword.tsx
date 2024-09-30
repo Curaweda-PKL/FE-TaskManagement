@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/fetchAuth';
 
 function ForgotPassword() {
+  const navigate = useNavigate();
   const { forgotPassword } = useAuth(() => {}, () => {});
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Email to be sent:", email);
     setError('');
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,17 +22,39 @@ function ForgotPassword() {
 
     if (submitted) return;
 
+    setLoading(true);
     setSubmitted(true);
 
     try {
-      const success = await forgotPassword(email, setLoading, setError);
+      const success = await forgotPassword(email);
       if (success) {
-        alert('Email instruksi reset password telah dikirim.');
+        setLoading(false);
       }
     } catch (err) {
-      setError('Gagal mengirim email. Silakan coba lagi.');
+      setError('Failed to send email. Please try again.');
+      setLoading(false);
+      setSubmitted(false);
     }
   };
+
+  if (submitted && !loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="bg-white px-6 py-8 sm:py-10 rounded-xl shadow-xl w-80 text-center">
+          <h2 className="text-xl sm:text-2xl text-black font-semibold mb-3 sm:mb-4">Email Sent</h2>
+          <p className="text-gray-600 text-sm sm:text-base mb-4">We've sent you an email to reset your password. Please check your inbox.</p>
+          <a
+            href="https://mail.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200 text-sm sm:text-base"
+          >
+            Open Email
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -47,10 +70,7 @@ function ForgotPassword() {
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => {
-                console.log(e.target.value);
-                setEmail(e.target.value);
-              }}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-slate-300 px-4 py-2 text-black border rounded-full focus:outline-none focus:border-indigo-500 text-sm sm:text-base"
               required
             />
