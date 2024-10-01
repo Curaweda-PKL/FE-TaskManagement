@@ -121,6 +121,21 @@ function Profile() {
     }
   };
 
+  const handleChangePhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && userData) {
+      try {
+        await updateProfilePhoto(userData.id, file);
+        setAlert({ type: 'success', message: 'Foto profil berhasil diupdate!' });
+        await fetchUserProfilePhoto(); // Refresh the photo after update
+        setShowModal(false);
+      } catch (error) {
+        console.error('Error changing photo:', error);
+        setAlert({ type: 'error', message: 'Gagal mengubah foto. Coba lagi.' });
+      }
+    }
+  };
+
   const handleDeletePhoto = async () => {
     if (userData) {
       try {
@@ -253,10 +268,18 @@ function Profile() {
                   <div className="bg-white p-6 rounded-lg shadow-lg w-80">
                     <h3 className="text-lg font-bold mb-4">Manage Photo</h3>
                     <button
-                      onClick={handlePhotoUpload}
                       className="w-full bg-purple-600 text-white py-2 px-4 mb-3 rounded hover:bg-purple-700"
                     >
+                      <label className="w-full">
+                        
                       Change Photo
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={handleChangePhoto}
+                          accept="image/*"
+                        />
+                      </label>
                     </button>
                     <button
                       onClick={handleDeletePhoto}

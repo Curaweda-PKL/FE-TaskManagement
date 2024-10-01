@@ -212,22 +212,20 @@
   };
   
 
-  const deleteProfilePhoto = async (id: any) => {
+  const deleteProfilePhoto = async (id: string | number) => {
     try {
       const response = await axios.delete(
-        `${config}/user/delete-PhotoProfile` + id,
+        `${config}/user/delete-PhotoProfile/${id}`,
         {
           headers: {
             'Authorization': `${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
-          },
-          data: { id }
+          }
         }
       );
-  
-      return response.data;  
+      return response.data;
     } catch (error) {
-      console.error('Failed to delete board:', error);
+      console.error('Failed to delete photo:', error);
       throw error;
     }
   };
