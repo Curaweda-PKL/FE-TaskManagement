@@ -19,6 +19,7 @@ function ResetPassword() {
 
   useEffect(() => {
     console.log('Verifying token:', token);
+
     const verifyToken = async () => {
       if (!token) {
         navigate('/forgot-password');
@@ -26,12 +27,14 @@ function ResetPassword() {
       }
       try {
         setLoading(true);
-        const isValid = await forgotTokenVerify(token);
-        console.log('Token verification result:', isValid);
-        if (isValid) {
+        const response = await forgotTokenVerify(token);
+        console.log('Token verification response:', response);
+        if (response.status === 200) {
           setTokenStatus('valid');
-        } else {
+        } else if (response.status === 400 || response.status === 401) {
           setTokenStatus('expired');
+        } else {
+          setTokenStatus('invalid');
         }
       } catch (err) {
         console.error('Token verification error:', err);
@@ -40,7 +43,7 @@ function ResetPassword() {
         setLoading(false);
       }
     };
-  
+
     verifyToken();
   }, [token, navigate]);
 
@@ -122,7 +125,7 @@ function ResetPassword() {
               : 'Link reset password Anda tidak valid. Silakan request link baru.'}
           </p>
           <button
-            onClick={() => navigate('/ForgotPassword')}
+            onClick={() => navigate('/forgot-password')}
             className="w-full bg-purple-500 text-white py-2 rounded-xl hover:bg-purple-700 transition duration-200 text-sm sm:text-base"
           >
             Request New Link
@@ -132,6 +135,7 @@ function ResetPassword() {
     );
   }
 
+  if (tokenStatus === 'valid' ) {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 sm:p-8 rounded-xl shadow-xl w-80 max-w-md">
@@ -141,7 +145,7 @@ function ResetPassword() {
           <div className="mb-4">
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Password Baru"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -162,7 +166,7 @@ function ResetPassword() {
           <div className="mb-6">
             <div className="relative">
               <input
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Konfirmasi Password"
                 value={confirmPassword}
                 onChange={handleConfirmPasswordChange}
@@ -189,6 +193,7 @@ function ResetPassword() {
       </div>
     </div>
   );
+}
 }
 
 export default ResetPassword;
