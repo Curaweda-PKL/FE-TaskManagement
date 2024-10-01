@@ -18,38 +18,37 @@ function ResetPassword() {
   const { forgotTokenVerify, forgotChangePassword } = useAuth(() => {}, () => {});
 
   useEffect(() => {
+    console.log('Verifying token:', token);
     const verifyToken = async () => {
       if (!token) {
         navigate('/forgot-password');
         return;
       }
-  
       try {
         setLoading(true);
         const isValid = await forgotTokenVerify(token);
+        console.log('Token verification result:', isValid);
         if (isValid) {
           setTokenStatus('valid');
         } else {
-          setTokenStatus('expired'); // Assuming the API returns false for both expired and invalid tokens
+          setTokenStatus('expired');
         }
       } catch (err) {
         console.error('Token verification error:', err);
         setTokenStatus('invalid');
       } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 500); // Delay setting loading to false by 2 seconds
+        setLoading(false);
       }
     };
   
     verifyToken();
-  }, [token, forgotTokenVerify, navigate]);
+  }, [token, navigate]);
 
   const validatePassword = (password: string) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasNumber = /\d/.test(password);
-    
+
     if (password.length < minLength) {
       return 'Password harus minimal 8 karakter';
     }
@@ -119,8 +118,8 @@ function ResetPassword() {
           </h2>
           <p className="mb-6 text-sm sm:text-base">
             {tokenStatus === 'expired'
-              ? 'Your password reset link has expired. Please request a new one.'
-              : 'Your password reset link is invalid. Please request a new one.'}
+              ? 'Link reset password Anda sudah expired. Silakan request link baru.'
+              : 'Link reset password Anda tidak valid. Silakan request link baru.'}
           </p>
           <button
             onClick={() => navigate('/ForgotPassword')}
@@ -137,14 +136,13 @@ function ResetPassword() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 sm:p-8 rounded-xl shadow-xl w-80 max-w-md">
         <h2 className="text-2xl sm:text-3xl text-black font-semibold mb-2 text-center">RESET PASSWORD</h2>
-        <p className='text-center mb-6 text-sm sm:text-base'>Enter a new password below to change your password</p>
+        <p className="text-center mb-6 text-sm sm:text-base">Masukkan password baru di bawah ini untuk mengubah password Anda</p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <p className="text-gray-600 mb-2 text-sm sm:text-base"></p>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="New Password"
+                placeholder="Password Baru"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-slate-300 px-4 py-2 text-black border rounded-xl focus:outline-none focus:border-indigo-500 pr-10 text-sm sm:text-base"
@@ -158,17 +156,14 @@ function ResetPassword() {
                 {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 mt-2">
-              Minimal 8 karakter.        
-            </p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-2">Minimal 8 karakter.</p>
             {error && <p className="text-xs sm:text-sm text-red-500 mt-2">{error}</p>}
           </div>
           <div className="mb-6">
-            <p className="text-gray-600 mb-2 text-sm sm:text-base">Confirm Password</p>
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm Password"
+                placeholder="Konfirmasi Password"
                 value={confirmPassword}
                 onChange={handleConfirmPasswordChange}
                 className="w-full bg-slate-300 px-4 py-2 text-black border rounded-xl focus:outline-none focus:border-indigo-500 pr-10 text-sm sm:text-base"
@@ -187,9 +182,8 @@ function ResetPassword() {
           <button
             type="submit"
             className="w-full bg-purple-500 text-white py-2 rounded-xl hover:bg-purple-700 transition duration-200 text-sm sm:text-base"
-            disabled={loading}
           >
-            {loading ? 'Resetting...' : 'Reset Password'}
+            {loading ? 'Mengubah password...' : 'Ubah Password'}
           </button>
         </form>
       </div>

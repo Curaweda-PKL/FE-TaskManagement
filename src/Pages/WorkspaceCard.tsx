@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
-import { fetchCardList, createCardList, updateCardList, deleteCardList } from '../hooks/fetchCardList';
+import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList } from '../hooks/fetchCardList';
 import CreateCard from '../Component/createCard';
 import MemberPopup from '../Component/member';
 import LabelsPopup from '../Component/label';
@@ -14,8 +14,30 @@ import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import SharePopup from '../Component/share';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
+import useAuth from '../hooks/fetchAuth';
 
 const WorkspaceProject = () => {
+  const onSuccess = () => {
+    // Handle successful authentication
+  };
+
+  const onLogout = () => {
+    // Handle logout
+  };
+  const { userData } = useAuth(onSuccess, onLogout); // Pass onSuccess and onLogout as arguments
+
+  const handleJoinClick = async (cardListId: string) => {
+    try {
+      const { id } = userData;
+      const response = await joinCardList(cardListId, id);
+      console.log(response.data);
+    } catch (error) {
+      console.error('Failed to join card list:', error);
+    }
+  };
+
+
+
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const [boardName, setBoardName] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
@@ -189,7 +211,34 @@ const WorkspaceProject = () => {
     };
   }, []);
 
-  if (cardData) console.log(cardData)
+  if (cardData) { console.log(cardData) }
+
+  const fetchData = async () => {
+    try {
+      const boardData = await fetchBoards(workspaceId);
+      setBoards(boardData);
+      const board = boardData.find((b: any) => b.id === boardId);
+      setBoardName(board ? board.name : 'Project');
+
+      if (boardId) {
+        const cardResponse = await fetchCard(boardId);
+        if (cardResponse && cardResponse) {
+          const updatedCardData = await Promise.all(
+            cardResponse.map(async (card: any) => {
+              if (card && card.id) {
+                const cardListData = await fetchCardList(card.id);
+                return { ...card, cardList: cardListData || [] };
+              }
+              return { ...card, cardList: [] };
+            })
+          );
+          setCardData(updatedCardData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -309,11 +358,11 @@ const WorkspaceProject = () => {
 
   const handleUpdateListName = async (id: any, description: any, score: any, newName: any) => {
     try {
-      await updateCardList(id, description, score, newName );
-      await fetchCardList(id);
+      await updateCardList(id, description, score, newName);
+      await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
-        cardList: card.cardList.map(list => 
+        cardList: card.cardList.map(list =>
           list.id === listId ? { ...list, name: newName } : list
         )
       }));
@@ -535,7 +584,7 @@ const WorkspaceProject = () => {
                 />
               </div>
               <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1">
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
                   <i className="fas fa-user"></i>Join
                 </div>
                 <div className="border-b-2 border-black"></div>
