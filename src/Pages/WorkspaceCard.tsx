@@ -356,9 +356,9 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleUpdateListName = async (id: any, description: any, score: any, newName: any) => {
+  const handleUpdateListName = async (id: any, newName: any, score: any, description: any) => {
     try {
-      await updateCardList(id, description, score, newName);
+      await updateCardList(id, newName, description, score);
       await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,

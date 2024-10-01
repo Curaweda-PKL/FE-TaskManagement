@@ -26,34 +26,15 @@ export const updateCardList = async (id: any, name: any, description: any, score
           'Authorization': localStorage.getItem('token'),
           'Content-Type': 'application/json'
         }
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error('Failed to update board:', error);
-    throw error;
-  }
-};
-export const createCardList = async (cardId: any, name: any, description: any, score: any) => {
-  try {
-    const response = await axios.post(
-      config + "/cardlist/create",
-      { name, cardId, description, score },
-      {
-        headers: {
-          'Authorization': localStorage.getItem('token'),
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error('Failed to create board:', error);
-    throw error;
-  }
-};
+      });
+  
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch boards:', error);
+      throw error;
+    }
+  };
+  
 export const deleteCardList = async (cardListId: any) => {
   try {
     const response = await axios.delete(

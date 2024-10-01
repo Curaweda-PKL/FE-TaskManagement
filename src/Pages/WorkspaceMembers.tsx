@@ -18,7 +18,7 @@ const WorkspaceMembers: React.FC = () => {
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
   useEffect(() => {
-    fetchWorkspaceData();
+    fetchWorkspaceData();;
   }, [workspaceId]);
 
   const showAlert = (message: string, type: 'success' | 'error') => {
@@ -73,7 +73,7 @@ const WorkspaceMembers: React.FC = () => {
       } catch (error) {
         console.error('Failed to remove member:', error);
         showAlert('Failed to remove member. Please try again.', 'error');
-        
+
       }
     }
   };
@@ -85,13 +85,12 @@ const WorkspaceMembers: React.FC = () => {
 
   const toggleInviteLink = () => {
     setInviteLinkEnabled(!inviteLinkEnabled);
-    // TODO: Implement API call to toggle the invite link status on the server
   };
 
   return (
     <div className='bg-white min-h-screen'>
       <div className="max-w-6xl mx-auto">
-      {alert && (
+        {alert && (
           <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
             {alert.message}
           </div>
@@ -167,7 +166,11 @@ const WorkspaceMembers: React.FC = () => {
                   {members.map((member) => (
                     <div key={member.id} className="bg-yellow-200 p-4 rounded-md flex justify-between items-center flex-wrap">
                       <div className="flex items-center flex-wrap">
-                        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                        <img
+                          src={member.photoProfile || 'https://via.placeholder.com/40'}x
+                          alt="User Profile"
+                          className="w-10 h-10 rounded-full mr-4"
+                        />
                         <div>
                           <h4 className="font-semibold">{member.name}</h4>
                           <p className="text-sm text-gray-600">{member.email}</p>
@@ -200,7 +203,11 @@ const WorkspaceMembers: React.FC = () => {
                   {joinRequests.map((request) => (
                     <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
                       <div className="flex items-center mb-4 lg:mb-0">
-                        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                        <img
+                          src={request.photoProfile || 'https://via.placeholder.com/40'}
+                          alt="User Profile"
+                          className="w-10 h-10 rounded-full mr-4"
+                        />
                         <div>
                           <h4 className="font-semibold">{request.name}</h4>
                           <p className="text-sm text-gray-600">{request.email}</p>
@@ -225,17 +232,17 @@ const WorkspaceMembers: React.FC = () => {
                 </div>
               </div>
             )}
-            
-      {showDeleteConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black opacity-50"></div>
-        <DeleteConfirmation
-          onDelete={confirmRemoveMember}
-          onCancel={cancelRemoveMember}
-          itemType="member"
-        />
-        </div>
-      )}
+
+            {showDeleteConfirmation && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black opacity-50"></div>
+                <DeleteConfirmation
+                  onDelete={confirmRemoveMember}
+                  onCancel={cancelRemoveMember}
+                  itemType="member"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

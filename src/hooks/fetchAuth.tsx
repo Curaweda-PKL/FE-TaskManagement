@@ -36,9 +36,6 @@
     };
 
     const handleLogin = async (): Promise<boolean> => {
-      setLoading(true);
-      setError(null);
-
       try {
         const response = await axios.post(`${config}/user/login`, { email, password });
         if (response.status === 200) {
@@ -62,9 +59,6 @@
     };
 
     const handleRegister = async (): Promise<boolean> => {
-      setLoading(true);
-      setError(null);
-    
       try {
         const response = await axios.post(`${config}/user/register`, { name, email, password });
         if (response.status === 200 || response.status === 201) {
@@ -95,9 +89,6 @@
     };
 
     const changePassword = async (): Promise<boolean> => {
-      setLoading(true);
-      setError(null);
-
       try {
         const response = await axios.put(
           `${config}/user/change-password`,
@@ -128,9 +119,6 @@
     };
     
     const updateUserName = async (newName: string): Promise<boolean> => {
-      setLoading(true);
-      setError(null);
-    
       try {
         const response = await axios.put(
           `${config}/user/update`,
@@ -232,9 +220,6 @@
   
   
   const forgotPassword = async (email: any): Promise<boolean> => {
-    setLoading(true);
-    setError(null);
-  
     try {
       const response = await axios.post(`${config}/user/forgot-password`, { email });
       if (response.status === 200) {
@@ -258,8 +243,6 @@
   };
 
   const forgotTokenVerify = async (token: string): Promise<boolean> => {
-    setLoading(true);
-    setError(null);
     try {
       const response = await axios.post(
         `${config}/user/forgot-token-verify`,
@@ -271,7 +254,9 @@
         }
       );
       if (response.status === 200) {
-        return response.data.isValid;
+        const res = response.data;
+        res.status = 200
+        return res;
       }
       return false;
     } catch (error: any) {
@@ -291,15 +276,15 @@
 
   const forgotChangePassword = async (token: any, newPassword: any) => {
     try {
-      setLoading(true);
-      const response = await fetch(`/user/forgot-change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, password: newPassword }),
+      const response = await axios.post(
+        `${config}/user/forgot-change-password`,
+        { token, newPassword },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
       });
-      if (response.ok) {
+      if (response.status) {
         return true;
       }
       return false;
