@@ -189,7 +189,34 @@ const WorkspaceProject = () => {
     };
   }, []);
 
-  if (cardData) console.log(cardData)
+  if (cardData) { console.log(cardData) }
+
+  const fetchData = async () => {
+    try {
+      const boardData = await fetchBoards(workspaceId);
+      setBoards(boardData);
+      const board = boardData.find((b: any) => b.id === boardId);
+      setBoardName(board ? board.name : 'Project');
+
+      if (boardId) {
+        const cardResponse = await fetchCard(boardId);
+        if (cardResponse && cardResponse) {
+          const updatedCardData = await Promise.all(
+            cardResponse.map(async (card: any) => {
+              if (card && card.id) {
+                const cardListData = await fetchCardList(card.id);
+                return { ...card, cardList: cardListData || [] };
+              }
+              return { ...card, cardList: [] };
+            })
+          );
+          setCardData(updatedCardData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -309,11 +336,11 @@ const WorkspaceProject = () => {
 
   const handleUpdateListName = async (id: any, description: any, score: any, newName: any) => {
     try {
-      await updateCardList(id, description, score, newName );
-      await fetchCardList(id);
+      await updateCardList(id, description, score, newName);
+      await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
-        cardList: card.cardList.map(list => 
+        cardList: card.cardList.map(list =>
           list.id === listId ? { ...list, name: newName } : list
         )
       }));

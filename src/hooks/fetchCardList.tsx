@@ -29,7 +29,7 @@ export const fetchCardList = async (cardId: any) => {
         }
       );
   
-      return response.data;  
+      return response.data;
     } catch (error) {
       console.error('Failed to update board:', error);
       throw error;
