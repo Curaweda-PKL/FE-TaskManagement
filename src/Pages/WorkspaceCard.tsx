@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
-import { fetchCardList, createCardList, updateCardList, deleteCardList } from '../hooks/fetchCardList';
+import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList } from '../hooks/fetchCardList';
 import CreateCard from '../Component/createCard';
 import MemberPopup from '../Component/member';
 import LabelsPopup from '../Component/label';
@@ -14,8 +14,30 @@ import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import SharePopup from '../Component/share';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
+import useAuth from '../hooks/fetchAuth';
 
 const WorkspaceProject = () => {
+  const onSuccess = () => {
+    // Handle successful authentication
+  };
+
+  const onLogout = () => {
+    // Handle logout
+  };
+  const { userData } = useAuth(onSuccess, onLogout); // Pass onSuccess and onLogout as arguments
+
+  const handleJoinClick = async (cardListId: string) => {
+    try {
+      const { id } = userData;
+      const response = await joinCardList(cardListId, id);
+      console.log(response.data);
+    } catch (error) {
+      console.error('Failed to join card list:', error);
+    }
+  };
+
+
+
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const [boardName, setBoardName] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
@@ -562,7 +584,7 @@ const WorkspaceProject = () => {
                 />
               </div>
               <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1">
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
                   <i className="fas fa-user"></i>Join
                 </div>
                 <div className="border-b-2 border-black"></div>
