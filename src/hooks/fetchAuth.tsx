@@ -160,10 +160,10 @@
       }
     };
 
-  const getProfilePhoto = async (id: any): Promise<any> => {
+  const getProfilePhoto = async (): Promise<any> => {
     try {
       const response = await axios.get(
-        `${config}/user/get-PhotoProfile/${id}`,
+        `${config}/user/get-PhotoProfile`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -258,25 +258,30 @@
       setLoading(false);
     }
   };
+
   const forgotTokenVerify = async (token: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
-  
     try {
-      const response = await axios.post(`${config}/user/forgot-token-verify`, { token });
+      const response = await axios.post(
+        `${config}/user/forgot-token-verify`,
+        { token },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       if (response.status === 200) {
-        console.log('Token verified successfully:', response.data);
-        return true;
-      } else {
-        setError('Token verification failed. Please try again.');
-        return false;
+        return response.data.isValid;
       }
+      return false;
     } catch (error: any) {
-      console.error('Token Verification Error:', error);
+      console.error('Error verifying token:', error);
       if (error.response && error.response.data && error.response.data.error) {
         setError(error.response.data.error);
       } else {
-        setError('Token verification failed. Please try again.');
+        setError('Failed to verify token. Please try again.');
       }
       return false;
     } finally {
@@ -284,26 +289,24 @@
     }
   };
   
-  const forgotChangePassword = async (token: string, newPassword: string): Promise<boolean> => {
-    setLoading(true);
-    setError(null);
   
+
+  const forgotChangePassword = async (token: any, newPassword: any) => {
     try {
-      const response = await axios.post(`${config}/user/forgot-change-password`, { token, newPassword });
-      if (response.status === 200) {
-        console.log('Password changed successfully:', response.data);
+      setLoading(true);
+      const response = await fetch(`/user/forgot-change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token, password: newPassword }),
+      });
+      if (response.ok) {
         return true;
-      } else {
-        setError('Failed to change password. Please try again.');
-        return false;
       }
-    } catch (error: any) {
-      console.error('Change Password Error:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        setError(error.response.data.error);
-      } else {
-        setError('Failed to change password. Please try again.');
-      }
+      return false;
+    } catch (error) {
+      console.error('Error resetting password:', error);
       return false;
     } finally {
       setLoading(false);
