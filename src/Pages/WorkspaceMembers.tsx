@@ -167,7 +167,7 @@ const WorkspaceMembers: React.FC = () => {
                     <div key={member.id} className="bg-yellow-200 p-4 rounded-md flex justify-between items-center flex-wrap">
                       <div className="flex items-center flex-wrap">
                         <img
-                          src={member.photoProfile || 'https://via.placeholder.com/40'}x
+                          src={member.photoProfile || 'https://via.placeholder.com/40'}
                           alt="User Profile"
                           className="w-10 h-10 rounded-full mr-4"
                         />

@@ -149,7 +149,7 @@ function Profile() {
   };
 
   return (
-    <div className='min-h-screen bg-white font-sans text-black'>
+    <div className='min-h-screen pb-20 bg-white font-sans text-black'>
       <div className='px-5'>
         <Navbar />
         <div className='mt-24'>

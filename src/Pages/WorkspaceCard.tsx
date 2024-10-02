@@ -12,19 +12,16 @@ import DatesPopup from '../Component/dates';
 import AttachPopup from '../Component/attachment';
 import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
-import SharePopup from '../Component/share';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import useAuth from '../hooks/fetchAuth';
 
 const WorkspaceProject = () => {
   const onSuccess = () => {
-    // Handle successful authentication
   };
 
   const onLogout = () => {
-    // Handle logout
   };
-  const { userData } = useAuth(onSuccess, onLogout); // Pass onSuccess and onLogout as arguments
+  const { userData } = useAuth(onSuccess, onLogout);
 
   const handleJoinClick = async (cardListId: string) => {
     try {
@@ -57,12 +54,12 @@ const WorkspaceProject = () => {
   const [isSubmitPopupOpen, setIsSubmitPopupOpen] = useState(false);
   const [isCopyPopupOpen, setIsCopyPopupOpen] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
-  const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
   const [selectedCardList, setSelectedCardList] = useState<any | null>(null);
   const [editingCard, setEditingCard] = useState(null);
   const [activeCardRect, setActiveCardRect] = useState(null);
   const [isEditCard, setIsEditCard] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [cardListToDelete, setCardListToDelete] = useState(null);
   const [editingListName, setEditingListName] = useState(false);
   const inputRef = useRef(null);
 
@@ -174,11 +171,6 @@ const WorkspaceProject = () => {
   const handleOpenCopyPopup = (cardlist: any) => {
     setSelectedCardList(cardlist);
     setIsCopyPopupOpen(true)
-  };
-
-  const handleOpenSharePopup = (cardlist: any) => {
-    setSelectedCardList(cardlist);
-    setIsSharePopupOpen(true);
   };
 
   const handleCreateNewLabel = () => {
@@ -326,20 +318,36 @@ const WorkspaceProject = () => {
   };
 
   const handleDeleteCardList = async (cardListId: any) => {
+    setCardListToDelete(cardListId);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteCardList = async () => {
     try {
-      console.log(cardListId)
-      await deleteCardList(cardListId);
-      const updatedCardData = cardData.filter((item: any) => item.id !== cardListId);
+      await deleteCardList(cardListToDelete);
+      const updatedCardData = cardData.map(card => ({
+        ...card,
+        cardList: card.cardList.filter((list: any) => list.id !== cardListToDelete)
+      }));
       setCardData(updatedCardData);
+      handleClosePopup();
     } catch (error) {
-      console.error("Error deleting card:", error);
+      console.error("Error deleting card list:", error);
+    } finally {
+      setShowDeleteConfirmation(false);
+      setCardListToDelete(null);
     }
+  };
+
+  const cancelDeleteCardList = () => {
+    setShowDeleteConfirmation(false);
+    setCardListToDelete(null);
   };
 
   const handleAddCardList = async (cardId: any) => {
     try {
       const defaultListName = 'New List';
-      const newCardList = await createCardList(cardId, defaultListName, '', 0);
+      const newCardList = await createCardList(cardId, defaultListName, '', '');
       const updatedCardData = cardData.map(card => {
         if (card.id === cardId) {
           return { ...card, cardList: [...card.cardList, newCardList] };
@@ -376,7 +384,7 @@ const WorkspaceProject = () => {
   useEffect(() => {
     const handleClickOutside = (event: any) => {
       if (inputRef.current && !inputRef.current.contains(event.target)) {
-        handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.score);
+        handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.score, selectedCardList.description);
       }
     };
 
@@ -402,7 +410,7 @@ const WorkspaceProject = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <header className="flex bg-gray-100 p-4 mb-9 justify-between items-center">
         <div className="flex items-center space-x-7">
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
@@ -425,7 +433,7 @@ const WorkspaceProject = () => {
         </div>
       </header>
 
-      <main className="flex-1 overflow-x-auto">
+      <main className="h-3/4 flex-1 overflow-x-auto">
         <div className="flex px-8 bg-white mb-4 h-full">
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
@@ -537,7 +545,7 @@ const WorkspaceProject = () => {
                   type="text"
                   value={selectedCardList.name}
                   onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                  onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name)}
+                  onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score)}
                   autoFocus
                   className="text-xl font-semibold p-1 rounded text-black bg-gray-100 border-b-1 border-black"
                 />
@@ -647,7 +655,7 @@ const WorkspaceProject = () => {
                     </div>
                   </>
                 )}
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={() => handleOpenSharePopup(selectedCardList)}>
+                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
                   <i className="fas fa-share"></i>Share
                 </div>
 
@@ -732,6 +740,17 @@ const WorkspaceProject = () => {
         </div>
       )}
 
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-50"></div>
+          <DeleteConfirmation
+            onDelete={confirmDeleteCardList}
+            onCancel={cancelDeleteCardList}
+            itemType="cardlist"
+          />
+        </div>
+      )}
+
       {isMemberPopupOpen && selectedCardList && (
         <MemberPopup
           selectedCardList={selectedCardList}
@@ -802,13 +821,7 @@ const WorkspaceProject = () => {
           close={handleCloseSubmitPopup}
         />
       )}
-
-      {isSharePopupOpen && (
-        <SharePopup
-          isSharePopupOpen={isSharePopupOpen}
-        />
-      )}
-    </div>
+    </>
   );
 };
 

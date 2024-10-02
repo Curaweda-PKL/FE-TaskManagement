@@ -1,6 +1,12 @@
-import React from 'react';
+import React from "react";
 
-const MemberPopup = ({ selectedCardList, isMemberPopupOpen, handleCloseMemberPopup }) => {
+interface MemberPopupProps{
+  selectedCardList: any;
+  isMemberPopupOpen: any;
+  handleCloseMemberPopup: any;
+}
+
+const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPopupOpen, handleCloseMemberPopup }) => {
   if (!isMemberPopupOpen || !selectedCardList) return null;
 
   return (
@@ -26,7 +32,7 @@ const MemberPopup = ({ selectedCardList, isMemberPopupOpen, handleCloseMemberPop
         <div className="mb-4">
           <h3 className="text-sm font-normal mb-2">Board members</h3>
           <ul className="space-y-2">
-            {selectedCardList.members.slice(0, 3).map((member, index) => (
+            {selectedCardList.members.slice(0, 3).map((member: any, index: any) => (
               <li key={index} className="flex items-center py-1 px-3 bg-gray-200 rounded-md">
                 <i className="fas fa-user bg-gray-100 text-xs rounded-full text-gray-400 mr-2 p-2 w-6 h-6 flex items-center justify-center"></i>
                 <span className="text-sm">{member.name}</span>
@@ -38,7 +44,7 @@ const MemberPopup = ({ selectedCardList, isMemberPopupOpen, handleCloseMemberPop
         <div>
           <h3 className="text-sm font-normal mb-2">Workspace members</h3>
           <ul className="space-y-2">
-            {selectedCardList.members.slice(3, 6).map((member, index) => (
+            {selectedCardList.members.slice(3, 6).map((member: any, index: any) => (
               <li key={index} className="flex items-center py-2 px-3 bg-gray-200 rounded-md">
                 <i className="fas fa-user bg-gray-100 text-xs rounded-full text-gray-400 mr-2 p-2 w-6 h-6 flex items-center justify-center"></i>
                 <span className="text-sm">{member.name}</span>

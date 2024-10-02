@@ -1,6 +1,12 @@
 import React from 'react';
 
-const CopyPopup = ({ isCopyPopupOpen, selectedCardList, close }) => {
+interface CopyPopupProps{
+  isCopyPopupOpen: any;
+  selectedCardList: any;
+  close: any; 
+}
+
+const CopyPopup: React.FC<CopyPopupProps> = ({ isCopyPopupOpen, selectedCardList, close }) => {
   if (!isCopyPopupOpen || !selectedCardList) return null;
 
   return (

@@ -1,6 +1,12 @@
-import React from 'react';
+import React from "react";
 
-const DatesPopup = ({ isDatesPopupOpen, selectedCardList, handleCloseDatesPopup }) => {
+interface DatesPopupProps {
+  isDatesPopupOpen: boolean;
+  selectedCardList: { title: string };
+  handleCloseDatesPopup: () => void;
+}
+
+const DatesPopup: React.FC<DatesPopupProps> = ({ isDatesPopupOpen, selectedCardList, handleCloseDatesPopup }) => {
   if (!isDatesPopupOpen || !selectedCardList) return null;
 
   return (

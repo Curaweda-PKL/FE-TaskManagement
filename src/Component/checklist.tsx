@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React from "react";
 
-const ChecklistPopup = ({ isOpen, onClose, selectedCardList }) => {
+interface ChecklistPopupProps {
+  isOpen: any;
+  onClose: any;
+  selectedCardList: any;
+}
+
+const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, selectedCardList }) => {
   if (!isOpen || !selectedCardList) return null;
 
   return (
