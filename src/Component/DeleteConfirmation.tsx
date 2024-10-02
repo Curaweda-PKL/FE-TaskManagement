@@ -3,7 +3,7 @@ import React from 'react';
 interface DeleteConfirmationProps {
   onDelete: () => void;
   onCancel: () => void;
-  itemType: 'workspace' | 'board' | 'member' | 'card';
+  itemType: 'workspace' | 'board' | 'member' | 'card' | 'cardlist';
 }
 
 const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({ onDelete, onCancel, itemType }) => {
@@ -14,11 +14,16 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({ onDelete, onCan
       ? 'Delete this board?'
       : itemType === 'member'
       ? 'Remove this member?'
+      : itemType === 'cardlist'
+      ? 'Remove this card list?'
       : 'Remove this card?';
 
-  const description = itemType === 'member'
-    ? 'Are you sure you want to remove this member?'
-    : `Are you sure you want to delete this ${itemType} permanently? This can't be undone.`;
+  const description = 
+    itemType === 'member'
+      ? 'Are you sure you want to remove this member?'
+      : itemType === 'cardlist'
+      ? 'Are you sure you want to delete this card list permanently? This can\'t be undone.'
+      : `Are you sure you want to delete this ${itemType} permanently? This can't be undone.`;
 
   return (
     <div className="absolute z-[200] flex justify-center" onClick={(e) => e.stopPropagation()}>

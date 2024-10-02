@@ -1,6 +1,11 @@
-import React from 'react';
+interface LabelProps {
+  isOpen: any;
+  onClose: any;
+  labels: any;
+  onCreateNewLabel: any;
+}
 
-const LabelsPopup = ({ isOpen, onClose, labels, onCreateNewLabel }) => {
+const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, onCreateNewLabel }) => {
   if (!isOpen) return null;
 
   return (
@@ -15,7 +20,7 @@ const LabelsPopup = ({ isOpen, onClose, labels, onCreateNewLabel }) => {
 
         <h2 className="text-lg font-bold mb-4 text-center">Label</h2>
         <ul className="space-y-2">
-          {labels.map((label, index) => (
+          {labels.map((label: any, index: any) => (
             <li key={index} className="flex items-center justify-between">
               <div className="flex items-center w-full">
                 <input type="checkbox" className="mr-2 accent-gray-500" />

@@ -23,7 +23,6 @@ const Workspace: React.FC = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [joinWorkspaceId, setJoinWorkspaceId] = useState<string>('');
   const [isPrivateWorkspace, setIsPrivateWorkspace] = useState(false);
-  const navigate = useNavigate();
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
   const openModal = () => setIsModalOpen(true);

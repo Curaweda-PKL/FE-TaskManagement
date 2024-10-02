@@ -1,6 +1,12 @@
 import React from 'react';
 
-const AttachPopup = ({ isAttachPopupOpen, selectedCardList, handleCloseAttachPopup }) => {
+interface AttachPopupProps{
+  isAttachPopupOpen: any;
+  selectedCardList: any
+  handleCloseAttachPopup: any;
+}
+
+const AttachPopup: React.FC<AttachPopupProps> = ({ isAttachPopupOpen, selectedCardList, handleCloseAttachPopup }) => {
   if (!isAttachPopupOpen || !selectedCardList) return null;
 
   return (

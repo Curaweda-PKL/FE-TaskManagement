@@ -16,6 +16,26 @@ export const fetchCardList = async (cardId: any) => {
     throw error;
   }
 };
+
+export const createCardList = async (id: any, name: any, description: any, score: any) => {
+  try {
+    const response = await axios.put(
+      config + "/cardlist/create",
+      { id, name, score, description },
+      {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch boards:', error);
+      throw error;
+    }
+  };
+
 export const updateCardList = async (id: any, name: any, description: any, score: any) => {
   try {
     const response = await axios.put(

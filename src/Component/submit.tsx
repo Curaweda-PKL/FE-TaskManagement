@@ -1,6 +1,12 @@
-import React from 'react';
+import React from "react";
 
-const SubmitPopup = ({ isSubmitPopupOpen, selectedCardList, handleCloseSubmitPopup }) => {
+interface SubmitPopupProps{
+  isSubmitPopupOpen: any;
+  selectedCardList: any;
+  handleCloseSubmitPopup: any;
+}
+
+const SubmitPopup: React.FC<SubmitPopupProps> = ({ isSubmitPopupOpen, selectedCardList, handleCloseSubmitPopup }) => {
   if (!isSubmitPopupOpen || !selectedCardList) return null;
 
   return (
