@@ -40,7 +40,7 @@ function Profile() {
     if (userData) {
       try {
         const userPhoto = await getProfilePhoto();
-        setPhoto(userPhoto.photoProfile.downloadUrl);
+        setPhoto(userPhoto);
       } catch (error) {
         console.error('Error fetching photo profile:', error);
       }
@@ -66,14 +66,12 @@ function Profile() {
     return <div>You are not logged in. Please log in to view your profile.</div>;
   }
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePasswordChange = async (email: any) => {
     if (newPassword !== confirmPassword) {
       setAlert({ type: 'error', message: 'New passwords do not match.' });
       return;
     }
-
-    const success = await changePassword();
+    const success = await changePassword(email, oldPassword, newPassword);
     if (success) {
       setAlert({ type: 'success', message: 'Password changed successfully!' });
       setOldPassword('');
@@ -127,7 +125,7 @@ function Profile() {
       try {
         await updateProfilePhoto(userData.id, file);
         setAlert({ type: 'success', message: 'Foto profil berhasil diupdate!' });
-        await fetchUserProfilePhoto(); // Refresh the photo after update
+        await fetchUserProfilePhoto();
         setShowModal(false);
       } catch (error) {
         console.error('Error changing photo:', error);

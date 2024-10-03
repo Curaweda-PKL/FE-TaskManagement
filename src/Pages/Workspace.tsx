@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWorkspaces, joinWorkspace, requestJoinWorkspace } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';

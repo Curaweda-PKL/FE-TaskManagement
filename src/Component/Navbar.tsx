@@ -35,7 +35,7 @@ function Navbar() {
   const fetchUserProfilePhoto = async () => {
     try {
       const userPhoto = await getProfilePhoto();
-      setPhoto(userPhoto.photoProfile.downloadUrl);
+      setPhoto(userPhoto);
     } catch (error) {
       console.error('Error fetching photo profile:', error);
     }

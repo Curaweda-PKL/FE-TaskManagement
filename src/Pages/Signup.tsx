@@ -5,23 +5,21 @@ import useAuth from '../hooks/fetchAuth';
 function Signup() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
+  const [verificationError, setVerificationError] = useState('');
+  const [verificationLoading, setVerificationLoading] = useState(false);
 
   const {
-    name,
-    setName,
-    email,
-    setEmail,
-    password,
-    setPassword,
-    loading,
-    error,
-    handleRegister,
-    isLoggedIn,
-    checkingLogin,
-  } = useAuth(
-    () => {
-      navigate('/signin');
-    },() => {});
+    name, setName, email, setEmail, password, setPassword, 
+    loading, error, handleRegister, isLoggedIn, checkingLogin,
+    verify, resendVerification, getCodeVerify
+  } = useAuth({
+    onLoginSuccess: () => {
+      navigate('/boards');
+    },
+    onLoginError: () => {}
+  });
 
   useEffect(() => {
     if (!checkingLogin && isLoggedIn) {
@@ -34,7 +32,51 @@ function Signup() {
     const success = await handleRegister();
     console.log('Registration success:', success);
     if (success) {
-      navigate('/signin');
+      const codeSent = await getCodeVerify();
+      if (codeSent) {
+        setShowVerification(true);
+      }
+    }
+  };
+
+  const handleVerificationCodeChange = (index: number, value: string) => {
+    if (value.length <= 1 && /^\d*$/.test(value)) {
+      const newCode = [...verificationCode];
+      newCode[index] = value;
+      setVerificationCode(newCode);
+      
+      if (value !== '' && index < 5) {
+        const nextInput = document.querySelector(
+          `input[name=verification-${index + 1}]`
+        ) as HTMLInputElement;
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+    }
+  };
+
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerificationLoading(true);
+    const code = verificationCode.join('');
+    
+    try {
+      const success = await verify(code);
+      if (success) {
+        navigate('/signin');
+      }
+    } catch (err) {
+      setVerificationError('Invalid verification code. Please try again.');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    const success = await resendVerification();
+    if (success) {
+      setVerificationError('');
     }
   };
 
@@ -46,6 +88,58 @@ function Signup() {
     return (
       <div className="flex justify-center">
         <span className="loading loading-bars loading-lg h-screen z-20"></span>
+      </div>
+    );
+  }
+
+  if (showVerification) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white px-6 py-10 rounded-xl shadow-xl w-80">
+          <h2 className="text-2xl text-black font-semibold mb-4 text-center">Verify Email</h2>
+          <p className="text-gray-600 text-center mb-6">
+            Please enter the verification code sent to your email
+          </p>
+          <form onSubmit={handleVerificationSubmit}>
+            <div className="flex justify-between mb-6">
+              {verificationCode.map((digit, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  name={`verification-${index}`}
+                  value={digit}
+                  onChange={(e) => handleVerificationCodeChange(index, e.target.value)}
+                  className="w-10 h-12 text-center bg-slate-300 border rounded-lg text-black text-lg font-semibold focus:outline-none focus:border-indigo-500"
+                  maxLength={1}
+                  required
+                />
+              ))}
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200"
+              disabled={verificationLoading}
+            >
+              {verificationLoading ? 'Verifying...' : 'Verify'}
+            </button>
+          </form>
+          {verificationError && (
+            <p className="text-red-700 mt-2 text-center">{verificationError}</p>
+          )}
+          {error && <p className="text-red-700 mt-2 text-center">{error}</p>}
+          <div className="text-center mt-4">
+            <p className="text-gray-600">
+              Didn't receive the code?{' '}
+              <button
+                onClick={handleResendCode}
+                className="text-indigo-500 hover:underline"
+                disabled={loading}
+              >
+                Resend
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -96,7 +190,11 @@ function Signup() {
               )}
             </button>
           </div>
-          <button type="submit" className="w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200" disabled={loading}>
+          <button
+            type="submit"
+            className="w-full bg-purple-500 text-white py-2 rounded-full hover:bg-purple-700 transition duration-200"
+            disabled={loading}
+          >
             {loading ? 'Signing up...' : 'Sign up'}
           </button>
         </form>
