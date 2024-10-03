@@ -1,12 +1,39 @@
+import { addLabelToCardList, fetchCardlistLabel } from "../hooks/ApiLabel";
+import { useEffect } from 'react';
+
 interface LabelProps {
   isOpen: any;
   onClose: any;
   labels: any;
   onCreateNewLabel: any;
+  cardlistId: string;
 }
 
-const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, onCreateNewLabel }) => {
+const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, onCreateNewLabel, cardlistId }) => {
   if (!isOpen) return null;
+
+  const handleAddLabel = async (labelId: string) => {
+    try {
+      await addLabelToCardList(cardlistId, labelId);
+      console.log('Label berhasil ditambahkan ke card list');
+    } catch (error) {
+      console.error('Gagal menambahkan label ke card list:', error);
+    }
+  };
+
+  useEffect(() => {
+    const getCardListLabels = async () => {
+      try {
+        await fetchCardlistLabel(cardlistId);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    getCardListLabels();
+  }, [cardlistId]);
+
+
+
 
   return (
     <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -18,13 +45,18 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, onCreateNe
           <i className="fas fa-times"></i>
         </button>
 
-        <h2 className="text-lg font-bold mb-4 text-center">Label</h2>
+        <h2 className="text-lg font-bold mb-4 text-black   text-center">Label</h2>
         <ul className="space-y-2">
           {labels.map((label: any, index: any) => (
             <li key={index} className="flex items-center justify-between">
               <div className="flex items-center w-full">
-                <input type="checkbox" className="mr-2 accent-gray-500" />
-                <div className={`w-full h-8 rounded-md ${label.color} flex items-center px-2`}>
+                <input
+                  type="checkbox"
+                  className="mr-2 accent-gray-500"
+                  value={label.id}
+                  onChange={() => handleAddLabel(label.id)}
+                />
+                <div className={`w-full h-8 rounded-md bg-[${label.color}] flex items-center px-2`}>
                   <span className="text-white font-semibold">{label.name}</span>
                 </div>
               </div>

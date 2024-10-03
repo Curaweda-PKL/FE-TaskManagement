@@ -93,3 +93,22 @@ export const joinCardList = async (cardListId: any, userId: any) => {
     throw error;
   }
 };
+export const outCardList = async (cardListId: any, userId: any) => {
+  try {
+    const response = await axios.delete(
+      `${config}/cardlist/out-cardList`,
+      {
+        headers: {
+          'Authorization': `${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        data: { cardListId, userId }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete card list:', error);
+    throw error;
+  }
+}

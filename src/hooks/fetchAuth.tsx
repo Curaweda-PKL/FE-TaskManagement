@@ -370,6 +370,25 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     }
   };
 
+  const getUserDataById = async (id: string | number): Promise<any> => {
+    try {
+      const response = await axios.get(`${config}/user/user-data/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching user data by id:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Failed to fetch user data by id. Please try again.');
+      }
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return {
     name,
     setName,
@@ -397,6 +416,8 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     forgotPassword,
     forgotTokenVerify,
     forgotChangePassword,
+    getUserDataById,
+    useState: { userData, setUserData },
     getCodeVerify,
     verify,
     resendVerification
