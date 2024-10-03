@@ -102,6 +102,34 @@ export const memberWorkspace = async (workspaceId: any) => {
   }
 };
 
+export const getProfilePhotoMember = async (userId: any): Promise<string> => {
+  try {
+    const response = await axios.get(
+      `${config}/user/get-PhotoProfile/${userId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        responseType: 'blob'
+      }
+    );
+
+    const blobUrl = URL.createObjectURL(response.data);
+
+    console.log(response.data);
+    console.log(blobUrl);
+
+    return blobUrl;
+  } catch (error: any) {
+    console.error('Failed to fetch profile photo:', error);
+    if (error.response && error.response.data && error.response.data.error) {
+      throw new Error(error.response.data.error);
+    } else {
+      throw new Error('Failed to fetch profile photo. Please try again.');
+    }
+  }
+};
+
 export const joinWorkspace = async (workspaceId: any) => {
   try {
     const response = await axios.post(

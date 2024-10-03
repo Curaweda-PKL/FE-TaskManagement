@@ -17,11 +17,11 @@ export const fetchCardList = async (cardId: any) => {
   }
 };
 
-export const createCardList = async (id: any, name: any, description: any, score: any) => {
+export const createCardList = async (cardId: any, name: any, description: any, score: any) => {
   try {
-    const response = await axios.put(
+    const response = await axios.post(
       config + "/cardlist/create",
-      { id, name, score, description },
+      { cardId, name, score, description},
       {
         headers: {
           'Authorization': localStorage.getItem('token'),

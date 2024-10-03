@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
 import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList } from '../hooks/fetchCardList';
@@ -33,9 +34,10 @@ const WorkspaceProject = () => {
     }
   };
 
-
-
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
+  const [members, setMembers] = useState<any[]>([]);
+  const [visibleMembers, setVisibleMembers] = useState<any[]>([]);
+  const [remainingCount, setRemainingCount] = useState<number>(0);
   const [boardName, setBoardName] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [boards, setBoards] = useState<any[]>([]);
@@ -62,6 +64,32 @@ const WorkspaceProject = () => {
   const [cardListToDelete, setCardListToDelete] = useState(null);
   const [editingListName, setEditingListName] = useState(false);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const fetchedMembers = await memberWorkspace(workspaceId);
+
+        const membersWithPhotos = await Promise.all(
+          fetchedMembers.map(async (member: any) => {
+            const photoProfile = await getProfilePhotoMember(member.id);
+            return {
+              ...member,
+              photoProfile,
+            };
+          })
+        );
+
+        setMembers(membersWithPhotos);
+        setVisibleMembers(membersWithPhotos.slice(0, 5));
+        setRemainingCount(membersWithPhotos.length - 5);
+      } catch (error) {
+        console.error('Failed to fetch workspace members:', error);
+      }
+    };
+
+    fetchMembers();
+  }, [workspaceId]);
 
   const handleDeletePopUp = (card: any) => {
     setShowDeleteConfirmation(true);
@@ -138,8 +166,8 @@ const WorkspaceProject = () => {
     setIsChecklistPopupOpen(false);
   };
 
-  const handleOpenDatesPopup = (cardlist: any) => {
-    setSelectedCardList(cardlist);
+  const handleOpenDatesPopup = (cardList: any) => {
+    setSelectedCardList(cardList);
     setIsDatesPopupOpen(true);
     setIsEditCard(false);
   };
@@ -149,8 +177,8 @@ const WorkspaceProject = () => {
     setIsEditCard(true);
   };
 
-  const handleOpenAttachPopup = (cardlist: any) => {
-    setSelectedCardList(cardlist);
+  const handleOpenAttachPopup = (cardList: any) => {
+    setSelectedCardList(cardList);
     setIsAttachPopupOpen(true);
   };
 
@@ -158,8 +186,8 @@ const WorkspaceProject = () => {
     setIsAttachPopupOpen(false);
   };
 
-  const handleOpenSubmitPopup = (cardlist: any) => {
-    setSelectedCardList(cardlist);
+  const handleOpenSubmitPopup = (cardList: any) => {
+    setSelectedCardList(cardList);
     setIsSubmitPopupOpen(true);
   };
 
@@ -168,8 +196,8 @@ const WorkspaceProject = () => {
     setIsCopyPopupOpen(false);
   };
 
-  const handleOpenCopyPopup = (cardlist: any) => {
-    setSelectedCardList(cardlist);
+  const handleOpenCopyPopup = (cardList: any) => {
+    setSelectedCardList(cardList);
     setIsCopyPopupOpen(true)
   };
 
@@ -180,15 +208,6 @@ const WorkspaceProject = () => {
   const handleCloseEditLabel = () => {
     setIsEditLabelOpen(false);
   };
-
-
-  const labels = [
-    { name: 'Level 5', color: 'bg-purple-500' },
-    { name: 'Level 4', color: 'bg-red-500' },
-    { name: 'Level 3', color: 'bg-orange-400' },
-    { name: 'Level 2', color: 'bg-yellow-300' },
-    { name: 'Level 1', color: 'bg-green-500' },
-  ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -317,6 +336,48 @@ const WorkspaceProject = () => {
     setShowDeleteConfirmation(false);
   };
 
+  const cancelDeleteCardList = () => {
+    setShowDeleteConfirmation(false);
+    setCardListToDelete(null);
+  };
+
+  const handleAddCardList = async (cardId: any) => {
+    try {
+      const defaultListName = 'New List';
+      const newCardList = await createCardList(cardId, defaultListName, '', 0);
+      const updatedCardData = cardData.map(card => {
+        if (card.id === cardId) {
+          return { ...card, cardList: [...card.cardList, newCardList] };
+        }
+        return card;
+      });
+
+      setCardData(updatedCardData);
+      setSelectedCardList(newCardList);
+      setIsPopupOpen(true);
+      setEditingListName(true);
+    } catch (error) {
+      console.error("Failed to add card list:", error);
+    }
+  };
+
+  const handleUpdateListName = async (id: any, description: any, score: any, newName: any) => {
+    try {
+      await updateCardList(id, description, score, newName);
+      await fetchData();
+      const updatedCardData = cardData.map(card => ({
+        ...card,
+        cardList: card.cardList.map(list =>
+          list.id === listId ? { ...list, name: newName } : list
+        )
+      }));
+      setCardData(updatedCardData);
+      setEditingListName(false);
+    } catch (error) {
+      console.error("Failed to update list name:", error);
+    }
+  };
+
   const handleDeleteCardList = async (cardListId: any) => {
     setCardListToDelete(cardListId);
     setShowDeleteConfirmation(true);
@@ -336,48 +397,6 @@ const WorkspaceProject = () => {
     } finally {
       setShowDeleteConfirmation(false);
       setCardListToDelete(null);
-    }
-  };
-
-  const cancelDeleteCardList = () => {
-    setShowDeleteConfirmation(false);
-    setCardListToDelete(null);
-  };
-
-  const handleAddCardList = async (cardId: any) => {
-    try {
-      const defaultListName = 'New List';
-      const newCardList = await createCardList(cardId, defaultListName, '', '');
-      const updatedCardData = cardData.map(card => {
-        if (card.id === cardId) {
-          return { ...card, cardList: [...card.cardList, newCardList] };
-        }
-        return card;
-      });
-
-      setCardData(updatedCardData);
-      setSelectedCardList(newCardList);
-      setIsPopupOpen(true);
-      setEditingListName(true);
-    } catch (error) {
-      console.error("Failed to add card list:", error);
-    }
-  };
-
-  const handleUpdateListName = async (id: any, newName: any, score: any, description: any) => {
-    try {
-      await updateCardList(id, newName, description, score);
-      await fetchData();
-      const updatedCardData = cardData.map(card => ({
-        ...card,
-        cardList: card.cardList.map(list =>
-          list.id === listId ? { ...list, name: newName } : list
-        )
-      }));
-      setCardData(updatedCardData);
-      setEditingListName(false);
-    } catch (error) {
-      console.error("Failed to update list name:", error);
     }
   };
 
@@ -411,35 +430,41 @@ const WorkspaceProject = () => {
 
   return (
     <>
-      <header className="flex bg-gray-100 p-4 mb-9 justify-between items-center">
-        <div className="flex items-center space-x-7">
-          <h1 className="text-xl text-black font-medium">{boardName}</h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="flex -space-x-2">
-            <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
-            <img className="w-8 h-8 rounded-full border-2 border-white" src="/api/placeholder/32/32" alt="User avatar" />
-            <div className="w-8 h-8 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-              <span className="text-xs font-bold text-white">A</span>
-            </div>
+      <header className="flex bg-gray-100 p-3 justify-between items-center">
+      <div className="flex items-center space-x-7">
+        <h1 className="text-xl text-black font-medium">Workspace Name</h1>
+      </div>
+      <div className="flex items-center space-x-2">
+        <div className="flex -space-x-2">
+          {visibleMembers.map((member, index) => (
+            <img
+              key={index}
+              className="w-8 h-8 rounded-full"
+              src={member.photoProfile}
+              alt={member.name}
+            />
+          ))}
+          {remainingCount > 0 && (
             <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
-              <span className="text-xs font-semibold text-gray-600">+1</span>
+              <span className="text-xs font-semibold text-gray-600">
+                +{remainingCount}
+              </span>
             </div>
-          </div>
-          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
-            <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
-            Share
-          </button>
+          )}
         </div>
-      </header>
-
-      <main className="h-3/4 flex-1 overflow-x-auto">
-        <div className="flex px-8 bg-white mb-4 h-full">
+        <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
+          <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
+          Share
+        </button>
+      </div>
+    </header>
+      <main className="h-[89%] flex-1 overflow-x-auto">
+        <div className="flex px-4 py-4 bg-white h-full">
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (
             cardData.map((card, index) => (
-              <div key={index} className="relative bg-white rounded-2xl shadow-xl border p-4 mr-4 w-64 h-fit flex-shrink-0">
+              <div key={index} className="relative bg-white rounded-2xl shadow-xl border p-4 mr-1 w-64 h-fit flex-shrink-0">
                 <button
                   className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                   onClick={() => setDropdownOpen(dropdownOpen === index ? null : index)}
@@ -500,7 +525,7 @@ const WorkspaceProject = () => {
             ))
           )}
           <button
-            className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-44 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center flex-shrink-0"
+            className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl h-10 w-64 text-sm group hover:bg-gray-200 transition-colors duration-300 flex items-center flex-shrink-0"
             onClick={handleOpenCreateCard}
           >
             <i className="fas fa-plus h-3 w-3 mr-3 group-hover:text-purple-500 transition-colors duration-300"></i>
@@ -547,7 +572,7 @@ const WorkspaceProject = () => {
                   onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
                   onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score)}
                   autoFocus
-                  className="text-xl font-semibold p-1 rounded text-black bg-gray-100 border-b-1 border-black"
+                  className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
                 />
               ) : (
                 <h2

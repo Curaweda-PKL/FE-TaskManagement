@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateLinkWorkspace, joinRequestsWorkspace, requestWorkspace} from '../hooks/fetchWorkspace';
+import { generateLinkWorkspace, joinRequestsWorkspace, requestWorkspace } from '../hooks/fetchWorkspace';
 
 interface Workspace {
   name: string;
@@ -12,6 +12,7 @@ interface JoinRequest {
   id: string;
   name: string;
   email: string;
+  photoProfile: any;
 }
 
 interface WorkspaceHeaderProps {
@@ -46,7 +47,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         console.error('Workspace ID is undefined');
       }
     };
-  
+
     fetchJoinRequests();
   }, [workspace?.id]);
 
@@ -79,8 +80,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     if (workspace && workspace.isPublic && inviteLinkEnabled) {
       try {
         const response = await generateLinkWorkspace(workspace.id);
-        const inviteLink = "http://localhost:4545/j/" + response.link.joinLink; 
-        
+        const inviteLink = "http://localhost:4545/j/" + response.link.joinLink;
+
         navigator.clipboard.writeText(inviteLink);
         showAlert('Invite link copied to clipboard!', 'success');
       } catch (error) {
@@ -152,7 +153,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </p>
             <p className="text-sm flex items-center">
               <i className={`fas ${workspace?.isPublic ? 'fa-globe' : 'fa-lock'} mr-1`} />
-              { workspace?.isPublic ? 'Public' : 'Private'} | Workspace id: {workspace ? workspace.id : 'Loading...'}
+              {workspace?.isPublic ? 'Public' : 'Private'} | Workspace id: {workspace ? workspace.id : 'Loading...'}
             </p>
           </div>
         </div>
@@ -163,7 +164,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
           <div className="bg-white pt-8 px-6 pb-5 rounded-md shadow-md w-80 relative right-16 top-0 cursor-pointer">
             <i className='fas fa-times text-lg text-black absolute top-2 right-2 cursor-pointer' onClick={handleCloseModal} />
-            <div 
+            <div
               className="bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-300"
               onClick={handleInviteWorkspaceMember}
             >
@@ -178,7 +179,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         </div>
       )}
 
-{isInviteOpen && (
+      {isInviteOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
           <div className="bg-white rounded-lg shadow-lg w-[300px] relative right-16">
             <div className="flex justify-between items-center p-4">
@@ -217,16 +218,16 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               {joinRequests.map((request) => (
                 <div key={request?.id} className="flex items-center bg-teal-100 p-1 rounded-md mb-2">
                   <img
-                    src="https://via.placeholder.com/40"
+                    src={request.photoProfile || 'https://via.placeholder.com/40'}
                     alt="User Profile"
-                    className="w-8 h-8 rounded-full mr-4"
+                    className="w-10 h-10 rounded-full mr-4"
                   />
                   <div className="flex-1">
                     <p className="font-semibold text-black">{request?.name}</p>
                     <p className="text-sm text-gray-600">{request?.email}</p>
                   </div>
                   <div className="flex space-x-2 pr-4">
-                  <button
+                    <button
                       className="flex text-sm items-center bg-gray-200 hover:bg-gray-300 text-black py-1 px-2 rounded"
                       onClick={() => handleAccept(request.id)}
                     >
