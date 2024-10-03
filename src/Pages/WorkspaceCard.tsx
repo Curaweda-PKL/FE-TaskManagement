@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { useParams } from 'react-router-dom';
 import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
@@ -15,6 +15,9 @@ import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import useAuth from '../hooks/fetchAuth';
+import { fetchLabels } from '../hooks/ApiLabel';
+import { getProfilePhotoMember } from '../hooks/fetchWorkspace';
+
 
 const WorkspaceProject = () => {
   const onSuccess = () => {
@@ -27,8 +30,38 @@ const WorkspaceProject = () => {
   const handleJoinClick = async (cardListId: string) => {
     try {
       const { id } = userData;
-      const response = await joinCardList(cardListId, id);
-      console.log(response.data);
+      await joinCardList(cardListId, id);
+      const updatedMemberPhoto = await getProfilePhotoMember(id);
+      setCardData((prevCardData) => 
+        prevCardData.map((card) => ({
+          ...card,
+          cardList: card.cardList.map((list: { id: string; members: any; }) => {
+            if (list.id === cardListId) {
+              return {
+                ...list,
+                members: [
+                  ...list.members,
+                  { userId: id, photoUrl: updatedMemberPhoto }
+                ]
+              };
+            }
+            return list;
+          })
+        }))
+      );
+      setSelectedCardList((prevSelected: { id: string; members: any; }) => {
+        if (prevSelected && prevSelected.id === cardListId) {
+          return {
+            ...prevSelected,
+            members: [
+              ...prevSelected.members,
+              { userId: id, photoUrl: updatedMemberPhoto }
+            ]
+          };
+        }
+        return prevSelected;
+      });
+  
     } catch (error) {
       console.error('Failed to join card list:', error);
     }
@@ -143,7 +176,6 @@ const WorkspaceProject = () => {
 
   const handleCloseMemberPopup = () => {
     setIsMemberPopupOpen(false);
-    setIsEditCard(true);
   };
 
   const handleOpenLabelsPopup = (cardList: any) => {
@@ -154,7 +186,6 @@ const WorkspaceProject = () => {
 
   const handleCloseLabelsPopup = () => {
     setIsLabelsPopupOpen(false);
-    setIsEditCard(true);
   };
 
   const handleOpenChecklistPopup = (cardList: any) => {
@@ -222,8 +253,6 @@ const WorkspaceProject = () => {
     };
   }, []);
 
-  if (cardData) { console.log(cardData) }
-
   const fetchData = async () => {
     try {
       const boardData = await fetchBoards(workspaceId);
@@ -256,21 +285,45 @@ const WorkspaceProject = () => {
       try {
         const boardData = await fetchBoards(workspaceId);
         setBoards(boardData);
-        const board = boardData.find((b: any) => b.id === boardId);
+        const board = boardData.find((b: { id: string | undefined; }) => b.id === boardId);
         setBoardName(board ? board.name : 'Project');
 
         if (boardId) {
           const cardResponse = await fetchCard(boardId);
-          if (cardResponse && cardResponse) {
+          if (cardResponse) {
             const updatedCardData = await Promise.all(
-              cardResponse.map(async (card: any) => {
+              cardResponse.map(async (card: { id: any; }) => {
                 if (card && card.id) {
                   const cardListData = await fetchCardList(card.id);
-                  return { ...card, cardList: cardListData || [] };
+
+                  // Memastikan cardListData adalah array
+                  const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
+
+                  // Fetch profile photos for each member in each list
+                  const updatedCardList = await Promise.all(cardList.map(async (list) => {
+                    if (list.members && list.members.length > 0) {
+                      const membersWithPhotos = await Promise.all(
+                        list.members.map(async (member: { userId: any; }) => {
+                          try {
+                            const photoUrl = await getProfilePhotoMember(member.userId);
+                            return { ...member, photoUrl };
+                          } catch (error) {
+                            console.error(`Error fetching photo for user ${member.userId}:`, error);
+                            return member;
+                          }
+                        })
+                      );
+                      return { ...list, members: membersWithPhotos };
+                    }
+                    return list;
+                  }));
+
+                  return { ...card, cardList: updatedCardList };
                 }
                 return { ...card, cardList: [] };
               })
             );
+
             setCardData(updatedCardData);
           }
         }
@@ -281,6 +334,7 @@ const WorkspaceProject = () => {
 
     fetchData();
   }, [workspaceId, boardId]);
+
 
   const handleCreateCard = async (cardName: string) => {
     try {
@@ -427,6 +481,20 @@ const WorkspaceProject = () => {
     setSelectedCardList(null);
     setEditingListName(false);
   };
+  const [labels, setLabels] = useState([]);
+  useEffect(() => {
+    const funcfetchLabels = async () => {
+      try {
+        const labels = await fetchLabels(workspaceId ?? '');
+        setLabels(labels);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    funcfetchLabels();
+  }, [workspaceId]);
+
+
 
   return (
     <>
@@ -594,6 +662,26 @@ const WorkspaceProject = () => {
                     <i className="fas fa-eye"></i>Activity
                   </div>
                 </div>
+
+                <div className="mt-4">
+                  <h2 className="text-black mb-3 font-semibold text-lg">Members</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCardList.members && selectedCardList.members.length > 0 ? (
+                      selectedCardList.members.map((member: any) => (
+                        <div key={member.userId} className="flex flex-col items-center">
+                          <img
+                            src={member.photoUrl || '/path/to/default/avatar.png'}
+                            alt={`Profile of ${member.userId}`}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No members assigned to this card</p>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <h2 className="text-black mb-3 font-semibold text-lg">Description</h2>
                   <textarea
@@ -790,6 +878,7 @@ const WorkspaceProject = () => {
           onClose={handleCloseLabelsPopup}
           labels={labels}
           onCreateNewLabel={handleCreateNewLabel}
+          cardlistId={selectedCardList.id}
         />
       )}
 
