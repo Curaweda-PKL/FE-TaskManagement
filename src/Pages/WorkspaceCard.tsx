@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
-import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList } from '../hooks/fetchCardList';
+import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList, fetchCardListAttachments, deleteAttachment} from '../hooks/fetchCardList';
 import CreateCard from '../Component/createCard';
 import MemberPopup from '../Component/member';
 import LabelsPopup from '../Component/label';
@@ -95,6 +95,9 @@ const WorkspaceProject = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [cardListToDelete, setCardListToDelete] = useState(null);
   const [editingListName, setEditingListName] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -122,6 +125,11 @@ const WorkspaceProject = () => {
 
     fetchMembers();
   }, [workspaceId]);
+
+  interface Attachment {
+    id: string;
+    url: string;
+  }
 
   const handleDeletePopUp = (card: any) => {
     setShowDeleteConfirmation(true);
@@ -266,7 +274,20 @@ const WorkspaceProject = () => {
             cardResponse.map(async (card: any) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
-                return { ...card, cardList: cardListData || [] };
+                const cardListWithAttachments = await Promise.all(
+                  cardListData.map(async (cardList: any) => {
+                    if (cardList.attachments && cardList.attachments.length > 0) {
+                      const attachmentDetails = await Promise.all(
+                        cardList.attachments.map((attachment: any) =>
+                          fetchCardListAttachments(attachment.attachmentId)
+                        )
+                      );
+                      return { ...cardList, attachmentDetails };
+                    }
+                    return { ...cardList, attachmentDetails: [] };
+                  })
+                );
+                return { ...card, cardList: cardListWithAttachments };
               }
               return { ...card, cardList: [] };
             })
@@ -284,45 +305,58 @@ const WorkspaceProject = () => {
       try {
         const boardData = await fetchBoards(workspaceId);
         setBoards(boardData);
-        const board = boardData.find((b: { id: string | undefined; }) => b.id === boardId);
+        const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
         setBoardName(board ? board.name : 'Project');
-
+  
         if (boardId) {
           const cardResponse = await fetchCard(boardId);
           if (cardResponse) {
             const updatedCardData = await Promise.all(
-              cardResponse.map(async (card: { id: any; }) => {
+              cardResponse.map(async (card: { id: string }) => {
                 if (card && card.id) {
                   const cardListData = await fetchCardList(card.id);
-
+  
                   // Memastikan cardListData adalah array
                   const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
-
+  
                   // Fetch profile photos for each member in each list
                   const updatedCardList = await Promise.all(cardList.map(async (list) => {
                     if (list.members && list.members.length > 0) {
                       const membersWithPhotos = await Promise.all(
-                        list.members.map(async (member: { userId: any; }) => {
-                          try {
-                            const photoUrl = await getProfilePhotoMember(member.userId);
-                            return { ...member, photoUrl };
-                          } catch (error) {
+                        list.members.map(async (member: { userId: string }) => {
+                          const photoUrl = await getProfilePhotoMember(member.userId).catch(error => {
                             console.error(`Error fetching photo for user ${member.userId}:`, error);
-                            return member;
-                          }
+                            return null;
+                          });
+                          return { ...member, photoUrl };
                         })
                       );
                       return { ...list, members: membersWithPhotos };
                     }
                     return list;
                   }));
-
-                  return { ...card, cardList: updatedCardList };
+  
+                  // Fetch attachment details
+                  const cardListWithAttachments = await Promise.all(
+                    updatedCardList.map(async (cardList: any) => {
+                      if (cardList.attachments && cardList.attachments.length > 0) {
+                        const attachmentDetails = await Promise.all(
+                          cardList.attachments.map((attachment: { attachmentId: string }) =>
+                            fetchCardListAttachments(attachment.attachmentId)
+                          )
+                        );
+                        return { ...cardList, attachmentDetails };
+                      }
+                      return { ...cardList, attachmentDetails: [] };
+                    })
+                  );
+  
+                  return { ...card, cardList: cardListWithAttachments };
                 }
                 return { ...card, cardList: [] };
               })
             );
-
+  
             setCardData(updatedCardData);
           }
         }
@@ -330,7 +364,7 @@ const WorkspaceProject = () => {
         console.error('Error fetching data:', error);
       }
     };
-
+  
     fetchData();
   }, [workspaceId, boardId]);
 
@@ -472,7 +506,7 @@ const WorkspaceProject = () => {
   const handleOpenPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
-    setEditingListName(false);
+    setAttachments(cardList.attachmentDetails || []);
   };
 
   const handleClosePopup = () => {
@@ -503,6 +537,86 @@ const WorkspaceProject = () => {
   };
 
 
+
+  useEffect(() => {
+    if (isPopupOpen && selectedCardList) {
+      const fetchAttachments = async () => {
+        try {
+          const attachmentPromises = selectedCardList.attachments.map(async (attachment: any) => {
+            const blobUrl = await fetchCardListAttachments(attachment.attachmentId);
+            return {
+              id: attachment.attachmentId,
+              url: blobUrl
+            };
+          });
+          const fetchedAttachments = await Promise.all(attachmentPromises);
+          setAttachments(fetchedAttachments);
+        } catch (error) {
+          console.error('Error fetching attachments:', error);
+        }
+      };
+      fetchAttachments();
+    }
+  }, [isPopupOpen, selectedCardList]);
+
+  const handleAttachmentCreated = (newAttachment: any) => {
+    setCardData(prevCardData => 
+      prevCardData.map(card => {
+        if (card.id === selectedCardList.cardId) {
+          return {
+            ...card,
+            cardList: card.cardList.map((list: any) => 
+              list.id === selectedCardList.id
+                ? { 
+                    ...list, 
+                    attachmentDetails: [...(list.attachmentDetails || []), newAttachment],
+                    attachments: [...(list.attachments || []), { 
+                      attachmentId: newAttachment.id,
+                      attachment: {
+                        id: newAttachment.id,
+                        url: newAttachment.url,
+                        name: newAttachment.name  // Include the attachment name
+                      }
+                    }]
+                  }
+                : list
+            )
+          };
+        }
+        return card;
+      })
+    );
+    setAttachments(prevAttachments => [...prevAttachments, newAttachment]);
+  };
+  
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    if (!selectedCardList || !selectedCardList.id) {
+      console.error('No card list selected');
+      return;
+    }
+    
+    setIsDeleting(true);
+    setDeleteError(null);
+    
+    try {
+      const response = await deleteAttachment(selectedCardList.id, attachmentId);
+      
+      if (response.success) {
+        setAttachments(prevAttachments => 
+          prevAttachments.filter(attachment => attachment.id !== attachmentId)
+        );
+        await fetchData(); // Refresh the data
+      } else {
+        console.error('Delete attachment failed:', response.message, response.error);
+        setDeleteError(response.message);
+      }
+    } catch (error) {
+      console.error('Error deleting attachment:', error);
+      setDeleteError('An unexpected error occurred while deleting the attachment');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <>
@@ -699,6 +813,45 @@ const WorkspaceProject = () => {
                 </div>
                 <div>
                   <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
+                </div>
+                <div>
+                <div className="flex-wrap gap-2">
+                <h2 className="text-black mb-3 font-semibold text-lg">Attachment</h2>
+                {attachments.map((attachment, index) => (
+                  <>
+                  <div className='flex items-center text-black'>
+                    <div className='flex bg-gray-200 my-5 p-0 w-28 h-16 items-center justify-center'>
+                      <img 
+                        key={index} 
+                        src={attachment.url}
+                        alt={`Attachment ${index + 1}`} 
+                        className="max-w-28 max-h-16 object-cover rounded"
+                      />
+                    </div>
+                    <div className='ml-5 text-gray-800 text-sm'>
+                      <p className="font-semibold text-base">{attachment.name}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <p className="text-gray-500">Added 1 mt</p>
+                          <button className="underline">Comment</button>
+                          <button className="underline">Download</button>
+                          <button
+                            className="underline"
+                            onClick={() => handleDeleteAttachment(attachment.id)}
+                            disabled={isDeleting}
+                          >
+                            Delete
+                          </button>
+                          <button className="underline">Edit</button>
+                      </div>
+                    </div>
+                    </div>
+                    </>
+                  ))}
+                  {deleteError && <p className="text-red-500 text-sm mt-1">{deleteError}</p>}
+                  {attachments.length === 0 && (
+                    <p className="text-gray-500">No attachment</p>
+                  )}
+                </div>
                 </div>
                 <div className="activity flex justify-between mb-3">
                   <span className="text-black text-lg font-semibold">Activity</span>
@@ -929,6 +1082,7 @@ const WorkspaceProject = () => {
           isAttachPopupOpen={isAttachPopupOpen}
           selectedCardList={selectedCardList}
           handleCloseAttachPopup={handleCloseAttachPopup}
+          onAttachmentCreated={handleAttachmentCreated}
         />
       )}
 
