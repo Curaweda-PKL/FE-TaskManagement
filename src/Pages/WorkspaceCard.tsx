@@ -16,7 +16,6 @@ import CopyPopup from '../Component/copy';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import useAuth from '../hooks/fetchAuth';
 import { fetchLabels } from '../hooks/ApiLabel';
-import { getProfilePhotoMember } from '../hooks/fetchWorkspace';
 
 
 const WorkspaceProject = () => {
@@ -32,7 +31,7 @@ const WorkspaceProject = () => {
       const { id } = userData;
       await joinCardList(cardListId, id);
       const updatedMemberPhoto = await getProfilePhotoMember(id);
-      setCardData((prevCardData) => 
+      setCardData((prevCardData) =>
         prevCardData.map((card) => ({
           ...card,
           cardList: card.cardList.map((list: { id: string; members: any; }) => {
@@ -61,7 +60,7 @@ const WorkspaceProject = () => {
         }
         return prevSelected;
       });
-  
+
     } catch (error) {
       console.error('Failed to join card list:', error);
     }
@@ -494,38 +493,47 @@ const WorkspaceProject = () => {
     funcfetchLabels();
   }, [workspaceId]);
 
+  const funcfetchLabels = async () => {
+    try {
+      const labels = await fetchLabels(workspaceId ?? '');
+      setLabels(labels);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
 
 
   return (
     <>
       <header className="flex bg-gray-100 p-3 justify-between items-center">
-      <div className="flex items-center space-x-7">
-        <h1 className="text-xl text-black font-medium">Workspace Name</h1>
-      </div>
-      <div className="flex items-center space-x-2">
-        <div className="flex -space-x-2">
-          {visibleMembers.map((member, index) => (
-            <img
-              key={index}
-              className="w-8 h-8 rounded-full"
-              src={member.photoProfile}
-              alt={member.name}
-            />
-          ))}
-          {remainingCount > 0 && (
-            <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
-              <span className="text-xs font-semibold text-gray-600">
-                +{remainingCount}
-              </span>
-            </div>
-          )}
+        <div className="flex items-center space-x-7">
+          <h1 className="text-xl text-black font-medium">Workspace Name</h1>
         </div>
-        <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
-          <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
-          Share
-        </button>
-      </div>
-    </header>
+        <div className="flex items-center space-x-2">
+          <div className="flex -space-x-2">
+            {visibleMembers.map((member, index) => (
+              <img
+                key={index}
+                className="w-8 h-8 rounded-full"
+                src={member.photoProfile}
+                alt={member.name}
+              />
+            ))}
+            {remainingCount > 0 && (
+              <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
+                <span className="text-xs font-semibold text-gray-600">
+                  +{remainingCount}
+                </span>
+              </div>
+            )}
+          </div>
+          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
+            <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
+            Share
+          </button>
+        </div>
+      </header>
       <main className="h-[89%] flex-1 overflow-x-auto">
         <div className="flex px-4 py-4 bg-white h-full">
           {cardData.length === 0 ? (
@@ -873,13 +881,17 @@ const WorkspaceProject = () => {
       )}
 
       {isLabelsPopupOpen && selectedCardList && (
-        <LabelsPopup
-          isOpen={isLabelsPopupOpen}
-          onClose={handleCloseLabelsPopup}
-          labels={labels}
-          onCreateNewLabel={handleCreateNewLabel}
-          cardlistId={selectedCardList.id}
-        />
+        <div className='overflow-auto'>
+          <LabelsPopup
+            isOpen={isLabelsPopupOpen}
+            onClose={handleCloseLabelsPopup}
+            labels={labels}
+            onCreateNewLabel={handleCreateNewLabel}
+            cardlistId={selectedCardList.id}
+            workspaceId={workspaceId !== undefined ? workspaceId : ''}
+            funcfetchLabels={funcfetchLabels}
+          />
+        </div>
       )}
 
       {isEditLabelOpen && (

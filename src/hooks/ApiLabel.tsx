@@ -18,7 +18,7 @@ export const fetchLabels = async (workspaceId: string) => {
 };
 export const fetchCardlistLabel = async (cardlistId: string) => {
     try {
-        const response = await axios.get(`${config}/cardlist/take-cardlistLabels/${cardlistId}`, {
+        const response = await axios.get(`${config}/cardlist/Take-cardlistLabels/${cardlistId}`, {
             headers: {
                 'Authorization': localStorage.getItem('token'),
                 'Content-Type': 'application/json'
@@ -34,7 +34,7 @@ export const fetchCardlistLabel = async (cardlistId: string) => {
 }
 export const createCardListLabel = async (workspaceId: string, name: string, color: string) => {
     try {
-        const response = await axios.post(config + "/cardlist/create-label", {
+        const response = await axios.post(config + "/cardlist/create-labels", {
             workspaceId,
             name,
             color
@@ -88,7 +88,7 @@ export const addLabelToCardList = async (cardlistId: string, labelId: string) =>
         throw error;
     }
 };
-export const removeLabelFromCardList = async (cardlistLabelId: string) => {
+export const deleteLabelFromWorkspace = async (cardlistLabelId: string) => {
     try {
         const response = await axios.post(`${config}/cardlist/remove-label/${cardlistLabelId}`, {}, {
             headers: {
