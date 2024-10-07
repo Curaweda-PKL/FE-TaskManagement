@@ -231,9 +231,6 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
 
       const blobUrl = URL.createObjectURL(response.data);
 
-      console.log(response.data);
-      console.log(blobUrl);
-
       return blobUrl;
     } catch (error: any) {
       console.error('Failed to fetch profile photo:', error);
