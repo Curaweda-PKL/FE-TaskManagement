@@ -1,4 +1,4 @@
-import { addLabelToCardList, fetchCardlistLabel, fetchLabels, deleteLabelFromWorkspace } from "../hooks/ApiLabel";
+import { addLabelToCardList, fetchCardListLabels, deleteLabelFromWorkspace, removeLabelFromCardList } from "../hooks/ApiLabel";
 import { useEffect, useState } from 'react';
 import EditLabel from "./EditLabel";
 
@@ -8,44 +8,77 @@ interface LabelProps {
   labels: any;
   onCreateNewLabel: any;
   cardlistId: string;
-  workspaceId:string;
+  workspaceId: string;
   funcfetchLabels: () => void;
+  handlefetchCardListLabels: () =>  void;
+
 }
 
-const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchLabels, cardlistId, workspaceId }) => {
+const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchLabels, handlefetchCardListLabels, cardlistId, workspaceId }) => {
   if (!isOpen) return null;
+
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editingLabelId, setEditingLabelId] = useState<string | undefined>(undefined);
+
+  const handleEditLabel = (labelId: string) => {
+    setEditingLabelId(labelId);
+    setOpenEdit(true);
+  };
 
   const [openCreate, setOpenCreate] = useState(false);
 
-  const handleCloseCreate = () => {
-    setOpenCreate(false);
-  };
 
-  // const handleDeleteCardlist = async (cardlistLabelId: string) => {
-  //   await deleteLabelFromWorkspace(cardlistLabelId)
-  //   funcfetchLabels();
-  // }
+  const handleDeleteCardlist = async (cardlistLabelId: string) => {
+    await deleteLabelFromWorkspace(cardlistLabelId)
+    funcfetchLabels();
+    handlefetchCardListLabels();
+  }
 
 
   const handleAddLabel = async (labelId: string) => {
     try {
       await addLabelToCardList(cardlistId, labelId);
+      getCardListLabels();
       console.log('Label berhasil ditambahkan ke card list');
     } catch (error) {
       console.error('Gagal menambahkan label ke card list:', error);
     }
   };
 
+  const handleRemoveLabel = async (labelId: string) => {
+    try {
+      await removeLabelFromCardList(labelId, cardlistId);
+      getCardListLabels();
+    } catch (error) {
+      console.error('Gagal meremove label dari card list:', error);
+    }
+  };
+
+  const [labelsData, setLabelsData] = useState<{
+    labelId: any; id: string
+  }[]>([]);
   useEffect(() => {
     const getCardListLabels = async () => {
       try {
-        await fetchCardlistLabel(cardlistId);
+        const response = await fetchCardListLabels(cardlistId);
+        setLabelsData(response);
+        handlefetchCardListLabels()
       } catch (error) {
         console.error(error);
       }
     };
     getCardListLabels();
   }, [cardlistId]);
+
+  const getCardListLabels = async () => {
+    try {
+      const response = await fetchCardListLabels(cardlistId);
+      setLabelsData(response);
+      handlefetchCardListLabels();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
 
   return (
@@ -68,14 +101,22 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
                     type="checkbox"
                     className="mr-2 accent-gray-500"
                     value={label.id}
-                    onChange={() => handleAddLabel(label.id)}
+                    checked={labelsData.some((ldata) => ldata.labelId === label.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        handleAddLabel(label.id);
+                      } else {
+                        handleRemoveLabel(label.id);
+                      }
+                    }}
                   />
-                  <div style={{ backgroundColor: label.color}} className={`w-full h-8 rounded-md flex items-center px-2`}>
+                  <div style={{ backgroundColor: label.color }} className={`w-full h-8 rounded-md flex items-center px-2`} onClick={() => handleEditLabel(label.id)}>
                     <span className="text-white font-semibold">{label.name}</span>
                   </div>
                 </div>
                 <button className="ml-2 text-gray-400 hover:text-gray-600">
-                  <i className="fas fa-trash text-red-500"></i>
+                  <i className="fas fa-trash text-red-500" onClick={() => handleDeleteCardlist(label.id)}></i>
+
                 </button>
               </li>
             ))}
@@ -88,11 +129,25 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
           </button>
         </div>
       </div>
-      {openCreate &&
-        <div className="containerPopup fixed inset-0 flex items-center justify-center z-50">
-          <EditLabel onCloseCreate={handleCloseCreate} workspaceId={workspaceId} funcfetchLabels={funcfetchLabels} />
-        </div>
-      }
+      {openCreate && (
+      <EditLabel
+        onCloseCreate={() => setOpenCreate(false)}
+        workspaceId={workspaceId}
+        funcfetchLabels={funcfetchLabels}
+      />
+    )}
+
+    {openEdit && (
+      <EditLabel
+        onCloseCreate={() => setOpenEdit(false)}
+        workspaceId={workspaceId}
+        funcfetchLabels={funcfetchLabels}
+        labelId={editingLabelId}
+        initialName={labels.find((label: { id: string | null; }) => label.id === editingLabelId)?.name}
+        initialColor={labels.find((label: { id: string | null; }) => label.id === editingLabelId)?.color}
+        handlefetchCardListLabels={handlefetchCardListLabels}
+      />
+    )}
     </>
   );
 };

@@ -16,22 +16,6 @@ export const fetchLabels = async (workspaceId: string) => {
         throw error;
     }
 };
-export const fetchCardlistLabel = async (cardlistId: string) => {
-    try {
-        const response = await axios.get(`${config}/cardlist/Take-cardlistLabels/${cardlistId}`, {
-            headers: {
-                'Authorization': localStorage.getItem('token'),
-                'Content-Type': 'application/json'
-            }
-        });
-
-        return response.data
-    } catch (error) {
-        console.error('Failed to fetch cardlist labels:', error);
-        throw error;
-    }
-
-}
 export const createCardListLabel = async (workspaceId: string, name: string, color: string) => {
     try {
         const response = await axios.post(config + "/cardlist/create-labels", {
@@ -53,7 +37,7 @@ export const createCardListLabel = async (workspaceId: string, name: string, col
 };
 export const updateCardListLabel = async (labelId: string, name: string, color: string) => {
     try {
-        const response = await axios.put(config + "/cardlist/update-label", {
+        const response = await axios.put(config + "/cardlist/update-Labels", {
             labelId,
             name,
             color
@@ -70,10 +54,10 @@ export const updateCardListLabel = async (labelId: string, name: string, color: 
         throw error;
     }
 };
-export const addLabelToCardList = async (cardlistId: string, labelId: string) => {
+export const addLabelToCardList = async (cardListId: string, labelId: string) => {
     try {
         const response = await axios.post(config + "/cardlist/add-label", {
-            cardlistId,
+            cardListId,
             labelId
         }, {
             headers: {
@@ -90,7 +74,7 @@ export const addLabelToCardList = async (cardlistId: string, labelId: string) =>
 };
 export const deleteLabelFromWorkspace = async (cardlistLabelId: string) => {
     try {
-        const response = await axios.post(`${config}/cardlist/remove-label/${cardlistLabelId}`, {}, {
+        const response = await axios.delete(`${config}/cardlist/remove-label/${cardlistLabelId}`, {
             headers: {
                 'Authorization': localStorage.getItem('token'),
                 'Content-Type': 'application/json'
@@ -103,3 +87,37 @@ export const deleteLabelFromWorkspace = async (cardlistLabelId: string) => {
         throw error;
     }
 };
+export const fetchCardListLabels = async (cardListId: string) => {
+    try {
+      const response = await axios.get(`${config}/cardlist/take-label-cl/${cardListId}`, {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch card list labels:', error);
+      throw error;
+    }
+  };
+  export const removeLabelFromCardList = async (labelId: string, cardListId: string) => {
+    try {
+      const response = await axios.delete(`${config}/cardlist/remove-label-cl`, {
+        data: {
+          labelId,
+          cardListId
+        },
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      return response.data;
+    } catch (error) {
+      console.error('Failed to remove label from card list:', error);
+      throw error;
+    }
+  };
