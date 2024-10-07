@@ -26,7 +26,7 @@ const AttachPopup: React.FC<AttachPopupProps> = ({
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setAttachmentName(file.name); // Set initial attachment name as file name
+      setAttachmentName(file.name);
       setDisplayText(file.name);
     }
   };

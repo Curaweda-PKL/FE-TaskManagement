@@ -4,7 +4,7 @@ import config from '../config/baseUrl';
 export const fetchWorkspaces = async (_workspaceId: any) => {
   try {
     const response = await axios.get(
-      config + '/workspace/take' , {
+      config + '/workspace/take', {
       headers: {
         'Authorization': localStorage.getItem('token'),
         'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ export const memberWorkspace = async (workspaceId: any) => {
   }
 };
 
-export const getProfilePhotoMember = async (userId: any): Promise<string> => {
+export const getProfilePhotoMember = async (userId: any): Promise<any> => {
   try {
     const response = await axios.get(
       `${config}/user/get-PhotoProfile/${userId}`,
@@ -114,19 +114,14 @@ export const getProfilePhotoMember = async (userId: any): Promise<string> => {
       }
     );
 
+
     const blobUrl = URL.createObjectURL(response.data);
 
-    console.log(response.data);
-    console.log(blobUrl);
 
     return blobUrl;
   } catch (error: any) {
     console.error('Failed to fetch profile photo:', error);
-    if (error.response && error.response.data && error.response.data.error) {
-      throw new Error(error.response.data.error);
-    } else {
-      throw new Error('Failed to fetch profile photo. Please try again.');
-    }
+    return null
   }
 };
 

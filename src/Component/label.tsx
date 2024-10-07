@@ -48,8 +48,6 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
   }, [cardlistId]);
 
 
-
-
   return (
     <>
       <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

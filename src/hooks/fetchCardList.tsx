@@ -95,6 +95,27 @@ export const deleteCardList = async (cardListId: any) => {
     throw error;
   }
 }
+
+export const getMemberCardList = async (id: any) => {
+  try {
+    const response = await axios.post(
+      `${config}/cardlist/take-Member/${id}`,
+      { id },
+      {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to join card list:', error);
+    throw error;
+  }
+};
+
 export const joinCardList = async (cardListId: any, userId: any) => {
   try {
     const response = await axios.post(
@@ -114,6 +135,7 @@ export const joinCardList = async (cardListId: any, userId: any) => {
     throw error;
   }
 };
+
 export const outCardList = async (cardListId: any, userId: any) => {
   try {
     const response = await axios.delete(
@@ -178,7 +200,7 @@ export const createAttachment = async (cardListId: string, file: File, attachmen
     
     return {
       ...response.data,
-      name: attachmentName  // Include the attachment name in the returned data
+      name: attachmentName
     };
   } catch (error) {
     console.error('Failed to create attachment:', error);
