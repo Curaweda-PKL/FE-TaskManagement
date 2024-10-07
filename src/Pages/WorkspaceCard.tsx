@@ -94,11 +94,15 @@ const WorkspaceProject = () => {
   const [activeCardRect, setActiveCardRect] = useState(null);
   const [isEditCard, setIsEditCard] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteCardlist, setDeleteCardlist] = useState(false);
   const [cardListToDelete, setCardListToDelete] = useState(null);
   const [editingListName, setEditingListName] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [showDeleteAttachmentConfirmation, setShowDeleteAttachmentConfirmation] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -246,6 +250,24 @@ const WorkspaceProject = () => {
 
   const handleCloseEditLabel = () => {
     setIsEditLabelOpen(false);
+  };
+
+  const handleDeleteAttachmentClick = (attachment:any) => {
+    setAttachmentToDelete(attachment);
+    setShowDeleteAttachmentConfirmation(true);
+  };
+  
+  const confirmDeleteAttachment = async () => {
+    if (attachmentToDelete) {
+      await handleDeleteAttachment(attachmentToDelete.id);
+      setShowDeleteAttachmentConfirmation(false);
+      setAttachmentToDelete(null);
+    }
+  };
+  
+  const cancelDeleteAttachment = () => {
+    setShowDeleteAttachmentConfirmation(false);
+    setAttachmentToDelete(null);
   };
 
   useEffect(() => {
@@ -454,7 +476,7 @@ const WorkspaceProject = () => {
   };
 
   const cancelDeleteCardList = () => {
-    setShowDeleteConfirmation(false);
+    setDeleteCardlist(false);
     setCardListToDelete(null);
   };
 
@@ -497,7 +519,7 @@ const WorkspaceProject = () => {
 
   const handleDeleteCardList = async (cardListId: any) => {
     setCardListToDelete(cardListId);
-    setShowDeleteConfirmation(true);
+    setDeleteCardlist(true);
   };
 
   const confirmDeleteCardList = async () => {
@@ -515,6 +537,7 @@ const WorkspaceProject = () => {
       setShowDeleteConfirmation(false);
       setCardListToDelete(null);
     }
+    setDeleteCardlist(false);
   };
 
   useEffect(() => {
@@ -572,11 +595,12 @@ const WorkspaceProject = () => {
     if (isPopupOpen && selectedCardList) {
       const fetchAttachments = async () => {
         try {
-          const attachmentPromises = selectedCardList.attachments.map(async (attachment: any) => {
+          const attachmentPromises = selectedCardList.attachments.map(async (attachment) => {
             const blobUrl = await fetchCardListAttachments(attachment.attachmentId);
             return {
               id: attachment.attachmentId,
-              url: blobUrl
+              url: blobUrl,
+              name: attachment.attachment.name // Use the name from the existing attachment object
             };
           });
           const fetchedAttachments = await Promise.all(attachmentPromises);
@@ -589,13 +613,13 @@ const WorkspaceProject = () => {
     }
   }, [isPopupOpen, selectedCardList]);
 
-  const handleAttachmentCreated = (newAttachment: any) => {
+  const handleAttachmentCreated = (newAttachment:any) => {
     setCardData(prevCardData =>
       prevCardData.map(card => {
         if (card.id === selectedCardList.cardId) {
           return {
             ...card,
-            cardList: card.cardList.map((list: any) =>
+            cardList: card.cardList.map((list:any) =>
               list.id === selectedCardList.id
                 ? {
                   ...list,
@@ -605,7 +629,7 @@ const WorkspaceProject = () => {
                     attachment: {
                       id: newAttachment.id,
                       url: newAttachment.url,
-                      name: newAttachment.name  // Include the attachment name
+                      name: newAttachment.name
                     }
                   }]
                 }
@@ -617,6 +641,10 @@ const WorkspaceProject = () => {
       })
     );
     setAttachments(prevAttachments => [...prevAttachments, newAttachment]);
+  };
+
+  const handleAttachImage = (attachment) => {
+    setSelectedImage(attachment);
   };
 
   const handleDeleteAttachment = async (attachmentId: string) => {
@@ -781,8 +809,9 @@ const WorkspaceProject = () => {
       )}
 
       {isPopupOpen && selectedCardList && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-[650px]">
+        <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-4">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+          <div className="sticky top-0 bg-white z-10 p-6 border-b">
             <div className="flex justify-between items-center mb-4">
               {editingListName ? (
                 <input
@@ -855,7 +884,8 @@ const WorkspaceProject = () => {
                     {attachments.map((attachment, index) => (
                       <>
                         <div className='flex items-center text-black'>
-                          <div className='flex bg-gray-200 my-5 p-0 w-28 h-16 items-center justify-center'>
+                          <div className='flex bg-gray-200 my-5 p-0 w-28 h-16 items-center justify-center'
+                              onClick={() => handleAttachImage(attachment)}>
                             <img
                               key={index}
                               src={attachment.url}
@@ -866,12 +896,11 @@ const WorkspaceProject = () => {
                           <div className='ml-5 text-gray-800 text-sm'>
                             <p className="font-semibold text-base">{attachment.name}</p>
                             <div className="flex flex-wrap gap-2">
-                              <p className="text-gray-500">Added 1 mt</p>
                               <button className="underline">Comment</button>
                               <button className="underline">Download</button>
                               <button
                                 className="underline"
-                                onClick={() => handleDeleteAttachment(attachment.id)}
+                                onClick={() => handleDeleteAttachmentClick(attachment)}
                                 disabled={isDeleting}
                               >
                                 Delete
@@ -971,7 +1000,7 @@ const WorkspaceProject = () => {
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black">
                   Custom Field
                 </div>
-
+                </div>
               </div>
             </div>
           </div>
@@ -1035,6 +1064,24 @@ const WorkspaceProject = () => {
         </>
       )}
 
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-auto">
+          <div className="relative">
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.name}
+              className="object-fit max-h-screen"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
+
       {showDeleteConfirmation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -1049,7 +1096,18 @@ const WorkspaceProject = () => {
         </div>
       )}
 
-      {showDeleteConfirmation && (
+      {showDeleteAttachmentConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-50"></div>
+          <DeleteConfirmation
+            onDelete={confirmDeleteAttachment}
+            onCancel={cancelDeleteAttachment}
+            itemType="attachment"
+          />
+        </div>
+      )}
+
+      {deleteCardlist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-50"></div>
           <DeleteConfirmation
