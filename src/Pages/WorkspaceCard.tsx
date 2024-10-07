@@ -15,8 +15,8 @@ import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import useAuth from '../hooks/fetchAuth';
-import { fetchLabels } from '../hooks/ApiLabel';
-import  DescriptionEditor  from '../Component/descriptionEditor'
+import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
+import DescriptionEditor from '../Component/descriptionEditor'
 
 
 const WorkspaceProject = () => {
@@ -261,6 +261,35 @@ const WorkspaceProject = () => {
     };
   }, []);
 
+  const [labelColors, setLabelColors] = useState([]);
+
+  useEffect(() => {
+    const handlefetchCardListLabels = async () => {
+      try {
+        const labels = await fetchCardListLabels(selectedCardList?.id);
+        const colors = labels.map((label: { label: { color: any; }; }) => label.label.color);
+        setLabelColors(colors);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    if (selectedCardList) {
+      handlefetchCardListLabels();
+    }
+  }, [selectedCardList]);
+
+  const handlefetchCardListLabels = async () => {
+    try {
+      const labels = await fetchCardListLabels(selectedCardList?.id);
+      const colors = labels.map((label: { label: { color: any; }; }) => label.label.color);
+      setLabelColors(colors);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+
   const fetchData = async () => {
     try {
       const boardData = await fetchBoards(workspaceId);
@@ -455,7 +484,7 @@ const WorkspaceProject = () => {
       await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
-        cardList: card.cardList.map(list =>
+        cardList: card.cardList.map((list: { id: any; }) =>
           list.id === listId ? { ...list, name: newName } : list
         )
       }));
@@ -780,7 +809,10 @@ const WorkspaceProject = () => {
             <div className="cardlist flex gap-10 max768:flex-col">
               <div className="cardliststart w-full max768:w-full flex-[3]">
                 <div className="flex flex-row gap-10 mb-3">
-                  <div className="memberColor h-6 w-12 bg-red-500 rounded"></div>
+                  {labelColors.map((color, index) => (
+                    <div key={index} style={{ backgroundColor: color }} className={`memberColor h-6 w-12 rounded mb-2`}>
+                    </div>
+                  ))}
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 rounded w-fit bg-gray-300 border-none text-black">
                     <i className="fas fa-eye"></i>Activity
                   </div>
@@ -1046,6 +1078,7 @@ const WorkspaceProject = () => {
             cardlistId={selectedCardList.id}
             workspaceId={workspaceId !== undefined ? workspaceId : ''}
             funcfetchLabels={funcfetchLabels}
+            handlefetchCardListLabels={handlefetchCardListLabels}
           />
         </div>
       )}

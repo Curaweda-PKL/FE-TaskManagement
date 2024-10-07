@@ -1,25 +1,41 @@
 import { useState } from 'react';
-import { createCardListLabel } from '../hooks/ApiLabel';
+import { createCardListLabel, updateCardListLabel } from '../hooks/ApiLabel';
 
 interface EditLabelProps {
   onCloseCreate: () => void;
   funcfetchLabels: () => void;
-  workspaceId: string
+  workspaceId: string;
+  labelId?: string; // add this prop to identify the label being edited
+  initialName?: string; // add this prop to set the initial name of the label
+  initialColor?: string; // add this prop to set the initial color of the label
+  handlefetchCardListLabels?: () => void
 }
 
-const EditLabel: React.FC<EditLabelProps> = ({ onCloseCreate, workspaceId, funcfetchLabels }) => {
-  const [labelColor, setLabelColor] = useState('#ffffff');
-  const [name, setName] = useState('');
+const EditLabel: React.FC<EditLabelProps> = ({
+  onCloseCreate,
+  workspaceId,
+  funcfetchLabels,
+  labelId,
+  initialName,
+  initialColor,
+  handlefetchCardListLabels
+}) => {
+  const [labelColor, setLabelColor] = useState(initialColor || '#ffffff');
+  const [name, setName] = useState(initialName || '');
 
-  const handleCrateLabel = async (workspaceId: string, name: string, labelColor: string) => {
-    try {
+  const handleSubmit = async () => {
+    if (labelId) {
+      await updateCardListLabel(labelId, name, labelColor);
+      if (handlefetchCardListLabels) {
+        handlefetchCardListLabels();
+      }
+    } else {
       await createCardListLabel(workspaceId, name, labelColor);
-      await funcfetchLabels();
-      onCloseCreate()
-    } catch (error) {
-      console.error(error);
     }
-  }
+    await funcfetchLabels();
+    onCloseCreate();
+  };
+
 
 
   return (
@@ -58,12 +74,14 @@ const EditLabel: React.FC<EditLabelProps> = ({ onCloseCreate, workspaceId, funcf
           </div>
         </div>
         <div className="flex justify-between">
-          <button
-            className="bg-purple-600 text-sm text-white font-medium py-1 px-10 rounded-lg hover:bg-purple-700"
-            onClick={() => handleCrateLabel(workspaceId, name, labelColor)}
-          >
-            Save
-          </button>
+          <div className="flex justify-between">
+            <button
+              className="bg-purple-600 text-sm text-white font-medium py-1 px-10 rounded-lg hover:bg-purple-700"
+              onClick={handleSubmit}
+            >
+              {labelId ? 'Update' : 'Save'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
