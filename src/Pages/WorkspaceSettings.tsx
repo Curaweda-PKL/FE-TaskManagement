@@ -4,6 +4,7 @@ import WorkspaceHeader from '../Component/WorkspaceHeader';
 import CreateWorkspace from '../Component/CreateWorkspace';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import { fetchWorkspaces, deleteWorkspace, updateWorkspace } from '../hooks/fetchWorkspace';
+import CustomFieldSettings from '../Component/customField';
 
 const WorkspaceSettings: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -15,6 +16,7 @@ const WorkspaceSettings: React.FC = () => {
   const [workspaceDescription, setWorkspaceDescription] = useState('');
   const navigate = useNavigate();
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchWorkspaceData = async () => {
@@ -65,13 +67,11 @@ const WorkspaceSettings: React.FC = () => {
       } catch (error: any) {
         console.error('Failed to delete workspace:', error);
         let errorMessage = 'Failed to delete workspace. Please try again.';
-        
-        // Periksa apakah error response mengandung pesan spesifik
-        if (error.response?.data && Array.isArray(error.response.data) && 
-            error.response.data.length > 0 && error.response.data[0].message === "not owner in this workspace") {
+        if (error.response?.data && Array.isArray(error.response.data) &&
+          error.response.data.length > 0 && error.response.data[0].message === "not owner in this workspace") {
           errorMessage = 'You are not the owner of this workspace and cannot delete it.';
         }
-        
+
         setAlert({ type: 'error', message: errorMessage });
       }
     }
@@ -85,22 +85,22 @@ const WorkspaceSettings: React.FC = () => {
   const handleUpdateWorkspace = async () => {
     const isPublic = visibility === 'Public';
     try {
-        await updateWorkspace(workspaceId, workspaceName, workspaceDescription, workspace.ownerId, isPublic);
-        setAlert({ type: 'success', message: 'Workspace updated successfully.' });
-        const workspaces = await fetchWorkspaces(workspaceId);
-        const updatedWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
-        setWorkspace(updatedWorkspace);
-        closeAllPopups();
+      await updateWorkspace(workspaceId, workspaceName, workspaceDescription, workspace.ownerId, isPublic);
+      setAlert({ type: 'success', message: 'Workspace updated successfully.' });
+      const workspaces = await fetchWorkspaces(workspaceId);
+      const updatedWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      setWorkspace(updatedWorkspace);
+      closeAllPopups();
     } catch (error) {
-        console.error('Failed to update workspace:', error);
-        setAlert({ type: 'error', message: 'Failed to update workspace. Please try again.' });
+      console.error('Failed to update workspace:', error);
+      setAlert({ type: 'error', message: 'Failed to update workspace. Please try again.' });
     }
   };
 
   const handleVisibilityChange = async (newVisibility: 'Private' | 'Public') => {
     const isPublic = newVisibility === 'Public';
     console.log(`Updating visibility to: ${newVisibility}, isPublic: ${isPublic}`);
-    
+
     try {
       await updateWorkspace(workspaceId, workspace.name, workspace.description, workspace.ownerId, isPublic);
       setVisibility(newVisibility);
@@ -133,6 +133,17 @@ const WorkspaceSettings: React.FC = () => {
 
       <div className='py-10 text-black px-16'>
         <h2 className='text-xl font-medium mb-4'>Workspace Settings</h2>
+
+        <div className='mb-6 relative'>
+          <h3 className='text-lg mb-2 border-b py-1'>Custom Fields</h3>
+          <button
+            onClick={() => setIsCustomFieldModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-md hover:bg-gray-50"
+          >
+            <i className="fas fa-cog"></i>
+            Custom Field Settings
+          </button>
+        </div>
 
         <div className='mb-6 relative'>
           <h3 className='text-lg mb-2 border-b py-1'>Workspace visibility</h3>
@@ -191,6 +202,11 @@ const WorkspaceSettings: React.FC = () => {
               </div>
             </div>
           )}
+
+          <CustomFieldSettings
+            isOpen={isCustomFieldModalOpen}
+            onClose={() => setIsCustomFieldModalOpen(false)}
+          />
 
           {isEditModalOpen && (
             <CreateWorkspace
