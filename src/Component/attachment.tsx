@@ -115,18 +115,6 @@ const AttachPopup: React.FC<AttachPopupProps> = ({
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">
-            Display text (optional)
-          </label>
-          <input
-            type="text"
-            value={displayText}
-            onChange={(e) => setDisplayText(e.target.value)}
-            className="w-full bg-gray-200 text-sm p-2 py-3 rounded-lg"
-          />
-        </div>
-
         <div className="flex justify-end gap-2 mt-4">
           <button
             onClick={handleCloseAttachPopup}
