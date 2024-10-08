@@ -54,7 +54,7 @@ export const createCard = async (boardId: any, name: any) => {
     throw error;
   }
 };
-export const deleteCard = async (cardId: any) => {
+export const deleteCard = async (CardId: any) => {
   try {
     const response = await axios.delete(
       `${config}/card/delete`,
@@ -63,7 +63,7 @@ export const deleteCard = async (cardId: any) => {
           'Authorization': `${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        data: { cardId }
+        data: { CardId }
       }
     );
 

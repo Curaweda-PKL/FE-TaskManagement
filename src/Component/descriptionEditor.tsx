@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
-import { updateCardList } from '../hooks/fetchCardList';
 
 interface DescriptionEditorProps {
   initialDescription: string;
@@ -8,9 +7,10 @@ interface DescriptionEditorProps {
   onSave: (description: string) => void;
 }
 
-const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescription, cardListId, onSave }) => {
+const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescription, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(initialDescription);
+  const [prevDescription, setPrevDescription] = useState(initialDescription);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
@@ -20,16 +20,8 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
 
   useEffect(() => {
     setDescription(initialDescription);
-}, [initialDescription]);
-
-  const handleUpdateDescription = async () => {
-    try {
-      await updateCardList(cardId, '', description, 0);
-      console.log('Description updated successfully');
-    } catch (error) {
-      console.error('Failed to update description:', error);
-    }
-  };
+    setPrevDescription(initialDescription);
+  }, [initialDescription]);
 
   const headingOptions = [
     { label: 'Normal text', value: 'normal' },
@@ -143,16 +135,17 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
     });
     formatted = formatted.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-500 hover:underline" target="_blank">$1</a>');
 
-    return formatted;
+    return formatted.replace(/\n/g, '<br/>');
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setDescription('');
+    setDescription(prevDescription);
   };
 
   const handleSave = () => {
     onSave(description);
+    setPrevDescription(description);
     setIsEditing(false);
   };
 
@@ -162,7 +155,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
 
       {!isEditing ? (
         <div 
-          className="bg-gray-200 p-3 rounded min-h-[50px] cursor-pointer"
+          className="bg-gray-300 text-gray-600 p-3 rounded min-h-[50px] cursor-pointer"
           onClick={() => setIsEditing(true)}
           dangerouslySetInnerHTML={{ __html: renderFormattedDescription() }}
         />
@@ -240,6 +233,13 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
               onClick={() => setShowLinkDialog(true)}
             >
               <Link2 size={16} />
+            </button>
+
+            <button 
+              className="p-1 hover:bg-gray-200 rounded"
+              onClick={() => applyTextStyle('image')}
+            >
+              <Image size={16} />
             </button>
 
             {showLinkDialog && (

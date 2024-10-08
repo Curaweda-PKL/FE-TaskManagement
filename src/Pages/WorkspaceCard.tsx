@@ -96,6 +96,7 @@ const WorkspaceProject = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteCardlist, setDeleteCardlist] = useState(false);
   const [cardListToDelete, setCardListToDelete] = useState(null);
+  const [cardToDelete, setCardToDelete] = useState(null);
   const [editingListName, setEditingListName] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -368,10 +369,8 @@ const WorkspaceProject = () => {
                 if (card && card.id) {
                   const cardListData = await fetchCardList(card.id);
 
-                  // Memastikan cardListData adalah array
                   const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
 
-                  // Fetch profile photos for each member in each list
                   const updatedCardList = await Promise.all(cardList.map(async (list) => {
                     if (list.members && list.members.length > 0) {
                       const membersWithPhotos = await Promise.all(
@@ -388,7 +387,6 @@ const WorkspaceProject = () => {
                     return list;
                   }));
 
-                  // Fetch attachment details
                   const cardListWithAttachments = await Promise.all(
                     updatedCardList.map(async (cardList: any) => {
                       if (cardList.attachments && cardList.attachments.length > 0) {
@@ -463,17 +461,25 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleDeleteCard = async (card: any) => {
+  const handleDeleteCard = async (cardId: any) => {
+    setCardToDelete(cardId);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteCard = async () => {
     try {
-      await deleteCard(card.id);
-      const updatedCardData = cardData.filter((item: any) => item.id !== card.id);
+      await deleteCard(cardToDelete);
+      const updatedCardData = cardData.filter((card: any) => card.id !== cardToDelete);
       setCardData(updatedCardData);
-      setDropdownOpen(null);
+      handleClosePopup();
     } catch (error) {
       console.error("Error deleting card:", error);
+    } finally {
+      setShowDeleteConfirmation(false);
+      setCardToDelete(null);
     }
-    setShowDeleteConfirmation(false);
   };
+
 
   const cancelDeleteCardList = () => {
     setDeleteCardlist(false);
@@ -663,7 +669,7 @@ const WorkspaceProject = () => {
         setAttachments(prevAttachments =>
           prevAttachments.filter(attachment => attachment.id !== attachmentId)
         );
-        await fetchData(); // Refresh the data
+        await fetchData();
       } else {
         console.error('Delete attachment failed:', response.message, response.error);
         setDeleteError(response.message);
@@ -719,6 +725,26 @@ const WorkspaceProject = () => {
                 >
                   <i className="fas fa-ellipsis-h"></i>
                 </button>
+                <div className="absolute top-10 right-2 z-20" >
+                  {dropdownOpen === index && (
+                    <div className="w-28 bg-white shadow-xl rounded-lg" ref={dropdownRef}>
+                      <ul className="py-2">
+                        <li
+                          className="px-4 py-2 rounded-t-lg hover:bg-gray-100 cursor-pointer text-gray-700"
+                          onClick={() => handleOpenEditCard(card)}
+                        >
+                          Edit
+                        </li>
+                        <li
+                          className="px-4 py-2 rounded-b-lg hover:bg-gray-100 hover:text-red-500 cursor-pointer text-gray-700"
+                          onClick={() => handleDeleteCard(card)}
+                        >
+                          Delete
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
 
                 <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
                 <ul className="space-y-2">
@@ -749,26 +775,6 @@ const WorkspaceProject = () => {
                 >
                   + Add list
                 </button>
-                <div className="absolute top-10 right-2 z-20" >
-                  {dropdownOpen === index && (
-                    <div className="w-28 bg-white shadow-xl rounded-lg" ref={dropdownRef}>
-                      <ul className="py-2">
-                        <li
-                          className="px-4 py-2 rounded-t-lg hover:bg-gray-100 cursor-pointer text-gray-700"
-                          onClick={() => handleOpenEditCard(card)}
-                        >
-                          Edit
-                        </li>
-                        <li
-                          className="px-4 py-2 rounded-b-lg hover:bg-gray-100 hover:text-red-500 cursor-pointer text-gray-700"
-                          onClick={() => handleDeletePopUp(card)}
-                        >
-                          Delete
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
               </div>
             ))
           )}
@@ -831,6 +837,23 @@ const WorkspaceProject = () => {
                   {selectedCardList.name}
                 </h2>
               )}
+
+              <select
+                value={selectedCardList.score}
+                onChange={(e) => {
+                  const newScore = parseInt(e.target.value, 10);
+                  setSelectedCardList({ ...selectedCardList, score: newScore });
+                  handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, newScore);
+                }}
+                className="ml-4 border bg-gray-300 rounded p-1 text-black"
+              >
+                <option value="" disabled>Select Score</option>
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <option key={score} value={score}>
+                    {score}
+                  </option>
+                ))}
+              </select>
               <button onClick={handleClosePopup} className="text-gray-700 hover:text-gray-700">
                 <i className="fas fa-times"></i>
               </button>
@@ -933,7 +956,7 @@ const WorkspaceProject = () => {
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
                   <i className="fas fa-user"></i>Join
                 </div>
-                <div className="border-b-2 border-black"></div>
+                <div className="border-b border-black"></div>
 
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1"
                   onClick={() => handleOpenMemberPopup(selectedCardList)}>
@@ -963,7 +986,7 @@ const WorkspaceProject = () => {
 
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
                   onClick={() => handleOpenSubmitPopup(selectedCardList)}>
-                  <i className="fas fa-file-upload"></i>Submit
+                  <i className="fas fa-file-upload"></i>Complete
                 </div>
 
                 <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
@@ -1086,12 +1109,9 @@ const WorkspaceProject = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-50"></div>
           <DeleteConfirmation
-            initialData={currentCard}
-            onDelete={() => handleDeleteCard(currentCard)}
+            onDelete={confirmDeleteCard}
             onCancel={handleCancelPopUp}
-            itemType="card"
-            workspaceId={workspaceId}
-            boardId={boardId}
+            itemType="cardlist"
           />
         </div>
       )}

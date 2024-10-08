@@ -33,7 +33,7 @@ const SubmitPopup: React.FC<SubmitPopupProps> = ({ isSubmitPopupOpen, selectedCa
             onClick={handleCloseSubmitPopup}
             className="bg-purple-600 hover:bg-purple-700 text-white w-full py-2 rounded"
           >
-            Mark as done
+            Complete Task
           </button>
         </div>
       </div>
