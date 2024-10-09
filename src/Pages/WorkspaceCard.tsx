@@ -14,6 +14,9 @@ import AttachPopup from '../Component/attachment';
 import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
+import config from '../config/baseUrl';
+import io from 'socket.io-client';
+
 import useAuth from '../hooks/fetchAuth';
 import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
 import DescriptionEditor from '../Component/descriptionEditor'
@@ -408,6 +411,13 @@ const WorkspaceProject = () => {
             );
 
             setCardData(updatedCardData);
+            const socket = io(config);
+
+            socket.on(`board/${boardId}`, () => {
+              console.log(`Board updated for board ${boardId}`);
+              fetchData();
+            });
+
           }
         }
       } catch (error) {
@@ -442,6 +452,7 @@ const WorkspaceProject = () => {
 
   const handleEditCard = async (cardId: any, cardName: string) => {
     try {
+      setLoading(true);
       await updateCard(cardId, cardName);
       const updatedCardData = await fetchCard(boardId);
       if (updatedCardData) {
