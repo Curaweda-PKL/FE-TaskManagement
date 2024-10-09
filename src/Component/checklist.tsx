@@ -3,49 +3,81 @@ import React, { useState } from "react";
 import { format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { createChecklist } from "../hooks/ApiChecklist";
+import { createChecklist, updateChecklist } from "../hooks/ApiChecklist";
 
 
 interface ChecklistPopupProps {
   isOpen: any;
   onClose: any;
   selectedCardList: any;
+  handleTakeCardlistChecklist: ()  => void;
+  isEditMode: boolean;
+  existingChecklistData: any;
 }
 
-const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, selectedCardList }) => {
+const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, selectedCardList, handleTakeCardlistChecklist, isEditMode,  existingChecklistData }) => {
+
   if (!isOpen || !selectedCardList) return null;
 
-  const [items, setItems] = useState(['']);
+  const [items, setItems] = useState(isEditMode && existingChecklistData ? existingChecklistData.items : ['']);
+  const [startDate, setStartDate] = useState(isEditMode && existingChecklistData && existingChecklistData.startDate ? existingChecklistData.startDate : new Date());
+  const [endDate, setEndDate] = useState(isEditMode && existingChecklistData && existingChecklistData.endDate ? existingChecklistData.endDate : new Date());
+  const [title, setTitle] = useState(isEditMode && existingChecklistData && existingChecklistData.name ? existingChecklistData.name : '');
+
   const handleAddItem = () => {
     setItems([...items, '']);
   };
 
   const handleInputChange = (index: number, value: string) => {
-    setItems(items.map((item, i) => (i === index ? value : item)));
+    setItems(
+      items.map((item: any, i: any) => {
+        if (i === index) {
+          return { ...item, name: value }; // Preserve existing item properties and update name
+        }
+        return item;
+      })
+    );
   };
 
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-
-  const [title, setTitle] = useState('');
-
   const handleCreateChecklist = async () => {
-    const checklistDataWrapper = {
-      checklistData: {
-        cardListId: selectedCardList.id,
-        name: title,
-        startDate: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
-        endDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
-        items: items.map((item) => ({ name: item, isDone: false })),
-      },
-    };
-  
-    try {
-      const response = await createChecklist(checklistDataWrapper);
-      console.log(response);
-
-    } catch (error) {
-      console.error(error);
+    // if in edit mode, update the checklist instead of creating a new one
+    if (isEditMode) {
+      const updatedChecklistData = {
+        idChecklist: existingChecklistData.id,
+        checklistData: {
+          name: title,
+          startDate: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
+          endDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
+          items: items.map((item: any) => ({ name: item.name, isDone: false })),
+        },
+      };
+      try {
+        const response = await updateChecklist(updatedChecklistData);
+        console.log(response);
+        await handleTakeCardlistChecklist();
+        await onClose();
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      // create a new checklist
+      const checklistDataWrapper = {
+        checklistData: {
+          cardListId: selectedCardList.id,
+          name: title,
+          startDate: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
+          endDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
+          items: items.map((item: any) => ({ name: item.name, isDone: false })),
+        },
+      };
+      try {
+        const response = await createChecklist(checklistDataWrapper);
+        console.log(response);
+        await handleTakeCardlistChecklist();
+        await onClose();
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -53,7 +85,7 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-lg w-fit max-w-[750px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
         <div className="sticky top-0 bg-white z-10 p-6 border-b">
-          <div className="justify-center items-center mb-4">
+          <div className="justify-center items-center mb-4">
             <button
               onClick={onClose}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -81,11 +113,11 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                 <label className="block text-sm font-medium text-gray-700">
                   Item
                 </label>
-                {items.map((item, index) => (
+                {items.map((item: any, index: any) => (
                   <div key={index}>
                     <input
                       type="text"
-                      value={item}
+                      value={item.name}
                       onChange={(e) => handleInputChange(index, e.target.value)}
                       placeholder="Item Name"
                       className="w-full p-1 border border-gray-300 bg-white rounded-lg focus:outline"
