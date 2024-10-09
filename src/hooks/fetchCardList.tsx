@@ -159,7 +159,7 @@ export const outCardList = async (cardListId: any, userId: any) => {
 export const fetchCardListAttachments = async (attachmentId: string): Promise<Blob> => {
   try {
     const response = await axios.get(
-      `${config}/cardlist/takeAttachment/${attachmentId}`,
+      `${config}/cardlist/attachment/takeAttachment/${attachmentId}`,
       {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -189,7 +189,7 @@ export const createAttachment = async (cardListId: string, file: File, attachmen
     formData.append('cardListId', cardListId);
 
     const response = await axios.post(
-      `${config}/cardlist/createAttachment?cardListId=${cardListId}`,
+      `${config}/cardlist/attachment/createAttachment?cardListId=${cardListId}`,
       formData,
       {
         headers: {
@@ -211,7 +211,7 @@ export const createAttachment = async (cardListId: string, file: File, attachmen
 export const deleteAttachment = async (cardListId: string, attachmentId: string) => {
   try {
     const response = await axios.delete(
-      `${config}/cardlist/deleteAttachment/${attachmentId}`,
+      `${config}/cardlist/attachment/deleteAttachment/${attachmentId}`,
       {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
