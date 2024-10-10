@@ -5,6 +5,8 @@ import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fet
 import CreateBoard from '../Component/CreateBoard';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
+import config from '../config/baseUrl';
+import io from 'socket.io-client';
 
 const WorkspaceBoards: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: any }>();
@@ -32,6 +34,18 @@ const WorkspaceBoards: React.FC = () => {
   useEffect(() => {
     fetchWorkspaceData();
     fetchBoardsData();
+
+    const socket = io(config);
+
+    socket.on(`board/${workspaceId}`, () => {
+      fetchBoardsData();
+    });
+
+    return () => {
+      socket.off(`board/${workspaceId}`);
+      socket.disconnect();
+    };
+    
   }, [workspaceId]);
 
   useEffect(() => {
