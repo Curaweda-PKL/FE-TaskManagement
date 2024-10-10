@@ -58,8 +58,8 @@ const Workspace: React.FC = () => {
           return { ...workspace, boards };
         })
       );
-
       setWorkspaces(updatedWorkspaces);
+      
       const socket = io(config);
 
       // Loop through each workspaceId
@@ -68,7 +68,7 @@ const Workspace: React.FC = () => {
         socket.on(`board/${workspace.id}`, () => {
           console.log(`Board updated for workspace ${workspace.id}`);
           fetchData();
-        });
+        }); 
       });
       setLoading(false);
       return () => {
