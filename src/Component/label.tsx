@@ -80,6 +80,15 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
     }
   };
 
+  const getContrastColor = (hexColor:any) => {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    return brightness > 128 ? '#000000' : '#FFFFFF';
+  };
 
   return (
     <>
@@ -110,8 +119,8 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
                       }
                     }}
                   />
-                  <div style={{ backgroundColor: label.color }} className={`w-full h-8 rounded-md flex items-center px-2`} onClick={() => handleEditLabel(label.id)}>
-                    <span className="text-white font-semibold">{label.name}</span>
+                  <div style={{ backgroundColor: label.color, color: getContrastColor(label.color) }} className={`w-full h-8 rounded-md flex items-center px-2`} onClick={() => handleEditLabel(label.id)}>
+                    <span className="font-semibold">{label.name}</span>
                   </div>
                 </div>
                 <button className="ml-2 text-gray-400 hover:text-gray-600">
