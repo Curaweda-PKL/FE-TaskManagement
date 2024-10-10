@@ -119,7 +119,7 @@ export const getMemberCardList = async (id: any) => {
 export const joinCardList = async (cardListId: any, userId: any) => {
   try {
     const response = await axios.post(
-      `${config}/cardlist/join-cardlist/${cardListId}`,
+      `${config}/cardlist/member/join-cardlist/${cardListId}`,
       { cardListId, userId },
       {
         headers: {
@@ -159,7 +159,7 @@ export const outCardList = async (cardListId: any, userId: any) => {
 export const fetchCardListAttachments = async (attachmentId: string): Promise<Blob> => {
   try {
     const response = await axios.get(
-      `${config}/cardlist/takeAttachment/${attachmentId}`,
+      `${config}/cardlist/attachment/takeAttachment/${attachmentId}`,
       {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -189,7 +189,7 @@ export const createAttachment = async (cardListId: string, file: File, attachmen
     formData.append('cardListId', cardListId);
 
     const response = await axios.post(
-      `${config}/cardlist/createAttachment?cardListId=${cardListId}`,
+      `${config}/cardlist/attachment/createAttachment?cardListId=${cardListId}`,
       formData,
       {
         headers: {
@@ -211,7 +211,7 @@ export const createAttachment = async (cardListId: string, file: File, attachmen
 export const deleteAttachment = async (cardListId: string, attachmentId: string) => {
   try {
     const response = await axios.delete(
-      `${config}/cardlist/deleteAttachment/${attachmentId}`,
+      `${config}/cardlist/attachment/deleteAttachment/${attachmentId}`,
       {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -231,5 +231,65 @@ export const deleteAttachment = async (cardListId: string, attachmentId: string)
       message: error.response?.data?.message || 'Failed to delete attachment',
       error
     };
+  }
+};
+
+export const updateCardListStatus = async (id: string, status: string) => {
+  try {
+    const response = await axios.put(
+      `${config}/cardlist/other/update-status/${id}`,
+      { status },
+      {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update card list status:', error);
+    throw error;
+  }
+};
+
+export const setCardListInReview = async (id: string) => {
+  try {
+    const response = await axios.put(
+      `${config}/cardlist/other/set-in-review/${id}`,
+      {},
+      {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to set card list in review:', error);
+    throw error;
+  }
+};
+
+export const setCardListApproved = async (id: string) => {
+  try {
+    const response = await axios.put(
+      `${config}/cardlist/other/set-approved/${id}`,
+      {},
+      {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to set card list approved:', error);
+    throw error;
   }
 };

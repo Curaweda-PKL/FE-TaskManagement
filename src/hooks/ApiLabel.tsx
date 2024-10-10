@@ -3,7 +3,7 @@ import config from '../config/baseUrl';
 
 export const fetchLabels = async (workspaceId: string) => {
     try {
-        const response = await axios.get(`${config}/cardlist/take-labels/${workspaceId}`, {
+        const response = await axios.get(`${config}/cardlist/label/take-labels/${workspaceId}`, {
             headers: {
                 'Authorization': localStorage.getItem('token'),
                 'Content-Type': 'application/json'
@@ -18,7 +18,7 @@ export const fetchLabels = async (workspaceId: string) => {
 };
 export const createCardListLabel = async (workspaceId: string, name: string, color: string) => {
     try {
-        const response = await axios.post(config + "/cardlist/create-labels", {
+        const response = await axios.post(config + "/cardlist/label/create-labels", {
             workspaceId,
             name,
             color
@@ -37,7 +37,7 @@ export const createCardListLabel = async (workspaceId: string, name: string, col
 };
 export const updateCardListLabel = async (labelId: string, name: string, color: string) => {
     try {
-        const response = await axios.put(config + "/cardlist/update-Labels", {
+        const response = await axios.put(config + "/cardlist/label/update-Labels", {
             labelId,
             name,
             color
@@ -56,7 +56,7 @@ export const updateCardListLabel = async (labelId: string, name: string, color: 
 };
 export const addLabelToCardList = async (cardListId: string, labelId: string) => {
     try {
-        const response = await axios.post(config + "/cardlist/add-label", {
+        const response = await axios.post(config + "/cardlist/label/add-label", {
             cardListId,
             labelId
         }, {
@@ -74,7 +74,7 @@ export const addLabelToCardList = async (cardListId: string, labelId: string) =>
 };
 export const deleteLabelFromWorkspace = async (cardlistLabelId: string) => {
     try {
-        const response = await axios.delete(`${config}/cardlist/remove-label/${cardlistLabelId}`, {
+        const response = await axios.delete(`${config}/cardlist/label/delete-Label/${cardlistLabelId}`, {
             headers: {
                 'Authorization': localStorage.getItem('token'),
                 'Content-Type': 'application/json'
@@ -89,7 +89,7 @@ export const deleteLabelFromWorkspace = async (cardlistLabelId: string) => {
 };
 export const fetchCardListLabels = async (cardListId: string) => {
     try {
-      const response = await axios.get(`${config}/cardlist/take-label-cl/${cardListId}`, {
+      const response = await axios.get(`${config}/cardlist/label/take-label-cl/${cardListId}`, {
         headers: {
           'Authorization': localStorage.getItem('token'),
           'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ export const fetchCardListLabels = async (cardListId: string) => {
   };
   export const removeLabelFromCardList = async (labelId: string, cardListId: string) => {
     try {
-      const response = await axios.delete(`${config}/cardlist/remove-label-cl`, {
+      const response = await axios.delete(`${config}/cardlist/label/remove-label-cl`, {
         data: {
           labelId,
           cardListId

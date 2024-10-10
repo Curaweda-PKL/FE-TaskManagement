@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
-import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList, fetchCardListAttachments, deleteAttachment } from '../hooks/fetchCardList';
+import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList, fetchCardListAttachments, deleteAttachment, updateCardListStatus, setCardListApproved, setCardListInReview } from '../hooks/fetchCardList';
 import CreateCard from '../Component/createCard';
 import MemberPopup from '../Component/member';
 import LabelsPopup from '../Component/label';
@@ -20,6 +20,15 @@ import io from 'socket.io-client';
 import useAuth from '../hooks/fetchAuth';
 import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
 import DescriptionEditor from '../Component/descriptionEditor'
+import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
+
+interface ChecklistData {
+  id: string;
+  items: any;
+  endDate: ReactNode;
+  startDate: ReactNode;
+  name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined;
+}
 
 
 const WorkspaceProject = () => {
@@ -204,9 +213,14 @@ const WorkspaceProject = () => {
     setIsLabelsPopupOpen(false);
   };
 
-  const handleOpenChecklistPopup = (cardList: any) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [existingChecklistData, setExistingChecklistData] = useState<ChecklistData | null>(null);
+
+  const handleOpenChecklistPopup = (cardList: any, isEditMode: boolean, existingChecklistData: any) => {
     setSelectedCardList(cardList);
     setIsChecklistPopupOpen(true);
+    setIsEditMode(isEditMode);
+    setExistingChecklistData(existingChecklistData);
   };
 
   const handleCloseChecklistPopup = () => {
@@ -256,11 +270,11 @@ const WorkspaceProject = () => {
     setIsEditLabelOpen(false);
   };
 
-  const handleDeleteAttachmentClick = (attachment:any) => {
+  const handleDeleteAttachmentClick = (attachment: any) => {
     setAttachmentToDelete(attachment);
     setShowDeleteAttachmentConfirmation(true);
   };
-  
+
   const confirmDeleteAttachment = async () => {
     if (attachmentToDelete) {
       await handleDeleteAttachment(attachmentToDelete.id);
@@ -268,7 +282,7 @@ const WorkspaceProject = () => {
       setAttachmentToDelete(null);
     }
   };
-  
+
   const cancelDeleteAttachment = () => {
     setShowDeleteAttachmentConfirmation(false);
     setAttachmentToDelete(null);
@@ -293,13 +307,13 @@ const WorkspaceProject = () => {
     const handlefetchCardListLabels = async () => {
       try {
         const labels = await fetchCardListLabels(selectedCardList?.id);
-        const colors = labels.map((label: { label: { color: any; }; }) => label.label.color);
+        const colors = labels.map((label: { label: { color: any; }; }) => label.label);
         setLabelColors(colors);
       } catch (error) {
         console.error(error);
       }
     };
-  
+
     if (selectedCardList) {
       handlefetchCardListLabels();
     }
@@ -308,7 +322,7 @@ const WorkspaceProject = () => {
   const handlefetchCardListLabels = async () => {
     try {
       const labels = await fetchCardListLabels(selectedCardList?.id);
-      const colors = labels.map((label: { label: { color: any; }; }) => label.label.color);
+      const colors = labels.map((label: { label: { color: any; }; }) => label.label);
       setLabelColors(colors);
     } catch (error) {
       console.error(error);
@@ -630,13 +644,13 @@ const WorkspaceProject = () => {
     }
   }, [isPopupOpen, selectedCardList]);
 
-  const handleAttachmentCreated = (newAttachment:any) => {
+  const handleAttachmentCreated = (newAttachment: any) => {
     setCardData(prevCardData =>
       prevCardData.map(card => {
         if (card.id === selectedCardList.cardId) {
           return {
             ...card,
-            cardList: card.cardList.map((list:any) =>
+            cardList: card.cardList.map((list: any) =>
               list.id === selectedCardList.id
                 ? {
                   ...list,
@@ -693,6 +707,90 @@ const WorkspaceProject = () => {
     }
   };
 
+
+  const [checklistData, setChecklistData] = useState<{
+    id: string;
+    items: any;
+    endDate: ReactNode;
+    startDate: ReactNode; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined
+  }[] | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await takeCardListChecklist(selectedCardList.id);
+        setChecklistData(response);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (selectedCardList) {
+      fetchData();
+    }
+  }, [selectedCardList]);
+
+  const handleTakeCardlistChecklist = async () => {
+    try {
+      const response = await takeCardListChecklist(selectedCardList.id);
+      setChecklistData(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDeleteChecklist = async (checklistId: string) => {
+    try {
+      await deleteChecklist(checklistId);
+      handleTakeCardlistChecklist()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  const handleToggleIsDone = async (checklistData: any, itemIndex: number, isChecked: boolean, idChecklist: string) => {
+    const updatedItems = [...checklistData.items];
+    updatedItems[itemIndex].isDone = isChecked;
+
+    const data = {
+      idChecklist: idChecklist,
+      checklistData: {
+        name: checklistData.name,
+        startDate: checklistData.startDate,
+        endDate: checklistData.endDate,
+        items: updatedItems,
+      },
+    };
+
+    await updateChecklist(data);
+    handleTakeCardlistChecklist()
+  };
+
+  const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
+    switch (status) {
+      case 'APPROVED':
+        setCardListApproved(cardlistId);
+        break;
+      case 'IN_REVIEW':
+        setCardListInReview(cardlistId);
+        break;
+      default:
+        updateCardListStatus(cardlistId, status);
+    }
+    await fetchData();
+    await getProfilePhotoMember(cardlistId);
+  }
+
+
+  const getContrastColor = (hexColor: any) => {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+    return brightness > 128 ? '#000000' : '#FFFFFF';
+  };
+
   return (
     <>
       <header className="flex bg-gray-100 p-3 justify-between items-center">
@@ -736,6 +834,73 @@ const WorkspaceProject = () => {
                 >
                   <i className="fas fa-ellipsis-h"></i>
                 </button>
+
+                <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
+                <ul className="space-y-2">
+                  {card.cardList?.map((cardList: any, index: any) => (
+                    <li
+                      key={index}
+                      className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group relative"
+                      onClick={() => handleOpenPopup(cardList)}
+                    >
+                      <div className=" justify-between items-start">
+                        <span className="text-black text-sm">{cardList?.name}</span>
+                        <button
+                          className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePopUpCard(cardList, e);
+                          }}
+                        >
+                          <i className="fas fa-pencil-alt text-xs"></i>
+                        </button>
+                      </div>
+
+                      <div className='flex justify-end mt-2'>
+                        <div className='flex -space-x-1 items-center'>
+                          {cardList.members && cardList.members.length > 0 &&
+                            cardList.members.slice(0, 3).map((member: any) => (
+                              <img
+                                key={member.userId}
+                                src={member.photoUrl || '/path/to/default/avatar.png'}
+                                alt={`Profile of member ${member.userId}`}
+                                className="w-5 h-5 rounded-full object-cover"
+                              />
+                            ))
+                          }
+                          {cardList.members && cardList.members.length > 3 && (
+                            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
+                              +{cardList.members.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <select
+                        value={cardList?.status}
+                        onChange={(e) => {
+                          const newStatus = e.target.value;
+                          handleUpdateStatusCardlist(cardList.id, newStatus);
+                        }}
+                        onClick={(e) => e.stopPropagation()} // Add this line
+                        className="text-[10px] text-black bg-white"
+                      >
+                        <option value="TODO">To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="DONE">Done</option>
+                        <option value="IN_REVIEW">In Review</option>
+                        <option value="APPROVED">Approved</option>
+                        <option value="NOT_SURE">Not Sure</option>
+                      </select>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm"
+                  onClick={() => handleAddCardList(card.id)}
+                >
+                  + Add list
+                </button>
                 <div className="absolute top-10 right-2 z-20" >
                   {dropdownOpen === index && (
                     <div className="w-28 bg-white shadow-xl rounded-lg" ref={dropdownRef}>
@@ -748,7 +913,7 @@ const WorkspaceProject = () => {
                         </li>
                         <li
                           className="px-4 py-2 rounded-b-lg hover:bg-gray-100 hover:text-red-500 cursor-pointer text-gray-700"
-                          onClick={() => handleDeleteCard(card)}
+                          onClick={() => handleDeletePopUp(card)}
                         >
                           Delete
                         </li>
@@ -756,36 +921,6 @@ const WorkspaceProject = () => {
                     </div>
                   )}
                 </div>
-
-                <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
-                <ul className="space-y-2">
-                  {card.cardList?.map((cardList: any, index: any) => (
-                    <li
-                      key={index}
-                      className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
-                      onClick={() => handleOpenPopup(cardList)}
-                    >
-                      <div className="flex items-center">
-                        <div className={`w-2 h-2 rounded-full ${card?.color} mr-2`}></div>
-                        <span className="text-black text-sm">{cardList?.name}</span>
-                      </div>
-                      <button className="text-gray-400">
-                        <i className="fas fa-pencil-alt h-3 w-3"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePopUpCard(cardList, e);
-                          }}></i>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm"
-                  onClick={() => handleAddCardList(card.id)}
-                >
-                  + Add list
-                </button>
               </div>
             ))
           )}
@@ -827,213 +962,254 @@ const WorkspaceProject = () => {
 
       {isPopupOpen && selectedCardList && (
         <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-4">
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
-          <div className="sticky top-0 bg-white z-10 p-6 border-b">
-            <div className="flex justify-between items-center mb-4">
-              {editingListName ? (
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={selectedCardList.name}
-                  onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                  onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score)}
-                  autoFocus
-                  className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
-                />
-              ) : (
-                <h2
-                  className="text-xl font-semibold text-gray-800 cursor-pointer"
-                  onClick={() => setEditingListName(true)}
-                >
-                  {selectedCardList.name}
-                </h2>
-              )}
-
-              <select
-                value={selectedCardList.score}
-                onChange={(e) => {
-                  const newScore = parseInt(e.target.value, 10);
-                  setSelectedCardList({ ...selectedCardList, score: newScore });
-                  handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, newScore);
-                }}
-                className="ml-4 border bg-gray-300 rounded p-1 text-black"
-              >
-                <option value="" disabled>Select Score</option>
-                {[1, 2, 3, 4, 5].map((score) => (
-                  <option key={score} value={score}>
-                    {score}
-                  </option>
-                ))}
-              </select>
-              <button onClick={handleClosePopup} className="text-gray-700 hover:text-gray-700">
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="cardlist flex gap-10 max768:flex-col">
-              <div className="cardliststart w-full max768:w-full flex-[3]">
-                <div className="flex flex-row gap-10 mb-3">
-                  {labelColors.map((color, index) => (
-                    <div key={index} style={{ backgroundColor: color }} className={`memberColor h-6 w-12 rounded mb-2`}>
-                    </div>
-                  ))}
-                  <div className="btn hover:bg-gray-400 min-h-6 h-2 rounded w-fit bg-gray-300 border-none text-black">
-                    <i className="fas fa-eye"></i>Activity
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <h2 className="text-black mb-3 font-semibold text-lg">Members</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedCardList.members && selectedCardList.members.length > 0 ? (
-                      selectedCardList.members.map((member: any) => (
-                        <div key={member.userId} className="flex flex-col items-center">
-                          <img
-                            src={member.photoUrl || '/path/to/default/avatar.png'}
-                            alt={`Profile of ${member.userId}`}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">No members assigned to this card</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <DescriptionEditor
-                    initialDescription={selectedCardList.description}
-                    onSave={(description: any) => {
-                      setSelectedCardList({ ...selectedCardList, description });
-                      handleUpdateListName(selectedCardList.id, selectedCardList.name, description, selectedCardList.score);
-                    }}
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="sticky top-0 bg-white z-10 p-6 border-b">
+              <div className="flex justify-between items-center mb-4">
+                {editingListName ? (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={selectedCardList.name}
+                    onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
+                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score)}
+                    autoFocus
+                    className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
                   />
-                </div>
-                <div>
-                  <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
-                </div>
-                <div>
-                  <div className="flex-wrap gap-2">
-                    <h2 className="text-black mb-3 font-semibold text-lg">Attachment</h2>
-                    {attachments.map((attachment, index) => (
-                      <>
-                        <div className='flex items-center text-black'>
-                          <div className='flex bg-gray-200 my-5 p-0 w-28 h-16 items-center justify-center'
-                              onClick={() => handleAttachImage(attachment)}>
+                ) : (
+                  <h2
+                    className="text-xl font-semibold text-gray-800 cursor-pointer"
+                    onClick={() => setEditingListName(true)}
+                  >
+                    {selectedCardList.name}
+                  </h2>
+                )}
+
+                <select
+                  value={selectedCardList.score}
+                  onChange={(e) => {
+                    const newScore = parseInt(e.target.value, 10);
+                    setSelectedCardList({ ...selectedCardList, score: newScore });
+                    handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, newScore);
+                  }}
+                  className="ml-4 border bg-gray-300 rounded p-1 text-black"
+                >
+                  <option value="" disabled>Select Score</option>
+                  {[1, 2, 3, 4, 5].map((score) => (
+                    <option key={score} value={score}>
+                      {score}
+                    </option>
+                  ))}
+                </select>
+                <button onClick={handleClosePopup} className="text-gray-700 hover:text-gray-700">
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <div className="cardlist flex gap-10 max768:flex-col">
+                <div className="cardliststart w-full max768:w-full flex-[3]">
+                  <div className="flex flex-row gap-4 mb-3">
+                    {labelColors.map((color, index) => (
+                      <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
+                        {color.name}
+                      </div>
+                    ))}
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 rounded w-fit bg-gray-300 border-none text-black">
+                      <i className="fas fa-eye"></i>Activity
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <h2 className="text-black mb-3 font-semibold text-lg">Members</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCardList.members && selectedCardList.members.length > 0 ? (
+                        selectedCardList.members.map((member: any) => (
+                          <div key={member.userId} className="flex flex-col items-center">
                             <img
-                              key={index}
-                              src={attachment.url}
-                              alt={`Attachment ${index + 1}`}
-                              className="max-w-28 max-h-16 object-cover rounded"
+                              src={member.photoUrl || '/path/to/default/avatar.png'}
+                              alt={`Profile of ${member.userId}`}
+                              className="w-10 h-10 rounded-full object-cover"
                             />
                           </div>
-                          <div className='ml-5 text-gray-800 text-sm'>
-                            <p className="font-semibold text-base">{attachment.name}</p>
-                            <div className="flex flex-wrap gap-2">
-                              <button className="underline">Comment</button>
-                              <button className="underline">Download</button>
-                              <button
-                                className="underline"
-                                onClick={() => handleDeleteAttachmentClick(attachment)}
-                                disabled={isDeleting}
-                              >
-                                Delete
-                              </button>
-                              <button className="underline">Edit</button>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">No members assigned to this card</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <DescriptionEditor
+                      initialDescription={selectedCardList.description}
+                      onSave={(description: any) => {
+                        setSelectedCardList({ ...selectedCardList, description });
+                        handleUpdateListName(selectedCardList.id, selectedCardList.name, description, selectedCardList.score);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
+                  </div>
+                  <div>
+                    <div className="flex-wrap gap-2">
+                      <h2 className="text-black mb-3 font-semibold text-lg">Attachment</h2>
+                      {attachments.map((attachment, index) => (
+                        <>
+                          <div className='flex items-center text-black'>
+                            <div className='flex bg-gray-200 my-5 p-0 w-28 h-16 items-center justify-center'
+                              onClick={() => handleAttachImage(attachment)}>
+                              <img
+                                key={index}
+                                src={attachment.url}
+                                alt={`Attachment ${index + 1}`}
+                                className="max-w-28 max-h-16 object-cover rounded"
+                              />
+                            </div>
+                            <div className='ml-5 text-gray-800 text-sm'>
+                              <p className="font-semibold text-base">{attachment.name}</p>
+                              <div className="flex flex-wrap gap-2">
+                                <button className="underline">Comment</button>
+                                <button className="underline">Download</button>
+                                <button
+                                  className="underline"
+                                  onClick={() => handleDeleteAttachmentClick(attachment)}
+                                  disabled={isDeleting}
+                                >
+                                  Delete
+                                </button>
+                                <button className="underline">Edit</button>
+                              </div>
                             </div>
                           </div>
+                        </>
+                      ))}
+                      {deleteError && <p className="text-red-500 text-sm mt-1">{deleteError}</p>}
+                      {attachments.length === 0 && (
+                        <p className="text-gray-500">No attachment</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="activity flex flex-col justify-between mb-3 text-gray-800">
+                    {checklistData?.map((data, index) => (
+                      <div key={index} className="checklist-item">
+                        <div className='flex justify-between items-center'>
+                          <div className='flex items-center'>
+                            <i className='fa-regular fa-square-check mr-3 text-lg'></i>
+                            <h1 className='text-md items-center'>{data.name}</h1>
+                          </div>
+                          <div className='flex gap-1 items-center'>
+                            <i
+                              className="fa-regular fa-pen-to-square hover:text-blue-500"
+                              onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
+                            ></i>
+                            <i
+                              className="fa-regular fa-trash-can hover:text-red-500"
+                              onClick={() => handleDeleteChecklist(data.id)}
+                            ></i>
+                          </div>
                         </div>
-                      </>
+                        <div className='flex justify-between text-[10px]'>
+                          <p>Start Date: {data.startDate}</p>
+                          <p>End Date: {data.endDate}</p>
+                        </div>
+                        <ul className='mb-3'>
+                          {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
+                            <li key={itemIndex}>
+                              <input
+                                type="checkbox"
+                                id={`checklist-item-${index}-${itemIndex}`}
+                                checked={item.isDone}
+                                onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
+                                className="w-3 h-3 mr-3"
+                              />
+                              <label htmlFor={`checklist-item-${index}-${itemIndex}`}>{item.name}</label>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ))}
-                    {deleteError && <p className="text-red-500 text-sm mt-1">{deleteError}</p>}
-                    {attachments.length === 0 && (
-                      <p className="text-gray-500">No attachment</p>
-                    )}
                   </div>
-                </div>
-                <div className="activity flex justify-between mb-3">
-                  <span className="text-black text-lg font-semibold">Activity</span>
-                  <div className="btn hover:bg-gray-400 btn-neutral h-6 min-h-6 bg-gray-300 border-none text-black rounded-md">
-                    Show Details
-                  </div>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Write a comment..."
-                  className="h-7 w-full rounded text-sm p-2 bg-gray-300 text-black font-semibold"
-                />
-              </div>
-              <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
-                  <i className="fas fa-user"></i>Join
-                </div>
-                <div className="border-b border-black"></div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1"
-                  onClick={() => handleOpenMemberPopup(selectedCardList)}>
-                  <i className="fas fa-user"></i>Member
-                </div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                  onClick={() => handleOpenLabelsPopup(selectedCardList)}>
-                  <i className="fas fa-tag"></i>Labels
-                </div>
-
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                  onClick={() => handleOpenChecklistPopup(selectedCardList)}>
-                  <i className="fas fa-check-square"></i> Checklist
-                </div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                  onClick={() => handleOpenDatesPopup(selectedCardList)}>
-                  <i className="fas fa-clock"></i>Dates
-                </div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4"
-                  onClick={() => handleOpenAttachPopup(selectedCardList)}>
-                  <i className="fas fa-paperclip"></i>Attachment
-                </div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                  onClick={() => handleOpenSubmitPopup(selectedCardList)}>
-                  <i className="fas fa-file-upload"></i>Complete
-                </div>
-
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                  onClick={() => handleOpenCopyPopup(selectedCardList)}>
-                  <i className="fas fa-copy"></i>Copy
-                </div>
-                {!isArchived ? (
-                  <div
-                    className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                    onClick={handleArchive}
-                  >
-                    <i className="fas fa-archive"></i>Archive
-                  </div>
-                ) : (
-                  <>
-                    <div
-                      className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0"
-                      onClick={handleSendToBoard}
-                    >
-                      <i className="fas fa-undo"></i>Send to board
+                  <div className="activity flex justify-between mb-3">
+                    <span className="text-black text-lg font-semibold">Activity</span>
+                    <div className="btn hover:bg-gray-400 btn-neutral h-6 min-h-6 bg-gray-300 border-none text-black rounded-md">
+                      Show Details
                     </div>
-                    <div
-                      className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black"
-                      onClick={() => handleDeleteCardList(selectedCardList.id)}
-                    >
-                      <i className="fas fa-trash"></i>Delete
-                    </div>
-                  </>
-                )}
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                  <i className="fas fa-share"></i>Share
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Write a comment..."
+                    className="h-7 w-full rounded text-sm p-2 bg-gray-300 text-black font-semibold"
+                  />
                 </div>
+                <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
+                    <i className="fas fa-user"></i>Join
+                  </div>
+                  <div className="border-b border-black"></div>
 
-                <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black">
-                  Custom Field
-                </div>
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mt-1"
+                    onClick={() => handleOpenMemberPopup(selectedCardList)}>
+                    <i className="fas fa-user"></i>Member
+                  </div>
+
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                    onClick={() => handleOpenLabelsPopup(selectedCardList)}>
+                    <i className="fas fa-tag"></i>Labels
+                  </div>
+
+
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                    onClick={() => handleOpenChecklistPopup(selectedCardList)}>
+                    <i className="fas fa-check-square"></i> Checklist
+                  </div>
+
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                    onClick={() => handleOpenDatesPopup(selectedCardList)}>
+                    <i className="fas fa-clock"></i>Dates
+                  </div>
+
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4"
+                    onClick={() => handleOpenAttachPopup(selectedCardList)}>
+                    <i className="fas fa-paperclip"></i>Attachment
+                  </div>
+
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                    onClick={() => handleOpenSubmitPopup(selectedCardList)}>
+                    <i className="fas fa-file-upload"></i>Complete
+                  </div>
+
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                    onClick={() => handleOpenCopyPopup(selectedCardList)}>
+                    <i className="fas fa-copy"></i>Copy
+                  </div>
+                  {!isArchived ? (
+                    <div
+                      className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
+                      onClick={handleArchive}
+                    >
+                      <i className="fas fa-archive"></i>Archive
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0"
+                        onClick={handleSendToBoard}
+                      >
+                        <i className="fas fa-undo"></i>Send to board
+                      </div>
+                      <div
+                        className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black"
+                        onClick={() => handleDeleteCardList(selectedCardList.id)}
+                      >
+                        <i className="fas fa-trash"></i>Delete
+                      </div>
+                    </>
+                  )}
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
+                    <i className="fas fa-share"></i>Share
+                  </div>
+
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black">
+                    Custom Field
+                  </div>
                 </div>
               </div>
             </div>
@@ -1187,9 +1363,12 @@ const WorkspaceProject = () => {
       {isChecklistPopupOpen && selectedCardList && (
         <div>
           <ChecklistPopup
-            isOpen={isChecklistPopupOpen}
+            isOpen={true}
             onClose={handleCloseChecklistPopup}
             selectedCardList={selectedCardList}
+            handleTakeCardlistChecklist={handleTakeCardlistChecklist}
+            isEditMode={isEditMode}
+            existingChecklistData={existingChecklistData}
           />
         </div>
       )}
