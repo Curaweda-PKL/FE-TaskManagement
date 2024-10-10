@@ -304,7 +304,7 @@ const WorkspaceProject = () => {
     const handlefetchCardListLabels = async () => {
       try {
         const labels = await fetchCardListLabels(selectedCardList?.id);
-        const colors = labels.map((label: { label: { color: any; }; }) => label.label.color);
+        const colors = labels.map((label: { label: { color: any; }; }) => label.label);
         setLabelColors(colors);
       } catch (error) {
         console.error(error);
@@ -319,7 +319,7 @@ const WorkspaceProject = () => {
   const handlefetchCardListLabels = async () => {
     try {
       const labels = await fetchCardListLabels(selectedCardList?.id);
-      const colors = labels.map((label: { label: { color: any; }; }) => label.label.color);
+      const colors = labels.map((label: { label: { color: any; }; }) => label.label);
       setLabelColors(colors);
     } catch (error) {
       console.error(error);
@@ -753,6 +753,17 @@ const WorkspaceProject = () => {
     await updateChecklist(data);
     handleTakeCardlistChecklist()
   };
+
+  const getContrastColor = (hexColor:any) => {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    return brightness > 128 ? '#000000' : '#FFFFFF';
+  };
+
   return (
     <>
       <header className="flex bg-gray-100 p-3 justify-between items-center">
@@ -796,6 +807,57 @@ const WorkspaceProject = () => {
                 >
                   <i className="fas fa-ellipsis-h"></i>
                 </button>
+
+                <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
+                <ul className="space-y-2">
+                  {card.cardList?.map((cardList: any, index: any) => (
+                    <li
+                    key={index}
+                    className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group relative"
+                    onClick={() => handleOpenPopup(cardList)}
+                  >
+                    <div className=" justify-between items-start">
+                      <span className="text-black text-sm">{cardList?.name}</span>
+                      <button 
+                        className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePopUpCard(cardList, e);
+                        }}
+                      >
+                        <i className="fas fa-pencil-alt text-xs"></i>
+                      </button>
+                    </div>
+                    
+                    <div className='flex justify-end mt-2'>
+                      <div className='flex -space-x-1 items-center'>
+                        {cardList.members && cardList.members.length > 0 && 
+                          cardList.members.slice(0, 3).map((member: any) => (
+                            <img
+                              key={member.userId}
+                              src={member.photoUrl || '/path/to/default/avatar.png'}
+                              alt={`Profile of member ${member.userId}`}
+                              className="w-5 h-5 rounded-full object-cover"
+                            />
+                          ))
+                        }
+                        {cardList.members && cardList.members.length > 3 && (
+                          <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
+                            +{cardList.members.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                  ))}
+                </ul>
+
+                <button
+                  className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm"
+                  onClick={() => handleAddCardList(card.id)}
+                >
+                  + Add list
+                </button>
                 <div className="absolute top-10 right-2 z-20" >
                   {dropdownOpen === index && (
                     <div className="w-28 bg-white shadow-xl rounded-lg" ref={dropdownRef}>
@@ -808,7 +870,7 @@ const WorkspaceProject = () => {
                         </li>
                         <li
                           className="px-4 py-2 rounded-b-lg hover:bg-gray-100 hover:text-red-500 cursor-pointer text-gray-700"
-                          onClick={() => handleDeleteCard(card)}
+                          onClick={() => handleDeletePopUp(card)}
                         >
                           Delete
                         </li>
@@ -816,36 +878,6 @@ const WorkspaceProject = () => {
                     </div>
                   )}
                 </div>
-
-                <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
-                <ul className="space-y-2">
-                  {card.cardList?.map((cardList: any, index: any) => (
-                    <li
-                      key={index}
-                      className="bg-gray-100 rounded-lg px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors duration-300"
-                      onClick={() => handleOpenPopup(cardList)}
-                    >
-                      <div className="flex items-center">
-                        <div className={`w-2 h-2 rounded-full ${card?.color} mr-2`}></div>
-                        <span className="text-black text-sm">{cardList?.name}</span>
-                      </div>
-                      <button className="text-gray-400">
-                        <i className="fas fa-pencil-alt h-3 w-3"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePopUpCard(cardList, e);
-                          }}></i>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  className="text-gray-500 hover:text-gray-700 mt-6 w-full text-left text-sm"
-                  onClick={() => handleAddCardList(card.id)}
-                >
-                  + Add list
-                </button>
               </div>
             ))
           )}
@@ -931,9 +963,10 @@ const WorkspaceProject = () => {
               </div>
               <div className="cardlist flex gap-10 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
-                  <div className="flex flex-row gap-10 mb-3">
+                  <div className="flex flex-row gap-4 mb-3">
                     {labelColors.map((color, index) => (
-                      <div key={index} style={{ backgroundColor: color }} className={`memberColor h-6 w-12 rounded mb-2`}>
+                      <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color)}} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
+                        {color.name}
                       </div>
                     ))}
                     <div className="btn hover:bg-gray-400 min-h-6 h-2 rounded w-fit bg-gray-300 border-none text-black">
@@ -1011,25 +1044,30 @@ const WorkspaceProject = () => {
                       )}
                     </div>
                   </div>
-                  <div className="activity flex flex-col justify-between mb-3">
+                  <div className="activity flex flex-col justify-between mb-3 text-gray-800">
                     {checklistData?.map((data, index) => (
                       <div key={index} className="checklist-item">
-                        <div className='flex justify-between'>
-                          <h2>{data.name}</h2>
-                          <div className='flex gap-1'>
-                            <button
-                              className='btn btn-sm'
+                        <div className='flex justify-between items-center'>
+                          <div className='flex items-center'>
+                            <i className='fa-regular fa-square-check mr-3 text-lg'></i>
+                            <h1 className='text-md items-center'>{data.name}</h1>
+                          </div>
+                          <div className='flex gap-1 items-center'>
+                            <i 
+                              className="fa-regular fa-pen-to-square hover:text-blue-500"
                               onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
-                            >
-                              Edit
-                            </button>
-                            <button className='btn btn-sm' onClick={() => handleDeleteChecklist(data.id)}>Delete</button>
-
+                            ></i>
+                            <i 
+                              className="fa-regular fa-trash-can hover:text-red-500"
+                              onClick={() => handleDeleteChecklist(data.id)}
+                            ></i>
                           </div>
                         </div>
-                        <p>Start Date: {data.startDate}</p>
-                        <p>End Date: {data.endDate}</p>
-                        <ul>
+                        <div className='flex justify-between text-[10px]'>
+                          <p>Start Date: {data.startDate}</p>
+                          <p>End Date: {data.endDate}</p>
+                        </div>
+                        <ul className='mb-3'>
                           {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
                             <li key={itemIndex}>
                               <input
@@ -1037,6 +1075,7 @@ const WorkspaceProject = () => {
                                 id={`checklist-item-${index}-${itemIndex}`}
                                 checked={item.isDone}
                                 onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
+                                className="w-3 h-3 mr-3"
                               />
                               <label htmlFor={`checklist-item-${index}-${itemIndex}`}>{item.name}</label>
                             </li>
