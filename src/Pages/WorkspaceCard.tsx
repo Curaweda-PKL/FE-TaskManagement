@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
-import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList, fetchCardListAttachments, deleteAttachment } from '../hooks/fetchCardList';
+import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList, fetchCardListAttachments, deleteAttachment, updateCardListStatus, setCardListApproved, setCardListInReview } from '../hooks/fetchCardList';
 import CreateCard from '../Component/createCard';
 import MemberPopup from '../Component/member';
 import LabelsPopup from '../Component/label';
@@ -739,7 +739,7 @@ const WorkspaceProject = () => {
   const handleToggleIsDone = async (checklistData: any, itemIndex: number, isChecked: boolean, idChecklist: string) => {
     const updatedItems = [...checklistData.items];
     updatedItems[itemIndex].isDone = isChecked;
-  
+
     const data = {
       idChecklist: idChecklist,
       checklistData: {
@@ -749,18 +749,34 @@ const WorkspaceProject = () => {
         items: updatedItems,
       },
     };
-  
+
     await updateChecklist(data);
     handleTakeCardlistChecklist()
   };
 
-  const getContrastColor = (hexColor:any) => {
+  const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
+    switch (status) {
+      case 'APPROVED':
+        setCardListApproved(cardlistId);
+        break;
+      case 'IN_REVIEW':
+        setCardListInReview(cardlistId);
+        break;
+      default:
+        updateCardListStatus(cardlistId, status);
+    }
+    await fetchData();
+    await getProfilePhotoMember(cardlistId);
+  }
+
+
+  const getContrastColor = (hexColor: any) => {
     const r = parseInt(hexColor.slice(1, 3), 16);
     const g = parseInt(hexColor.slice(3, 5), 16);
     const b = parseInt(hexColor.slice(5, 7), 16);
-    
+
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    
+
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
 
@@ -812,43 +828,59 @@ const WorkspaceProject = () => {
                 <ul className="space-y-2">
                   {card.cardList?.map((cardList: any, index: any) => (
                     <li
-                    key={index}
-                    className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group relative"
-                    onClick={() => handleOpenPopup(cardList)}
-                  >
-                    <div className=" justify-between items-start">
-                      <span className="text-black text-sm">{cardList?.name}</span>
-                      <button 
-                        className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePopUpCard(cardList, e);
-                        }}
-                      >
-                        <i className="fas fa-pencil-alt text-xs"></i>
-                      </button>
-                    </div>
-                    
-                    <div className='flex justify-end mt-2'>
-                      <div className='flex -space-x-1 items-center'>
-                        {cardList.members && cardList.members.length > 0 && 
-                          cardList.members.slice(0, 3).map((member: any) => (
-                            <img
-                              key={member.userId}
-                              src={member.photoUrl || '/path/to/default/avatar.png'}
-                              alt={`Profile of member ${member.userId}`}
-                              className="w-5 h-5 rounded-full object-cover"
-                            />
-                          ))
-                        }
-                        {cardList.members && cardList.members.length > 3 && (
-                          <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
-                            +{cardList.members.length - 3}
-                          </div>
-                        )}
+                      key={index}
+                      className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group relative"
+                      onClick={() => handleOpenPopup(cardList)}
+                    >
+                      <div className=" justify-between items-start">
+                        <span className="text-black text-sm">{cardList?.name}</span>
+                        <button
+                          className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePopUpCard(cardList, e);
+                          }}
+                        >
+                          <i className="fas fa-pencil-alt text-xs"></i>
+                        </button>
                       </div>
-                    </div>
-                  </li>
+
+                      <div className='flex justify-end mt-2'>
+                        <div className='flex -space-x-1 items-center'>
+                          {cardList.members && cardList.members.length > 0 &&
+                            cardList.members.slice(0, 3).map((member: any) => (
+                              <img
+                                key={member.userId}
+                                src={member.photoUrl || '/path/to/default/avatar.png'}
+                                alt={`Profile of member ${member.userId}`}
+                                className="w-5 h-5 rounded-full object-cover"
+                              />
+                            ))
+                          }
+                          {cardList.members && cardList.members.length > 3 && (
+                            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
+                              +{cardList.members.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <select
+                        value={cardList?.status}
+                        onChange={(e) => {
+                          const newStatus = e.target.value;
+                          handleUpdateStatusCardlist(cardList.id, newStatus);
+                        }}
+                        onClick={(e) => e.stopPropagation()} // Add this line
+                        className="text-[10px] text-black bg-white"
+                      >
+                        <option value="TODO">To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="DONE">Done</option>
+                        <option value="IN_REVIEW">In Review</option>
+                        <option value="APPROVED">Approved</option>
+                        <option value="NOT_SURE">Not Sure</option>
+                      </select>
+                    </li>
                   ))}
                 </ul>
 
@@ -965,7 +997,7 @@ const WorkspaceProject = () => {
                 <div className="cardliststart w-full max768:w-full flex-[3]">
                   <div className="flex flex-row gap-4 mb-3">
                     {labelColors.map((color, index) => (
-                      <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color)}} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
+                      <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
                         {color.name}
                       </div>
                     ))}
@@ -1053,11 +1085,11 @@ const WorkspaceProject = () => {
                             <h1 className='text-md items-center'>{data.name}</h1>
                           </div>
                           <div className='flex gap-1 items-center'>
-                            <i 
+                            <i
                               className="fa-regular fa-pen-to-square hover:text-blue-500"
                               onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
                             ></i>
-                            <i 
+                            <i
                               className="fa-regular fa-trash-can hover:text-red-500"
                               onClick={() => handleDeleteChecklist(data.id)}
                             ></i>
