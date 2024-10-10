@@ -10,12 +10,12 @@ interface ChecklistPopupProps {
   isOpen: any;
   onClose: any;
   selectedCardList: any;
-  handleTakeCardlistChecklist: ()  => void;
+  handleTakeCardlistChecklist: () => void;
   isEditMode: boolean;
   existingChecklistData: any;
 }
 
-const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, selectedCardList, handleTakeCardlistChecklist, isEditMode,  existingChecklistData }) => {
+const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, selectedCardList, handleTakeCardlistChecklist, isEditMode, existingChecklistData }) => {
 
   if (!isOpen || !selectedCardList) return null;
 
@@ -48,7 +48,7 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
           name: title,
           startDate: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
           endDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
-          items: items.map((item: any) => ({ name: item.name, isDone: false })),
+          items: items.map((item: any) => ({ name: item.name, isDone: item.isDone })),
         },
       };
       try {
@@ -79,6 +79,9 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
         console.error(error);
       }
     }
+  };
+  const handleDeleteItem = (index: number) => {
+    setItems(items.filter((item: any, i: any) => i !== index));
   };
 
   return (
@@ -122,6 +125,14 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                       placeholder="Item Name"
                       className="w-full p-1 border border-gray-300 bg-white rounded-lg focus:outline"
                     />
+                    {items.length > 1 && (
+                      <button
+                        className="ml-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={() => handleDeleteItem(index)}
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 ))}
                 <button onClick={handleAddItem} className="btn btn-sm w-20 text-[12px] bg-purple-600 hover:bg-purple-700 text-white border-none">
