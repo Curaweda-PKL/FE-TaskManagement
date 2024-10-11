@@ -206,6 +206,7 @@ const WorkspaceSettings: React.FC = () => {
           <CustomFieldSettings
             isOpen={isCustomFieldModalOpen}
             onClose={() => setIsCustomFieldModalOpen(false)}
+            workspaceId={workspaceId}
           />
 
           {isEditModalOpen && (

@@ -36,6 +36,7 @@ const Workspace: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    
   }, []);
 
   useEffect(() => {

@@ -35,16 +35,16 @@ const WorkspaceBoards: React.FC = () => {
     fetchWorkspaceData();
     fetchBoardsData();
 
-    const socket = io(config);
+    // const socket = io(config);
 
-    socket.on(`board/${workspaceId}`, () => {
-      fetchBoardsData();
-    });
+    // socket.on(`board/${workspaceId}`, () => {
+    //   fetchBoardsData();
+    // });
 
-    return () => {
-      socket.off(`board/${workspaceId}`);
-      socket.disconnect();
-    };
+    // return () => {
+    //   socket.off(`board/${workspaceId}`);
+    //   socket.disconnect();
+    // };
     
   }, [workspaceId]);
 

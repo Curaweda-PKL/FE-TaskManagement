@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
-import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList, fetchCardListAttachments, deleteAttachment, updateCardListStatus, setCardListApproved, setCardListInReview } from '../hooks/fetchCardList';
+import { fetchCardList, createCardList, updateCardList, deleteCardList, joinCardList, fetchCardListAttachments, deleteAttachment, updateCardListStatus, setCardListInReview, setCardListApproved } from '../hooks/fetchCardList';
+import { fetchCardlistCustomFields, addCardlistCustomField, removeCardlistCustomField, updateCardlistCustomFieldValue } from '../hooks/fetchCustomFields'
 import CreateCard from '../Component/createCard';
 import MemberPopup from '../Component/member';
 import LabelsPopup from '../Component/label';
@@ -14,10 +15,13 @@ import AttachPopup from '../Component/attachment';
 import SubmitPopup from '../Component/submit';
 import CopyPopup from '../Component/copy';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
+import config from '../config/baseUrl';
+import io from 'socket.io-client';
 import useAuth from '../hooks/fetchAuth';
 import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
 import DescriptionEditor from '../Component/descriptionEditor'
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
+import CustomFieldSettings from '../Component/customField';
 
 interface ChecklistData {
   id: string;
@@ -113,6 +117,8 @@ const WorkspaceProject = () => {
   const [showDeleteAttachmentConfirmation, setShowDeleteAttachmentConfirmation] = useState(false);
   const [attachmentToDelete, setAttachmentToDelete] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
+  const [cardlistCustomFields, setCardlistCustomFields] = useState([]);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -367,6 +373,20 @@ const WorkspaceProject = () => {
     }
   };
 
+  const processCustomFields = (cardListData) => {
+    const customFields = cardListData
+      .map(cardList => cardList.customFields)
+      .flat()
+      .filter(field => field && field.customField)
+      .map(field => ({
+        cardListId: field.cardListId,
+        ...field.customField,
+        options: field.customField.options || []
+      }));
+
+    return customFields;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -376,16 +396,30 @@ const WorkspaceProject = () => {
         setBoardName(board ? board.name : 'Project');
 
         if (boardId) {
+          // const socket = io(config);
+
+          // socket.on(`board/${boardId}`, () => {
+          //   fetchData();
+          // });
+
+          // return () => {
+          //   socket.off(`board/${boardId}`);
+          //   socket.disconnect();
+          // };
+
+
           const cardResponse = await fetchCard(boardId);
           if (cardResponse) {
             const updatedCardData = await Promise.all(
               cardResponse.map(async (card: { id: string }) => {
                 if (card && card.id) {
                   const cardListData = await fetchCardList(card.id);
-
+                  // const processedCustomFields = processCustomFields(cardListData);
+                  // setCardlistCustomFields(processedCustomFields);
                   const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
 
                   const updatedCardList = await Promise.all(cardList.map(async (list) => {
+
                     if (list.members && list.members.length > 0) {
                       const membersWithPhotos = await Promise.all(
                         list.members.map(async (member: { userId: string }) => {
@@ -415,13 +449,30 @@ const WorkspaceProject = () => {
                     })
                   );
 
-                  return { ...card, cardList: cardListWithAttachments };
+                  const cardListWithCustomFields = await Promise.all(
+                    cardListWithAttachments.map(async (cardList: any) => {
+
+                      return { ...cardList };
+                    })
+                  );
+
+                  return {
+                    ...card,
+                    cardList: cardListWithCustomFields
+                  };
                 }
                 return { ...card, cardList: [] };
               })
             );
 
             setCardData(updatedCardData);
+            // const socket = io(config);
+
+            // socket.on(`board/${boardId}`, () => {
+            //   console.log(`Board updated for board ${boardId}`);
+            //   fetchData();
+            // });
+
           }
         }
       } catch (error) {
@@ -431,6 +482,7 @@ const WorkspaceProject = () => {
 
     fetchData();
   }, [workspaceId, boardId]);
+
 
 
   const handleCreateCard = async (cardName: string) => {
@@ -579,6 +631,7 @@ const WorkspaceProject = () => {
   const handleOpenPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
+    setCardlistCustomFields(cardList.customFields)
     setAttachments(cardList.attachmentDetails || []);
   };
 
@@ -609,18 +662,44 @@ const WorkspaceProject = () => {
     }
   };
 
+  const handleCustomFieldClick = async (customField: any) => {
+    if (customField.type === 'DROPDOWN') {
+      try {
+        await addCardlistCustomField(selectedCardList.id, customField.id);
+      } catch (error) {
+        console.error('Error adding custom field:', error);
+      }
+    }
+  };
 
+  const handleRemoveCustomField = async (fieldId: any, cardListId: any) => {
+    try {
+      await removeCardlistCustomField(fieldId, cardListId);
+    } catch (error) {
+      console.error('Error removing custom field:', error);
+    }
+  };
+
+  const handleSelectChange = async (e: any, customFieldId: any, cardListId: any) => {
+    const selectedValue = e.target.value;
+    try {
+      const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, selectedValue);
+      console.log("Custom field updated successfully:", response);
+    } catch (error) {
+      console.error("Failed to update custom field value:", error);
+    }
+  };
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
       const fetchAttachments = async () => {
         try {
-          const attachmentPromises = selectedCardList.attachments.map(async (attachment) => {
+          const attachmentPromises = selectedCardList.attachments.map(async (attachment: any) => {
             const blobUrl = await fetchCardListAttachments(attachment.attachmentId);
             return {
               id: attachment.attachmentId,
               url: blobUrl,
-              name: attachment.attachment.name // Use the name from the existing attachment object
+              name: attachment.attachment.name
             };
           });
           const fetchedAttachments = await Promise.all(attachmentPromises);
@@ -663,7 +742,7 @@ const WorkspaceProject = () => {
     setAttachments(prevAttachments => [...prevAttachments, newAttachment]);
   };
 
-  const handleAttachImage = (attachment) => {
+  const handleAttachImage = (attachment: any) => {
     setSelectedImage(attachment);
   };
 
@@ -787,7 +866,7 @@ const WorkspaceProject = () => {
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="flex -space-x-2">
+          <div className="flex space-x-2">
             {visibleMembers.map((member, index) => (
               <img
                 key={index}
@@ -870,7 +949,7 @@ const WorkspaceProject = () => {
                           const newStatus = e.target.value;
                           handleUpdateStatusCardlist(cardList.id, newStatus);
                         }}
-                        onClick={(e) => e.stopPropagation()} // Add this line
+                        onClick={(e) => e.stopPropagation()}
                         className="text-[10px] text-black bg-white"
                       >
                         <option value="TODO">To Do</option>
@@ -973,22 +1052,6 @@ const WorkspaceProject = () => {
                   </h2>
                 )}
 
-                <select
-                  value={selectedCardList.score}
-                  onChange={(e) => {
-                    const newScore = parseInt(e.target.value, 10);
-                    setSelectedCardList({ ...selectedCardList, score: newScore });
-                    handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, newScore);
-                  }}
-                  className="ml-4 border bg-gray-300 rounded p-1 text-black"
-                >
-                  <option value="" disabled>Select Score</option>
-                  {[1, 2, 3, 4, 5].map((score) => (
-                    <option key={score} value={score}>
-                      {score}
-                    </option>
-                  ))}
-                </select>
                 <button onClick={handleClosePopup} className="text-gray-700 hover:text-gray-700">
                   <i className="fas fa-times"></i>
                 </button>
@@ -1001,9 +1064,22 @@ const WorkspaceProject = () => {
                         {color.name}
                       </div>
                     ))}
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 rounded w-fit bg-gray-300 border-none text-black">
-                      <i className="fas fa-eye"></i>Activity
-                    </div>
+                    <select
+                      value={selectedCardList.score}
+                      onChange={(e) => {
+                        const newScore = parseInt(e.target.value, 10);
+                        setSelectedCardList({ ...selectedCardList, score: newScore });
+                        handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, newScore);
+                      }}
+                      className="ml-4 border bg-gray-300 rounded p-1 text-black"
+                    >
+                      <option value="" disabled>Select Score</option>
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <option key={score} value={score}>
+                          {score}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="mt-4">
@@ -1037,6 +1113,37 @@ const WorkspaceProject = () => {
                   <div>
                     <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
                   </div>
+                  {cardlistCustomFields.map((field) => (
+                    <div key={field.id} className="flex items-center justify-between mb-3 rounded-md">
+                      <div>
+                        {field.customField.type === 'DROPDOWN' && (
+                          <div>
+                            <label className="text-gray-700 text-sm font-semibold">{field.customField.name}</label>
+                            <select
+                              className="mt-1 p-1 bg-gray-300 rounded w-full text-gray-800"
+                              value={field.selectedValue || ""}
+                              onChange={(e) => handleSelectChange(e, field.customFieldId, selectedCardList.id)}
+                            >
+                              <option value="" disabled>
+                                select Option
+                              </option>
+                              {field.customField.options.map((opt: any) => (
+                                <option key={opt.id} value={opt.value}>
+                                  {opt.value}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => handleRemoveCustomField(field.customFieldId, selectedCardList.id)}
+                              className="text-red-500 hover:text-red-700 p-2"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                   <div>
                     <div className="flex-wrap gap-2">
                       <h2 className="text-black mb-3 font-semibold text-lg">Attachment</h2>
@@ -1196,7 +1303,8 @@ const WorkspaceProject = () => {
                     <i className="fas fa-share"></i>Share
                   </div>
 
-                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black">
+                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black"
+                    onClick={() => setIsCustomFieldModalOpen(true)}>
                     Custom Field
                   </div>
                 </div>
@@ -1206,194 +1314,230 @@ const WorkspaceProject = () => {
         </div>
       )}
 
-      {isEditCard && (
-        <>
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-20">
+
+      <div className='text-black'>
+        <CustomFieldSettings
+          isOpen={isCustomFieldModalOpen}
+          onClose={() => setIsCustomFieldModalOpen(false)}
+          workspaceId={workspaceId}
+          onCustomFieldClick={handleCustomFieldClick}
+        />
+      </div>
+
+      {
+        isEditCard && (
+          <>
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-20">
+              <div
+                className="absolute bg-white rounded-md items-center"
+                style={{
+                  top: `${activeCardRect.top}px`,
+                  left: `${activeCardRect.left}px`,
+                  width: `${activeCardRect.width}px`,
+                  height: `${activeCardRect.height}px`,
+                }}
+              >
+                {editingCard && (
+                  <>
+                    <div className="flex items-center px-3 py-2 mb-5 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-300">
+                      <div className={`w-2 h-2 rounded-full ${editingCard.color} mr-2`}></div>
+                      <span className="text-black text-sm">{editingCard.name}</span>
+                    </div>
+                    <a
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsEditCard(false);
+                      }}
+                      className="block rounded-md py-2 w-24 mb-2 text-sm text-center text-white bg-purple-500 hover:bg-purple-600"
+                    >
+                      Save
+                    </a>
+                  </>
+                )}
+              </div>
+            </div>
+
             <div
-              className="absolute bg-white rounded-md items-center"
+              className="fixed z-20"
               style={{
-                top: `${activeCardRect.top}px`,
-                left: `${activeCardRect.left}px`,
-                width: `${activeCardRect.width}px`,
-                height: `${activeCardRect.height}px`,
+                top: `${activeCardRect.top - 50}px`,
+                left: `${activeCardRect.right}px`,
               }}
             >
-              {editingCard && (
-                <>
-                  <div className="flex items-center px-3 py-2 mb-5 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-300">
-                    <div className={`w-2 h-2 rounded-full ${editingCard.color} mr-2`}></div>
-                    <span className="text-black text-sm">{editingCard.name}</span>
-                  </div>
-                  <a
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsEditCard(false);
-                    }}
-                    className="block rounded-md py-2 w-24 mb-2 text-sm text-center text-white bg-purple-500 hover:bg-purple-600"
-                  >
-                    Save
-                  </a>
-                </>
-              )}
+              <div className="py-1 ml-5" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                <a href="#" className="block mb-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
+                  handleOpenPopup(editingCard);
+                }}>Open Card</a>
+                <a href="#" className="block my-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
+                  handleOpenLabelsPopup(editingCard);
+                }}>Edit Labels</a>
+                <a href="#" className="block my-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
+                  handleOpenMemberPopup(editingCard);
+                }}>Change Member</a>
+                <a href="#" className="block my-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
+                  handleOpenDatesPopup(editingCard);
+                }}>Edit Dates</a>
+              </div>
+            </div>
+          </>
+        )
+      }
+
+      {
+        selectedImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-auto">
+            <div className="relative">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.name}
+                className="object-fit max-h-screen"
+              />
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center"
+              >
+                &times;
+              </button>
             </div>
           </div>
+        )
+      }
 
-          <div
-            className="fixed z-20"
-            style={{
-              top: `${activeCardRect.top - 50}px`,
-              left: `${activeCardRect.right}px`,
-            }}
-          >
-            <div className="py-1 ml-5" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-              <a href="#" className="block mb-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
-                handleOpenPopup(editingCard);
-              }}>Open Card</a>
-              <a href="#" className="block my-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
-                handleOpenLabelsPopup(editingCard);
-              }}>Edit Labels</a>
-              <a href="#" className="block my-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
-                handleOpenMemberPopup(editingCard);
-              }}>Change Member</a>
-              <a href="#" className="block my-3 px-4 py-2 text-sm rounded-md shadow-lg text-gray-700 bg-white hover:bg-gray-100" onClick={() => {
-                handleOpenDatesPopup(editingCard);
-              }}>Edit Dates</a>
-            </div>
-          </div>
-        </>
-      )}
-
-      {selectedImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-auto">
-          <div className="relative">
-            <img
-              src={selectedImage.url}
-              alt={selectedImage.name}
-              className="object-fit max-h-screen"
+      {
+        showDeleteConfirmation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <DeleteConfirmation
+              onDelete={confirmDeleteCard}
+              onCancel={handleCancelPopUp}
+              itemType="cardlist"
             />
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center"
-            >
-              &times;
-            </button>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {showDeleteConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <DeleteConfirmation
-            onDelete={confirmDeleteCard}
-            onCancel={handleCancelPopUp}
-            itemType="card"
-          />
-        </div>
-      )}
+      {
+        showDeleteAttachmentConfirmation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <DeleteConfirmation
+              onDelete={confirmDeleteAttachment}
+              onCancel={cancelDeleteAttachment}
+              itemType="attachment"
+            />
+          </div>
+        )
+      }
 
-      {showDeleteAttachmentConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <DeleteConfirmation
-            onDelete={confirmDeleteAttachment}
-            onCancel={cancelDeleteAttachment}
-            itemType="attachment"
-          />
-        </div>
-      )}
+      {
+        deleteCardlist && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <DeleteConfirmation
+              onDelete={confirmDeleteCardList}
+              onCancel={cancelDeleteCardList}
+              itemType="cardlist"
+            />
+          </div>
+        )
+      }
 
-      {deleteCardlist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <DeleteConfirmation
-            onDelete={confirmDeleteCardList}
-            onCancel={cancelDeleteCardList}
-            itemType="cardlist"
-          />
-        </div>
-      )}
-
-      {isMemberPopupOpen && selectedCardList && (
-        <MemberPopup
-          selectedCardList={selectedCardList}
-          isMemberPopupOpen={isMemberPopupOpen}
-          handleCloseMemberPopup={handleCloseMemberPopup}
-        />
-      )}
-
-      {isLabelsPopupOpen && selectedCardList && (
-        <div className='overflow-auto'>
-          <LabelsPopup
-            isOpen={isLabelsPopupOpen}
-            onClose={handleCloseLabelsPopup}
-            labels={labels}
-            onCreateNewLabel={handleCreateNewLabel}
-            cardlistId={selectedCardList.id}
-            workspaceId={workspaceId !== undefined ? workspaceId : ''}
-            funcfetchLabels={funcfetchLabels}
-            handlefetchCardListLabels={handlefetchCardListLabels}
-          />
-        </div>
-      )}
-
-      {isEditLabelOpen && (
-        <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
-          <EditLabel
-            labelName=""
-            labelColor="#000000"
-            labelPercentage={100}
-            onSave={handleCloseEditLabel}
-            onCancel={handleCloseEditLabel}
-          />
-        </div>
-      )}
-
-      {isChecklistPopupOpen && selectedCardList && (
-        <div>
-          <ChecklistPopup
-            isOpen={true}
-            onClose={handleCloseChecklistPopup}
+      {
+        isMemberPopupOpen && selectedCardList && (
+          <MemberPopup
             selectedCardList={selectedCardList}
-            handleTakeCardlistChecklist={handleTakeCardlistChecklist}
-            isEditMode={isEditMode}
-            existingChecklistData={existingChecklistData}
+            isMemberPopupOpen={isMemberPopupOpen}
+            handleCloseMemberPopup={handleCloseMemberPopup}
           />
-        </div>
-      )}
+        )
+      }
 
-      {isDatesPopupOpen && selectedCardList && (
-        <DatesPopup
-          isDatesPopupOpen={isDatesPopupOpen}
-          selectedCardList={selectedCardList}
-          handleCloseDatesPopup={handleCloseDatesPopup}
-        />
-      )}
+      {
+        isLabelsPopupOpen && selectedCardList && (
+          <div className='overflow-auto'>
+            <LabelsPopup
+              isOpen={isLabelsPopupOpen}
+              onClose={handleCloseLabelsPopup}
+              labels={labels}
+              onCreateNewLabel={handleCreateNewLabel}
+              cardlistId={selectedCardList.id}
+              workspaceId={workspaceId !== undefined ? workspaceId : ''}
+              funcfetchLabels={funcfetchLabels}
+              handlefetchCardListLabels={handlefetchCardListLabels}
+            />
+          </div>
+        )
+      }
 
-      {isAttachPopupOpen && selectedCardList && (
-        <AttachPopup
-          isAttachPopupOpen={isAttachPopupOpen}
-          selectedCardList={selectedCardList}
-          handleCloseAttachPopup={handleCloseAttachPopup}
-          onAttachmentCreated={handleAttachmentCreated}
-        />
-      )}
+      {
+        isEditLabelOpen && (
+          <div className="containerPopup fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
+            <EditLabel
+              labelName=""
+              labelColor="#000000"
+              labelPercentage={100}
+              onSave={handleCloseEditLabel}
+              onCancel={handleCloseEditLabel}
+            />
+          </div>
+        )
+      }
 
-      {isSubmitPopupOpen && selectedCardList && (
-        <SubmitPopup
-          isSubmitPopupOpen={isSubmitPopupOpen}
-          selectedCardList={selectedCardList}
-          handleCloseSubmitPopup={handleCloseSubmitPopup}
-        />
-      )}
+      {
+        isChecklistPopupOpen && selectedCardList && (
+          <div>
+            <ChecklistPopup
+              isOpen={true}
+              onClose={handleCloseChecklistPopup}
+              selectedCardList={selectedCardList}
+              handleTakeCardlistChecklist={handleTakeCardlistChecklist}
+              isEditMode={isEditMode}
+              existingChecklistData={existingChecklistData}
+            />
+          </div>
+        )
+      }
 
-      {isCopyPopupOpen && selectedCardList && (
-        <CopyPopup
-          isCopyPopupOpen={isCopyPopupOpen}
-          selectedCardList={selectedCardList}
-          close={handleCloseSubmitPopup}
-        />
-      )}
+      {
+        isDatesPopupOpen && selectedCardList && (
+          <DatesPopup
+            isDatesPopupOpen={isDatesPopupOpen}
+            selectedCardList={selectedCardList}
+            handleCloseDatesPopup={handleCloseDatesPopup}
+          />
+        )
+      }
+
+      {
+        isAttachPopupOpen && selectedCardList && (
+          <AttachPopup
+            isAttachPopupOpen={isAttachPopupOpen}
+            selectedCardList={selectedCardList}
+            handleCloseAttachPopup={handleCloseAttachPopup}
+            onAttachmentCreated={handleAttachmentCreated}
+          />
+        )
+      }
+
+      {
+        isSubmitPopupOpen && selectedCardList && (
+          <SubmitPopup
+            isSubmitPopupOpen={isSubmitPopupOpen}
+            selectedCardList={selectedCardList}
+            handleCloseSubmitPopup={handleCloseSubmitPopup}
+          />
+        )
+      }
+
+      {
+        isCopyPopupOpen && selectedCardList && (
+          <CopyPopup
+            isCopyPopupOpen={isCopyPopupOpen}
+            selectedCardList={selectedCardList}
+            close={handleCloseSubmitPopup}
+          />
+        )
+      }
     </>
   );
 };
