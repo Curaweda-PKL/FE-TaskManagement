@@ -12,7 +12,6 @@ export const fetchCardList = async (cardId: string) => {
 
     const cardLists = response.data;
 
-    // Fetch attachments for each card list
     const cardListsWithAttachments = await Promise.all(cardLists.map(async (cardList: any) => {
       const attachments = await Promise.all(
         cardList.attachments.map(async (attachment: any) => {
@@ -26,7 +25,6 @@ export const fetchCardList = async (cardId: string) => {
         })
       );
 
-      // Filter out failed attachment fetches
       cardList.attachmentDetails = attachments.filter(att => att !== null);
       return cardList;
     }));
@@ -99,7 +97,7 @@ export const deleteCardList = async (cardListId: any) => {
 export const getMemberCardList = async (id: any) => {
   try {
     const response = await axios.post(
-      `${config}/cardlist/take-Member/${id}`,
+      `${config}/cardlist/member/take-Member/${id}`,
       { id },
       {
         headers: {
@@ -139,7 +137,7 @@ export const joinCardList = async (cardListId: any, userId: any) => {
 export const outCardList = async (cardListId: any, userId: any) => {
   try {
     const response = await axios.delete(
-      `${config}/cardlist/out-cardlist`,
+      `${config}/cardlist/member/out-cardlist`,
       {
         headers: {
           'Authorization': `${localStorage.getItem('token')}`,
