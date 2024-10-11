@@ -980,10 +980,15 @@ const WorkspaceProject = () => {
                   {card.cardList?.map((cardList: any, index: any) => (
                     <li
                       key={index}
-                      className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group relative"
+                      className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group"
                       onClick={() => handleOpenPopup(cardList)}
                     >
                       <div className=" justify-between items-start">
+                        {cardList.labels.map((label: any, index: any) =>
+                          <div key={index}>
+                            <div style={{ background: label.label.color }} className="w-4 h-4 rounded-full mr-2"></div>
+                          </div>
+                        )}
                         <span className="text-black text-sm">{cardList?.name}</span>
                         <button
                           className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -995,6 +1000,7 @@ const WorkspaceProject = () => {
                           <i className="fas fa-pencil-alt text-xs"></i>
                         </button>
                       </div>
+
 
                       <div className='flex justify-end mt-2'>
                         <div className='flex justify-between w-full'>
