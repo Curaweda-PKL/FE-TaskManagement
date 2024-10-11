@@ -483,6 +483,66 @@ const WorkspaceProject = () => {
     fetchData();
   }, [workspaceId, boardId]);
 
+  const fetchData2 = async () => {
+    try {
+      const boardData = await fetchBoards(workspaceId);
+      setBoards(boardData);
+      const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
+      setBoardName(board ? board.name : 'Project');
+
+      if (boardId) {
+        const cardResponse = await fetchCard(boardId);
+        if (cardResponse) {
+          const updatedCardData = await Promise.all(
+            cardResponse.map(async (card: { id: string }) => {
+              if (card && card.id) {
+                const cardListData = await fetchCardList(card.id);
+
+                const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
+
+                const updatedCardList = await Promise.all(cardList.map(async (list) => {
+                  if (list.members && list.members.length > 0) {
+                    const membersWithPhotos = await Promise.all(
+                      list.members.map(async (member: { userId: string }) => {
+                        const photoUrl = await getProfilePhotoMember(member.userId).catch(error => {
+                          console.error(`Error fetching photo for user ${member.userId}:`, error);
+                          return null;
+                        });
+                        return { ...member, photoUrl };
+                      })
+                    );
+                    return { ...list, members: membersWithPhotos };
+                  }
+                  return list;
+                }));
+
+                const cardListWithAttachments = await Promise.all(
+                  updatedCardList.map(async (cardList: any) => {
+                    if (cardList.attachments && cardList.attachments.length > 0) {
+                      const attachmentDetails = await Promise.all(
+                        cardList.attachments.map((attachment: { attachmentId: string }) =>
+                          fetchCardListAttachments(attachment.attachmentId)
+                        )
+                      );
+                      return { ...cardList, attachmentDetails };
+                    }
+                    return { ...cardList, attachmentDetails: [] };
+                  })
+                );
+
+                return { ...card, cardList: cardListWithAttachments };
+              }
+              return { ...card, cardList: [] };
+            })
+          );
+
+          setCardData(updatedCardData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
 
   const handleCreateCard = async (cardName: string) => {
@@ -628,11 +688,24 @@ const WorkspaceProject = () => {
     };
   }, [editingListName, selectedCardList]);
 
-  const handleOpenPopup = (cardList: any) => {
+  const [inReviewPhoto, setInReviewPhoto] = useState(null);
+  const [approvedPhoto, setapprovedPhoto] = useState(null);
+
+  const handleOpenPopup = async (cardList: any) => {
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
     setCardlistCustomFields(cardList.customFields)
     setAttachments(cardList.attachmentDetails || []);
+
+    if (cardList.inReviewById) {
+      const photo = await getProfilePhotoMember(cardList.inReviewById);
+      setInReviewPhoto(photo);
+    }
+
+    if (cardList.approvedById) {
+      const photo = await getProfilePhotoMember(cardList.approvedById);
+      setapprovedPhoto(photo);
+    }
   };
 
   const handleClosePopup = () => {
@@ -844,8 +917,7 @@ const WorkspaceProject = () => {
       default:
         updateCardListStatus(cardlistId, status);
     }
-    await fetchData();
-    // await getProfilePhotoMember(cardlistId);
+    await fetchData2();
   }
 
 
@@ -925,40 +997,42 @@ const WorkspaceProject = () => {
                       </div>
 
                       <div className='flex justify-end mt-2'>
-                        <div className='flex -space-x-1 items-center'>
-                          {cardList.members && cardList.members.length > 0 &&
-                            cardList.members.slice(0, 3).map((member: any) => (
-                              <img
-                                key={member.userId}
-                                src={member.photoUrl || '/path/to/default/avatar.png'}
-                                alt={`Profile of member ${member.userId}`}
-                                className="w-5 h-5 rounded-full object-cover"
-                              />
-                            ))
-                          }
-                          {cardList.members && cardList.members.length > 3 && (
-                            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
-                              +{cardList.members.length - 3}
-                            </div>
-                          )}
+                        <div className='flex justify-between w-full'>
+                          <select
+                            value={cardList?.status}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              handleUpdateStatusCardlist(cardList.id, newStatus);
+                            }}
+                            onClick={(e) => e.stopPropagation()} // Add this line
+                            className="text-[10px] text-black bg-white"
+                          >
+                            <option value="TODO">To Do</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="DONE">Done</option>
+                            <option value="IN_REVIEW">In Review</option>
+                            <option value="APPROVED">Approved</option>
+                            <option value="NOT_SURE">Not Sure</option>
+                          </select>
+                          <div className='flex -space-x-1'>
+                            {cardList.members && cardList.members.length > 0 &&
+                              cardList.members.slice(0, 3).map((member: any) => (
+                                <img
+                                  key={member.userId}
+                                  src={member.photoUrl || '/path/to/default/avatar.png'}
+                                  alt={`Profile of member ${member.userId}`}
+                                  className="w-5 h-5 rounded-full object-cover"
+                                />
+                              ))
+                            }
+                            {cardList.members && cardList.members.length > 3 && (
+                              <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
+                                +{cardList.members.length - 3}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <select
-                        value={cardList?.status}
-                        onChange={(e) => {
-                          const newStatus = e.target.value;
-                          handleUpdateStatusCardlist(cardList.id, newStatus);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-[10px] text-black bg-white"
-                      >
-                        <option value="TODO">To Do</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="DONE">Done</option>
-                        <option value="IN_REVIEW">In Review</option>
-                        <option value="APPROVED">Approved</option>
-                        <option value="NOT_SURE">Not Sure</option>
-                      </select>
                     </li>
                   ))}
                 </ul>
@@ -1112,6 +1186,74 @@ const WorkspaceProject = () => {
                   </div>
                   <div>
                     <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
+                    <div className='flex flex-col gap-3'>
+                      {selectedCardList.inReviewById && !selectedCardList.approvedById && (
+                        <div className='text-black text-sm'>
+                          <div>In Review By</div>
+                          <div className='flex gap-2 items-center'>
+                            {inReviewPhoto && (
+                              <img
+                                src={inReviewPhoto}
+                                alt="Profile Photo"
+                                className="w-8 h-8 rounded-full"
+                              />
+                            )}
+                            <div className='flex flex-col'>
+                              <span>
+                                {selectedCardList.inReviewBy.name}
+                              </span>
+                              <span className='text-[10px]'>
+                                {selectedCardList.inReviewBy.email}
+                              </span>
+                            </div>
+                          </div>
+                          <div className='text-[10px]'>
+                            Review at: {new Date(selectedCardList.inReviewAt).toLocaleString('id-ID', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              timeZone: 'Asia/Jakarta',
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {selectedCardList.approvedById && (
+                        <div className='text-black text-sm'>
+                          <div>Approved By</div>
+                          <div className='flex gap-2 items-center'>
+                            {approvedPhoto && (
+                              <img
+                                src={approvedPhoto}
+                                alt="Profile Photo"
+                                className="w-8 h-8 rounded-full"
+                              />
+                            )}
+                            <div className='flex flex-col'>
+                              <span>
+                                {selectedCardList.approvedBy.name}
+                              </span>
+                              <span className='text-[10px]'>
+                                {selectedCardList.approvedBy.email}
+                              </span>
+                            </div>
+                          </div>
+                          <div className='text-[10px]'>
+                            Approved at: {new Date(selectedCardList.approvedAt).toLocaleString('id-ID', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              timeZone: 'Asia/Jakarta',
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {cardlistCustomFields.map((field) => (
                     <div key={field.id} className="flex items-center justify-between mb-3 rounded-md">
