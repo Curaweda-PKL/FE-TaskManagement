@@ -121,7 +121,7 @@ const SidebarWorkspace: React.FC = () => {
           {alert.message}
         </div>
       )}
-      <aside className={`pt-16 w-64 bg-white border-r h-screen max768:fixed max768:top-0 max768:left-0 transition-transform duration-300 z-20 ${isSidebarOpen ? 'max768:translate-x-0' : 'max768:-translate-x-full'}`}>
+      <aside className={`pt-[59px] w-64 bg-white border-r h-screen max768:fixed max768:top-0 max768:left-0 transition-transform duration-300 z-20 ${isSidebarOpen ? 'max768:translate-x-0' : 'max768:-translate-x-full'}`}>
         <div className="mb-4">
           <div className={`flex items-center justify-between border-b w-full p-4`}>
             <div className="flex items-center">

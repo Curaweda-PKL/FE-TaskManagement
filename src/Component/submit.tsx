@@ -1,6 +1,12 @@
-import React from 'react';
+import React from "react";
 
-const SubmitPopup = ({ isSubmitPopupOpen, selectedCardList, handleCloseSubmitPopup }) => {
+interface SubmitPopupProps{
+  isSubmitPopupOpen: any;
+  selectedCardList: any;
+  handleCloseSubmitPopup: any;
+}
+
+const SubmitPopup: React.FC<SubmitPopupProps> = ({ isSubmitPopupOpen, selectedCardList, handleCloseSubmitPopup }) => {
   if (!isSubmitPopupOpen || !selectedCardList) return null;
 
   return (
@@ -27,7 +33,7 @@ const SubmitPopup = ({ isSubmitPopupOpen, selectedCardList, handleCloseSubmitPop
             onClick={handleCloseSubmitPopup}
             className="bg-purple-600 hover:bg-purple-700 text-white w-full py-2 rounded"
           >
-            Mark as done
+            Complete Task
           </button>
         </div>
       </div>

@@ -43,7 +43,7 @@ const Sidebar: React.FC = () => {
         <i className={`fas fa-chevron-right ${isSidebarOpen ? 'transform rotate-180' : ''}`} />
       </div>
       <div className="mb-2">
-        <Link to="/boards" className={`text-gray-600 p-2 mb-2 flex items-center ${hoverClass} ${isActive('/boards') ? activeClass : ''}`}>
+        <Link to="/boards" className={`text-gray-600 p-2 mb-1 flex items-center ${hoverClass} ${isActive('/boards') ? activeClass : ''}`}>
           <i className='fas fa-th-large mr-2'></i><span>Boards</span>
         </Link>
         <Link to="/home" className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive('/home') ? activeClass : ''}`}>

@@ -40,7 +40,7 @@ function Profile() {
     if (userData) {
       try {
         const userPhoto = await getProfilePhoto();
-        setPhoto(userPhoto.photoProfile.downloadUrl);
+        setPhoto(userPhoto);
       } catch (error) {
         console.error('Error fetching photo profile:', error);
       }
@@ -66,14 +66,12 @@ function Profile() {
     return <div>You are not logged in. Please log in to view your profile.</div>;
   }
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePasswordChange = async (email: any) => {
     if (newPassword !== confirmPassword) {
       setAlert({ type: 'error', message: 'New passwords do not match.' });
       return;
     }
-
-    const success = await changePassword();
+    const success = await changePassword(email, oldPassword, newPassword);
     if (success) {
       setAlert({ type: 'success', message: 'Password changed successfully!' });
       setOldPassword('');
@@ -121,6 +119,21 @@ function Profile() {
     }
   };
 
+  const handleChangePhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && userData) {
+      try {
+        await updateProfilePhoto(userData.id, file);
+        setAlert({ type: 'success', message: 'Foto profil berhasil diupdate!' });
+        await fetchUserProfilePhoto();
+        setShowModal(false);
+      } catch (error) {
+        console.error('Error changing photo:', error);
+        setAlert({ type: 'error', message: 'Gagal mengubah foto. Coba lagi.' });
+      }
+    }
+  };
+
   const handleDeletePhoto = async () => {
     if (userData) {
       try {
@@ -134,7 +147,7 @@ function Profile() {
   };
 
   return (
-    <div className='min-h-screen bg-white font-sans text-black'>
+    <div className='min-h-screen pb-20 bg-white font-sans text-black'>
       <div className='px-5'>
         <Navbar />
         <div className='mt-24'>
@@ -253,10 +266,18 @@ function Profile() {
                   <div className="bg-white p-6 rounded-lg shadow-lg w-80">
                     <h3 className="text-lg font-bold mb-4">Manage Photo</h3>
                     <button
-                      onClick={handlePhotoUpload}
                       className="w-full bg-purple-600 text-white py-2 px-4 mb-3 rounded hover:bg-purple-700"
                     >
+                      <label className="w-full">
+                        
                       Change Photo
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={handleChangePhoto}
+                          accept="image/*"
+                        />
+                      </label>
                     </button>
                     <button
                       onClick={handleDeletePhoto}

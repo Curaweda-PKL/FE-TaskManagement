@@ -4,7 +4,7 @@ import config from '../config/baseUrl';
 export const fetchWorkspaces = async (_workspaceId: any) => {
   try {
     const response = await axios.get(
-      config + '/workspace/take' , {
+      config + '/workspace/take', {
       headers: {
         'Authorization': localStorage.getItem('token'),
         'Content-Type': 'application/json',
@@ -99,6 +99,29 @@ export const memberWorkspace = async (workspaceId: any) => {
     console.error('Failed to get workspace members', error);
 
     throw error;
+  }
+};
+
+export const getProfilePhotoMember = async (userId: any): Promise<any> => {
+  try {
+    const response = await axios.get(
+      `${config}/user/get-PhotoProfile/${userId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        responseType: 'blob'
+      }
+    );
+
+
+    const blobUrl = URL.createObjectURL(response.data);
+
+
+    return blobUrl;
+  } catch (error: any) {
+    console.error('Failed to fetch profile photo:', error);
+    return null
   }
 };
 

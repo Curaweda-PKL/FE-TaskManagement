@@ -4,7 +4,7 @@ import { X } from 'phosphor-react';
 interface CreateBoardProps {
   workspaceId: any;
   onClose: () => void;
-  onCreateBoard: (workspaceId: any, name: string, description: string, boardId: any,) => void;
+  onCreateBoard: (workspaceId: any, name: string, description: any, boardId: any,) => void;
   initialData?: { id: string; name: string; description: string };
   isEditing?: boolean;
 }
@@ -30,7 +30,7 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
     if (isEditing && initialData) {
       onCreateBoard(workspaceId, initialData.id, name, description);
     } else {
-      onCreateBoard(workspaceId, name, description, null); 
+      onCreateBoard(workspaceId, name, null, null); 
     }
   };
 
@@ -59,16 +59,6 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
               onChange={(e) => setName(e.target.value)}
             />
             <p className="text-xs text-gray-500 mt-1">* Board title is required</p>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Board Description*</label>
-            <input
-              type="text"
-              className="w-full bg-white px-3 py-2 border rounded-md"
-              placeholder="Input your description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
           </div>
         </div>
         <div className="p-4 border-t border-gray-200">

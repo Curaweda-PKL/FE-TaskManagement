@@ -7,7 +7,7 @@ interface CreateCardProps {
   onClose: () => void;
   onCreateCard: (name: string, boardId: any) => void;
   onUpdateCard: (cardId: any, name: string) => void;
-  initialData?: { id: string; name: string };
+  initialData?: { id: any, name: string };
   isEditing?: boolean;
 }
 

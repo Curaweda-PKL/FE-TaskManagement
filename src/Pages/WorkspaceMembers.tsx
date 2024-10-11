@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
-import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace } from '../hooks/fetchWorkspace';
+import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [showJoinRequests, setShowJoinRequests] = useState(false);
-  const [, setVisibility] = useState<'Private' | 'Public'>('Private');
+  const [visibility, setVisibility] = useState<'Private' | 'Public'>('Private');
   const [workspace, setWorkspace] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [inviteLinkEnabled, setInviteLinkEnabled] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -30,15 +31,51 @@ const WorkspaceMembers: React.FC = () => {
     try {
       const workspaces = await fetchWorkspaces(workspaceId);
       const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
-
       setWorkspace(currentWorkspace);
       setVisibility(currentWorkspace?.visibility || 'Private');
 
       const membersData = await memberWorkspace(workspaceId);
-      setMembers(membersData);
+
+      const membersWithPhotos = await Promise.all(
+        membersData.map(async (member: any) => {
+          if (member) {
+            try {
+              const memberPhoto = await getProfilePhotoMember(member.id);
+              console.log(`Fetched photo for ${member.name}:`, memberPhoto);
+
+              return { ...member, photoProfile: memberPhoto };
+            } catch (error) {
+              console.error(`Error fetching photo profile for ${member.name}:`, error);
+              return member;
+            }
+          }
+          return member;
+        })
+      );
+
+      setMembers(membersWithPhotos);
 
       const joinRequestsData = await joinRequestsWorkspace(workspaceId);
       setJoinRequests(joinRequestsData);
+
+      const joinRequestsPhotoProfile = await Promise.all(
+        joinRequestsData.map(async (joinRequests: any) => {
+          if (joinRequests) {
+            try {
+              const joinRequestsPhoto = await getProfilePhotoMember(joinRequests.userId);
+              console.log(`Fetched photo for ${joinRequests.name}:`, joinRequestsPhoto);
+
+              return { ...joinRequests, photoProfile: joinRequestsPhoto };
+            } catch (error) {
+              console.error(`Error fetching photo profile for ${joinRequests.name}:`, error);
+              return joinRequests;
+            }
+          }
+          return joinRequests;
+        })
+      );
+
+      setRequests(joinRequestsPhotoProfile);
 
     } catch (error) {
       console.error('Failed to fetch workspace data:', error);
@@ -73,7 +110,7 @@ const WorkspaceMembers: React.FC = () => {
       } catch (error) {
         console.error('Failed to remove member:', error);
         showAlert('Failed to remove member. Please try again.', 'error');
-        
+
       }
     }
   };
@@ -85,13 +122,12 @@ const WorkspaceMembers: React.FC = () => {
 
   const toggleInviteLink = () => {
     setInviteLinkEnabled(!inviteLinkEnabled);
-    // TODO: Implement API call to toggle the invite link status on the server
   };
 
   return (
-    <div className='bg-white min-h-screen'>
+    <div className='bg-white pb-14 min-h-screen'>
       <div className="max-w-6xl mx-auto">
-      {alert && (
+        {alert && (
           <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
             {alert.message}
           </div>
@@ -104,7 +140,7 @@ const WorkspaceMembers: React.FC = () => {
                 <h2 className="text-black text-lg font-semibold">Collaborators</h2>
                 <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm">{members.length}</span>
               </div>
-              <div className="lg:flex lg:flex-col relative lg:space-y-2">
+              <div className="lg:flex lg:flex-col relative lg:space-y-3">
                 <button
                   className={`rounded-lg px-2 py-1 text-left font-semibold ${hoverClass} ${!showJoinRequests ? 'bg-gray-100 text-purple-600' : 'bg-white text-black'}`}
                   onClick={() => setShowJoinRequests(false)}
@@ -163,11 +199,15 @@ const WorkspaceMembers: React.FC = () => {
                     className="w-full lg:w-1/3 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700"
                   />
                 </div>
-                <div className="space-y-4 text-black w-full lg:w-5/6">
+                <div className="space-y-2 text-black w-full lg:w-5/6">
                   {members.map((member) => (
                     <div key={member.id} className="bg-yellow-200 p-4 rounded-md flex justify-between items-center flex-wrap">
                       <div className="flex items-center flex-wrap">
-                        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                        <img
+                          src={member.photoProfile || 'https://via.placeholder.com/40'}
+                          alt="User Profile"
+                          className="w-10 h-10 rounded-full mr-4"
+                        />
                         <div>
                           <h4 className="font-semibold">{member.name}</h4>
                           <p className="text-sm text-gray-600">{member.email}</p>
@@ -183,7 +223,7 @@ const WorkspaceMembers: React.FC = () => {
               </>
             ) : (
               <div className='mt-8'>
-                <h3 className="text-black text-lg font-semibold">Join Requests ({joinRequests.length})</h3>
+                <h3 className="text-black text-lg font-semibold">Join Requests ({requests.length})</h3>
                 <p className="text-sm text-gray-600 py-3 w-full lg:w-4/5">
                   These people have requested to join this workspace. Adding new workspace will
                   automatically update your bill. Workspace guest already count toward the free workspace
@@ -197,10 +237,14 @@ const WorkspaceMembers: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-4 w-full lg:w-4/5 text-black">
-                  {joinRequests.map((request) => (
+                  {requests.map((request) => (
                     <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
                       <div className="flex items-center mb-4 lg:mb-0">
-                        <img src="https://via.placeholder.com/40" alt="User" className="rounded-full mr-4" />
+                        <img
+                          src={request.photoProfile || 'https://via.placeholder.com/40'}
+                          alt="User Profile"
+                          className="w-10 h-10 rounded-full mr-4"
+                        />
                         <div>
                           <h4 className="font-semibold">{request.name}</h4>
                           <p className="text-sm text-gray-600">{request.email}</p>
@@ -225,17 +269,17 @@ const WorkspaceMembers: React.FC = () => {
                 </div>
               </div>
             )}
-            
-      {showDeleteConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black opacity-50"></div>
-        <DeleteConfirmation
-          onDelete={confirmRemoveMember}
-          onCancel={cancelRemoveMember}
-          itemType="member"
-        />
-        </div>
-      )}
+
+            {showDeleteConfirmation && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black opacity-50"></div>
+                <DeleteConfirmation
+                  onDelete={confirmRemoveMember}
+                  onCancel={cancelRemoveMember}
+                  itemType="member"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ export const fetchBoards = async (workspaceId: any) => {
     const response = await axios.get(config + "/board/take/" + workspaceId, {
       headers: {
         'Authorization': localStorage.getItem('token'),
-        'Content-Type': 'application/json' 
+        'Content-Type': 'application/json'
       }
     });
 

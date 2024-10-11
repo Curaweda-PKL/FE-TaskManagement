@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWorkspaces, joinWorkspace, requestJoinWorkspace } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
+import io from 'socket.io-client';
+import config from '../config/baseUrl';
+
 
 const Workspace: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,7 +26,6 @@ const Workspace: React.FC = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [joinWorkspaceId, setJoinWorkspaceId] = useState<string>('');
   const [isPrivateWorkspace, setIsPrivateWorkspace] = useState(false);
-  const navigate = useNavigate();
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
   const openModal = () => setIsModalOpen(true);
@@ -34,6 +36,7 @@ const Workspace: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    
   }, []);
 
   useEffect(() => {
@@ -56,9 +59,25 @@ const Workspace: React.FC = () => {
           return { ...workspace, boards };
         })
       );
-
       setWorkspaces(updatedWorkspaces);
+      
+      const socket = io(config);
+
+      // Loop through each workspaceId
+      updatedWorkspaces.forEach((workspace) => {
+        // Add listener for each workspace
+        socket.on(`board/${workspace.id}`, () => {
+          console.log(`Board updated for workspace ${workspace.id}`);
+          fetchData();
+        }); 
+      });
       setLoading(false);
+      return () => {
+        updatedWorkspaces.forEach((workspaceId) => {
+          socket.off(`board/${workspaceId.id}`);
+        });
+        socket.disconnect(); // Disconnect socket when component unmounts
+      };
     } catch (err: any) {
       // handleApiError(err);
       setError(err.message);

@@ -35,7 +35,7 @@ function Navbar() {
   const fetchUserProfilePhoto = async () => {
     try {
       const userPhoto = await getProfilePhoto();
-      setPhoto(userPhoto.photoProfile.downloadUrl);
+      setPhoto(userPhoto);
     } catch (error) {
       console.error('Error fetching photo profile:', error);
     }
@@ -101,41 +101,43 @@ function Navbar() {
     };
   }, []);
 
+  const buttonClass = 'bg-white border-none shadow-none hover:bg-gray-200';
+
 
   return (
     <nav
       ref={navbarRef}
-      className={`fixed z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-12 py-3 transition-shadow duration-300 ${isHovered ? '' : ''
+      className={`fixed z-20 bg-white top-0 left-0 right-0 px-4 sm:px-6 lg:px-12 py-2 transition-shadow duration-300 ${isHovered ? '' : ''
         }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center justify-between z-[100]">
         <div className="flex items-center space-x-4">
-          <a href="/boards" className="text-purple-600 font-bold text-2xl font-newsreader">TaskFlow</a>
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="relative inline-block">
+          <a href="/boards" className="text-purple-600 font-bold text-2xl font-newsreader btn bg-white border-none shadow-none hover:bg-gray-300">TaskFlow</a>
+          <div className="hidden md:flex items-center space-x-4 h-5">
+            <div className="relative">
               <button onClick={() => handleToggle('workspace')}
-                className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer">
+                className={`flex items-center text-gray-600 hover:text-gray-900 btn-sm cursor-pointer btn ${buttonClass}`}>
                 Workspace
-                <i className='ph-caret-down ml-1'></i>
+                <i className={`${openDropdown === 'workspace' ? 'ph-caret-up' : 'ph-caret-down'} ml-1`}></i>
               </button>
               {openDropdown === 'workspace' && (
                 <ul className="absolute left-0 mt-5 bg-white border border-gray-200 rounded-md shadow-lg w-80">
                   <li className="p-4">
                     <h3 className="text-sm font-semibold text-gray-500">Your workspaces</h3>
                     {workspaces.map(workspace => (
-                      <div key={workspace.id} className="mt-2 flex items-center hover:bg-gray-100 p-2 rounded-md cursor-pointer" onClick={() => handleWorkspaceClick(workspace.id)}>
+                      <div key={workspace.id} className={`mt-2 flex items-center justify-start p-2 rounded-md cursor-pointer btn btn-sm ${buttonClass}`} onClick={() => handleWorkspaceClick(workspace.id)}>
                         <div className="w-4 h-4 bg-red-600 mr-2 rounded"></div>
-                        <a className="text-gray-800 font-semibold hover:text-purple-600">{workspace.name}</a>
+                        <a className="text-gray-800 font-semibold">{workspace.name}</a>
                       </div>
                     ))}
                   </li>
                 </ul>
               )}
             </div>
-            <div className="relative inline-block">
-              <button onClick={handleCreateClick} className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300">
+            <div className="relative">
+              <button onClick={handleCreateClick} className="bg-purple-600 text-white px-4 rounded-md text-sm font-semibold btn btn-sm hover:bg-purple-900 border-none">
                 Create
               </button>
               {openDropdown === 'create' && (
@@ -161,10 +163,10 @@ function Navbar() {
             <input type="text" placeholder="Search" className="bg-gray-100 text-black rounded-md px-3 py-2 pl-10 text-sm w-64" />
             <i className='ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'></i>
           </div>
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center">
             <div className="relative inline-block">
-              <button onClick={() => handleToggle('notification')} className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer">
-                <i className="fas fa-bell text-gray-600 hover:text-gray-900 cursor-pointer" />
+              <button onClick={() => handleToggle('notification')} className={`flex items-center text-gray-600 cursor-pointer btn btn-sm ${buttonClass}`}>
+                <i className="fas fa-bell text-gray-600 cursor-pointer" />
               </button>
               {openDropdown === 'notification' && (
                 <div className="fixed right-0 mt-5 bg-white rounded-lg shadow-md p-4 w-w100 h-80 text-black">
@@ -178,14 +180,19 @@ function Navbar() {
                     </div>
                   </div>
                   <div className="border-t border-black pt-2">
-                    <div className='border p-2'>
-                      <p className="flex font-semibold border-b pb-2"><i className='fas fa-users' />Task Management</p>
-                      <div className="flex items-start mt-0 pt-2">
-                        <div className="bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-white font-bold mr-3">
-                          N
+                    <div className='p-2'>
+                      <div className='flex items-center gap-2'>
+                        <i className='fas fa-users' />
+                        <p className="flex font-semibold border-b">Task Management</p>
+                      </div>
+                      <div className="flex items-start py-2 border-b gap-2">
+                        <div>
+                          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
+                            <i className="fas fa-user text-white text-[12px]" />
+                          </div>
                         </div>
                         <div>
-                          <p className="font-semibold">Najwan Muttaqin</p>
+                          <p className="font-semibold">Najwan</p>
                           <p className="text-sm text-gray-600">
                             Added you to the Workspace Task management as an admin Jul 31, 2024,
                             10:52 AM
@@ -200,7 +207,7 @@ function Navbar() {
             <div className="relative inline-block">
               <button
                 onClick={() => handleToggle('profile')}
-                className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer"
+                className={`flex items-center cursor-pointer btn ${buttonClass} btn-sm px-1`}
               >
                 {photo ? (
                   <img
@@ -232,11 +239,11 @@ function Navbar() {
                       </div>
                     </div>
                   </li>
-                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={handleProfileClick}>
-                    <p className="text-sm text-gray-700">Profile and visibility</p>
+                  <li className='px-2 py-2' onClick={handleProfileClick}>
+                    <p className={`text-sm text-gray-700 btn-sm btn ${buttonClass}`}>Profile and visibility</p>
                   </li>
-                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-200" onClick={handleLogoutClick}>
-                    <p className="text-sm text-gray-700">Log out</p>
+                  <li className="px-2 py-2 border-t border-gray-200">
+                    <p className={`text-sm text-red-700 btn btn-sm ${buttonClass}`} onClick={handleLogoutClick}>Log out</p>
                   </li>
                 </ul>
               )}
@@ -248,7 +255,7 @@ function Navbar() {
         </div>
       </div>
       <div
-        className={`md:hidden w-full mt-4 bg-white rounded-md overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
+        className={`md:hidden w-full bg-white rounded-md overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="px-4 py-2">
           <input type="text" placeholder="Search" className="bg-gray-100 rounded-md px-3 py-2 w-full text-sm mb-2" />
         </div>
