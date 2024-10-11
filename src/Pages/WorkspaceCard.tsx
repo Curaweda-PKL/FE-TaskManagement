@@ -1055,7 +1055,7 @@ const WorkspaceProject = () => {
                         </li>
                         <li
                           className="px-4 py-2 rounded-b-lg hover:bg-gray-100 hover:text-red-500 cursor-pointer text-gray-700"
-                          onClick={() => handleDeleteCard(card)}
+                          onClick={() => handleDeleteCard(card.id)}
                         >
                           Delete
                         </li>
@@ -1552,7 +1552,7 @@ const WorkspaceProject = () => {
             <DeleteConfirmation
               onDelete={confirmDeleteCard}
               onCancel={handleCancelPopUp}
-              itemType="cardlist"
+              itemType="card"
             />
           </div>
         )
