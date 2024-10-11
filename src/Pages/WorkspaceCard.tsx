@@ -238,6 +238,7 @@ const WorkspaceProject = () => {
 
   const handleCloseDatesPopup = () => {
     setIsDatesPopupOpen(false);
+    setIsEditCard(true);
   };
 
   const handleOpenAttachPopup = (cardList: any) => {
@@ -919,6 +920,7 @@ const WorkspaceProject = () => {
     await fetchData2();
   }
 
+
   const getContrastColor = (hexColor: any) => {
     const r = parseInt(hexColor.slice(1, 3), 16);
     const g = parseInt(hexColor.slice(3, 5), 16);
@@ -929,12 +931,6 @@ const WorkspaceProject = () => {
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
 
-  const calculateChecklistPercentage = (items: any[]) => {
-    if (!items || items.length === 0) return 0;
-    const completedItems = items.filter(item => item.isDone).length;
-    return Math.round((completedItems / items.length) * 100);
-  };
-
   return (
     <>
       <header className="flex bg-gray-100 p-3 justify-between items-center">
@@ -942,17 +938,17 @@ const WorkspaceProject = () => {
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="flex -space-x-4">
+          <div className="flex space-x-2">
             {visibleMembers.map((member, index) => (
               <img
                 key={index}
-                className="w-7 h-7 rounded-full bg-gray-300"
+                className="w-8 h-8 rounded-full"
                 src={member.photoProfile}
                 alt={member.name}
               />
             ))}
             {remainingCount > 0 && (
-              <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
                 <span className="text-xs font-semibold text-gray-600">
                   +{remainingCount}
                 </span>
@@ -988,11 +984,11 @@ const WorkspaceProject = () => {
                       onClick={() => handleOpenPopup(cardList)}
                     >
                       <div className=" justify-between items-start">
-                        {cardList.labels.map((label: any, index: any) =>
-                          <div key={index}>
-                            <div style={{ background: label.label.color }} className="w-4 h-4 rounded-full mr-2"></div>
-                          </div>
-                        )}
+                        <div className='grid grid-cols-3 gap-2'>
+                          {cardList.labels.map((label: any, index: any) =>
+                            <div key={index} style={{ background: label.label.color }} className="w-full h-4 rounded-sm"></div>
+                          )}
+                        </div>
                         <span className="text-black text-sm">{cardList?.name}</span>
                         <button
                           className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -1004,8 +1000,6 @@ const WorkspaceProject = () => {
                           <i className="fas fa-pencil-alt text-xs"></i>
                         </button>
                       </div>
-
-
                       <div className='flex justify-end mt-2'>
                         <div className='flex justify-between w-full'>
                           <select
@@ -1336,63 +1330,44 @@ const WorkspaceProject = () => {
                     </div>
                   </div>
                   <div className="activity flex flex-col justify-between mb-3 text-gray-800">
-                  {checklistData?.map((data, index) => {
-                    const completionPercentage = calculateChecklistPercentage(data.items);
-                    
-                    return (
-                      <div key={index} className="checklist-item mb-4">
-                        <div className='flex justify-between items-center mb-2'>
+                    {checklistData?.map((data, index) => (
+                      <div key={index} className="checklist-item">
+                        <div className='flex justify-between items-center'>
                           <div className='flex items-center'>
                             <i className='fa-regular fa-square-check mr-3 text-lg'></i>
                             <h1 className='text-md items-center'>{data.name}</h1>
                           </div>
                           <div className='flex gap-1 items-center'>
-                            <span className="text-sm text-gray-600 mr-2">{completionPercentage}%</span>
                             <i
-                              className="fa-regular fa-pen-to-square hover:text-blue-500 cursor-pointer"
+                              className="fa-regular fa-pen-to-square hover:text-blue-500"
                               onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
                             ></i>
                             <i
-                              className="fa-regular fa-trash-can hover:text-red-500 cursor-pointer"
+                              className="fa-regular fa-trash-can hover:text-red-500"
                               onClick={() => handleDeleteChecklist(data.id)}
                             ></i>
                           </div>
                         </div>
-                        
-                        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                          <div 
-                            className="bg-blue-600 h-2.5 rounded-full" 
-                            style={{ width: `${completionPercentage}%` }}
-                          ></div>
-                        </div>
-
-                        <div className='flex justify-between text-[10px] mb-2'>
+                        <div className='flex justify-between text-[10px]'>
                           <p>Start Date: {data.startDate}</p>
                           <p>End Date: {data.endDate}</p>
                         </div>
-                        
                         <ul className='mb-3'>
                           {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
-                            <li key={itemIndex} className="flex items-center mb-1">
+                            <li key={itemIndex}>
                               <input
                                 type="checkbox"
                                 id={`checklist-item-${index}-${itemIndex}`}
                                 checked={item.isDone}
                                 onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
-                                className="w-4 h-4 mr-3 rounded border-gray-300"
+                                className="w-3 h-3 mr-3"
                               />
-                              <label 
-                                htmlFor={`checklist-item-${index}-${itemIndex}`}
-                                className={`text-sm ${item.isDone ? 'line-through text-gray-500' : 'text-gray-700'}`}
-                              >
-                                {item.name}
-                              </label>
+                              <label htmlFor={`checklist-item-${index}-${itemIndex}`}>{item.name}</label>
                             </li>
                           ))}
                         </ul>
                       </div>
-                    );
-                  })}
+                    ))}
                   </div>
                   <div className="activity flex justify-between mb-3">
                     <span className="text-black text-lg font-semibold">Activity</span>
@@ -1635,6 +1610,7 @@ const WorkspaceProject = () => {
               workspaceId={workspaceId !== undefined ? workspaceId : ''}
               funcfetchLabels={funcfetchLabels}
               handlefetchCardListLabels={handlefetchCardListLabels}
+              fetchData2={fetchData2}
             />
           </div>
         )
@@ -1649,6 +1625,7 @@ const WorkspaceProject = () => {
               labelPercentage={100}
               onSave={handleCloseEditLabel}
               onCancel={handleCloseEditLabel}
+              fetchCard={fetchData2}
             />
           </div>
         )
