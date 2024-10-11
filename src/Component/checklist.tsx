@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
@@ -19,27 +19,35 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
 
   if (!isOpen || !selectedCardList) return null;
 
-  const [items, setItems] = useState(isEditMode && existingChecklistData ? existingChecklistData.items : ['']);
+  const [items, setItems] = useState(isEditMode && existingChecklistData ? existingChecklistData.items : [{ name: '' }]);
   const [startDate, setStartDate] = useState(isEditMode && existingChecklistData && existingChecklistData.startDate ? existingChecklistData.startDate : new Date());
   const [endDate, setEndDate] = useState(isEditMode && existingChecklistData && existingChecklistData.endDate ? existingChecklistData.endDate : new Date());
   const [title, setTitle] = useState(isEditMode && existingChecklistData && existingChecklistData.name ? existingChecklistData.name : '');
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+    const isTitleValid = title.trim() !== '';
+    const areAllItemsValid = items.every(item => item.name && item.name.trim() !== '');
+    setIsFormValid(isTitleValid && areAllItemsValid && items.length > 0);
+  }, [title, items]);
 
   const handleAddItem = () => {
-    setItems([...items, '']);
+    setItems([...items, { name: '' }]);
   };
 
   const handleInputChange = (index: number, value: string) => {
-    setItems(
-      items.map((item: any, i: any) => {
-        if (i === index) {
-          return { ...item, name: value }; // Preserve existing item properties and update name
-        }
-        return item;
-      })
-    );
+    const newItems = items.map((item, i) => {
+      if (i === index) {
+        return { ...item, name: value };
+      }
+      return item;
+    });
+    setItems(newItems);
   };
 
   const handleCreateChecklist = async () => {
+    if (!isFormValid) return;
+    
     // if in edit mode, update the checklist instead of creating a new one
     if (isEditMode) {
       const updatedChecklistData = {
@@ -48,7 +56,7 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
           name: title,
           startDate: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
           endDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
-          items: items.map((item: any) => ({ name: item.name, isDone: item.isDone })),
+          items: items.map(item => ({ name: item.name, isDone: item.isDone })),
         },
       };
       try {
@@ -67,7 +75,7 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
           name: title,
           startDate: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
           endDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
-          items: items.map((item: any) => ({ name: item.name, isDone: false })),
+          items: items.map(item => ({ name: item.name, isDone: false })),
         },
       };
       try {
@@ -80,8 +88,9 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
       }
     }
   };
+
   const handleDeleteItem = (index: number) => {
-    setItems(items.filter((item: any, i: any) => i !== index));
+    setItems(items.filter((_, i) => i !== index));
   };
 
   return (
@@ -116,7 +125,7 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                 <label className="block text-sm font-medium text-gray-700">
                   Item
                 </label>
-                {items.map((item: any, index: any) => (
+                {items.map((item, index) => (
                   <div key={index}>
                     <input
                       type="text"
@@ -126,12 +135,8 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                       className="w-full p-1 border border-gray-300 bg-white rounded-lg focus:outline"
                     />
                     {items.length > 1 && (
-                      <button
-                        className="ml-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                        onClick={() => handleDeleteItem(index)}
-                      >
-                        Delete
-                      </button>
+                      <i className="fa-regular fa-trash-can hover:text-red-500 absolute right-9 mt-2"
+                      onClick={() => handleDeleteItem(index)}></i>
                     )}
                   </div>
                 ))}
@@ -168,7 +173,15 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
               </div>
 
               <div className="flex justify-end mt-4">
-                <button onClick={handleCreateChecklist} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+                <button 
+                  onClick={handleCreateChecklist} 
+                  className={`px-4 py-2 rounded ${
+                    isFormValid
+                      ? "bg-purple-600 hover:bg-purple-700 text-white"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                  disabled={!isFormValid}
+                >
                   Save
                 </button>
               </div>
