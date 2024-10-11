@@ -63,7 +63,7 @@ export const deleteCard = async (CardId: any) => {
           'Authorization': `${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        data:  CardId 
+        data:  {cardId: CardId} 
       }
     );
 
