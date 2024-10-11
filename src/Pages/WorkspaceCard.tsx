@@ -920,7 +920,6 @@ const WorkspaceProject = () => {
     await fetchData2();
   }
 
-
   const getContrastColor = (hexColor: any) => {
     const r = parseInt(hexColor.slice(1, 3), 16);
     const g = parseInt(hexColor.slice(3, 5), 16);
@@ -929,6 +928,12 @@ const WorkspaceProject = () => {
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
 
     return brightness > 128 ? '#000000' : '#FFFFFF';
+  };
+
+  const calculateChecklistPercentage = (items: any[]) => {
+    if (!items || items.length === 0) return 0;
+    const completedItems = items.filter(item => item.isDone).length;
+    return Math.round((completedItems / items.length) * 100);
   };
 
   return (
@@ -1326,44 +1331,63 @@ const WorkspaceProject = () => {
                     </div>
                   </div>
                   <div className="activity flex flex-col justify-between mb-3 text-gray-800">
-                    {checklistData?.map((data, index) => (
-                      <div key={index} className="checklist-item">
-                        <div className='flex justify-between items-center'>
+                  {checklistData?.map((data, index) => {
+                    const completionPercentage = calculateChecklistPercentage(data.items);
+                    
+                    return (
+                      <div key={index} className="checklist-item mb-4">
+                        <div className='flex justify-between items-center mb-2'>
                           <div className='flex items-center'>
                             <i className='fa-regular fa-square-check mr-3 text-lg'></i>
                             <h1 className='text-md items-center'>{data.name}</h1>
                           </div>
                           <div className='flex gap-1 items-center'>
+                            <span className="text-sm text-gray-600 mr-2">{completionPercentage}%</span>
                             <i
-                              className="fa-regular fa-pen-to-square hover:text-blue-500"
+                              className="fa-regular fa-pen-to-square hover:text-blue-500 cursor-pointer"
                               onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
                             ></i>
                             <i
-                              className="fa-regular fa-trash-can hover:text-red-500"
+                              className="fa-regular fa-trash-can hover:text-red-500 cursor-pointer"
                               onClick={() => handleDeleteChecklist(data.id)}
                             ></i>
                           </div>
                         </div>
-                        <div className='flex justify-between text-[10px]'>
+                        
+                        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                          <div 
+                            className="bg-blue-600 h-2.5 rounded-full" 
+                            style={{ width: `${completionPercentage}%` }}
+                          ></div>
+                        </div>
+
+                        <div className='flex justify-between text-[10px] mb-2'>
                           <p>Start Date: {data.startDate}</p>
                           <p>End Date: {data.endDate}</p>
                         </div>
+                        
                         <ul className='mb-3'>
                           {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
-                            <li key={itemIndex}>
+                            <li key={itemIndex} className="flex items-center mb-1">
                               <input
                                 type="checkbox"
                                 id={`checklist-item-${index}-${itemIndex}`}
                                 checked={item.isDone}
                                 onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
-                                className="w-3 h-3 mr-3"
+                                className="w-4 h-4 mr-3 rounded border-gray-300"
                               />
-                              <label htmlFor={`checklist-item-${index}-${itemIndex}`}>{item.name}</label>
+                              <label 
+                                htmlFor={`checklist-item-${index}-${itemIndex}`}
+                                className={`text-sm ${item.isDone ? 'line-through text-gray-500' : 'text-gray-700'}`}
+                              >
+                                {item.name}
+                              </label>
                             </li>
                           ))}
                         </ul>
                       </div>
-                    ))}
+                    );
+                  })}
                   </div>
                   <div className="activity flex justify-between mb-3">
                     <span className="text-black text-lg font-semibold">Activity</span>
