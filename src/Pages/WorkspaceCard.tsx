@@ -238,7 +238,6 @@ const WorkspaceProject = () => {
 
   const handleCloseDatesPopup = () => {
     setIsDatesPopupOpen(false);
-    setIsEditCard(true);
   };
 
   const handleOpenAttachPopup = (cardList: any) => {
@@ -943,17 +942,17 @@ const WorkspaceProject = () => {
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="flex space-x-2">
+          <div className="flex -space-x-4">
             {visibleMembers.map((member, index) => (
               <img
                 key={index}
-                className="w-8 h-8 rounded-full"
+                className="w-7 h-7 rounded-full bg-gray-300"
                 src={member.photoProfile}
                 alt={member.name}
               />
             ))}
             {remainingCount > 0 && (
-              <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
+              <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
                 <span className="text-xs font-semibold text-gray-600">
                   +{remainingCount}
                 </span>
