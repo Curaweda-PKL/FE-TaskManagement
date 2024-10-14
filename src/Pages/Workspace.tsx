@@ -36,7 +36,7 @@ const Workspace: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    
+
   }, []);
 
   useEffect(() => {
@@ -60,16 +60,14 @@ const Workspace: React.FC = () => {
         })
       );
       setWorkspaces(updatedWorkspaces);
-      
+
       const socket = io(config);
 
-      // Loop through each workspaceId
       updatedWorkspaces.forEach((workspace) => {
-        // Add listener for each workspace
         socket.on(`board/${workspace.id}`, () => {
           console.log(`Board updated for workspace ${workspace.id}`);
           fetchData();
-        }); 
+        });
       });
       setLoading(false);
       return () => {
@@ -89,19 +87,17 @@ const Workspace: React.FC = () => {
   const handleJoinWorkspace = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await axios.get(`/workspace/${joinWorkspaceId}`);
-      const workspace = response.data;
-
-      if (workspace.isPublic) {
-        await joinWorkspace(joinWorkspaceId);
-        const updatedWorkspaces = await fetchWorkspaces(workspaces);
-        setWorkspaces(updatedWorkspaces);
-        closeModal();
-      } else {
-        setIsPrivateWorkspace(true);
-      }
+      const a = await joinWorkspace(joinWorkspaceId);
+      console.log(a)
+      const updatedWorkspaces = await fetchWorkspaces(workspaces);
+      setWorkspaces(updatedWorkspaces);
+      closeModal();
     } catch (error: any) {
       console.error('Failed to join workspace:', error);
+
+      if (error.message === "Request failed with status code 403") return setIsPrivateWorkspace(true);
+
+
       let errorMessage;
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
@@ -342,7 +338,7 @@ const Workspace: React.FC = () => {
                 />
                 <div className="flex gap-3 justify-end mt-8">
                   <button type="button" onClick={closeModal} className="bg-gray-200 font-semibold px-4 py-2 rounded hover:bg-gray-300 text-black">Cancel</button>
-                  <button type="submit" className="bg-blue-600 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700">Join</button>
+                  <button onClick={handleJoinWorkspace} className="bg-blue-600 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700">Join</button>
                 </div>
               </form>
             ) : (

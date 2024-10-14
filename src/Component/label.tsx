@@ -11,10 +11,10 @@ interface LabelProps {
   workspaceId: string;
   funcfetchLabels: () => void;
   handlefetchCardListLabels: () =>  void;
-
+  fetchData2: () => void;
 }
 
-const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchLabels, handlefetchCardListLabels, cardlistId, workspaceId }) => {
+const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchLabels, handlefetchCardListLabels, cardlistId, workspaceId, fetchData2 }) => {
   if (!isOpen) return null;
 
   const [openEdit, setOpenEdit] = useState(false);
@@ -32,6 +32,7 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
     await deleteLabelFromWorkspace(cardlistLabelId)
     funcfetchLabels();
     handlefetchCardListLabels();
+    fetchData2();
   }
 
 
@@ -39,6 +40,7 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
     try {
       await addLabelToCardList(cardlistId, labelId);
       getCardListLabels();
+      fetchData2()
       console.log('Label berhasil ditambahkan ke card list');
     } catch (error) {
       console.error('Gagal menambahkan label ke card list:', error);
@@ -49,6 +51,7 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
     try {
       await removeLabelFromCardList(labelId, cardlistId);
       getCardListLabels();
+      fetchData2();
     } catch (error) {
       console.error('Gagal meremove label dari card list:', error);
     }
