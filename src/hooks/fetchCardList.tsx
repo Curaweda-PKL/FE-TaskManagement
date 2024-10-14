@@ -55,11 +55,11 @@ export const createCardList = async (cardId: any, name: any, description: any, s
     }
   };
 
-export const updateCardList = async (id: any, name: any, description: any, score: any) => {
+export const updateCardList = async (id: any, name: any, description: any, score: any, startDate: any, endDate: any) => {
   try {
     const response = await axios.put(
       config + "/cardlist/update",
-      { id, name, score, description },
+      { id, name, score, description, startDate, endDate },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
