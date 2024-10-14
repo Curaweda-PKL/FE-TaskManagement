@@ -22,6 +22,7 @@ import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
 import DescriptionEditor from '../Component/descriptionEditor'
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
+import { format } from 'date-fns';
 
 interface ChecklistData {
   id: string;
@@ -633,9 +634,9 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleUpdateListName = async (id: any, description: any, score: any, newName: any) => {
+  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate: any, endDate: any) => {
     try {
-      await updateCardList(id, description, score, newName);
+      await updateCardList(id, description, score, newName, startDate, endDate);
       await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
@@ -825,10 +826,10 @@ const WorkspaceProject = () => {
     link.href = attachment.url;
     link.download = attachment.name;
     document.body.appendChild(link);
-    link.click(); 
+    link.click();
     document.body.removeChild(link);
   };
-  
+
 
   const handleDeleteAttachment = async (attachmentId: string) => {
     if (!selectedCardList || !selectedCardList.id) {
@@ -857,6 +858,20 @@ const WorkspaceProject = () => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleSaveDates = (startDate: any, endDate: any) => {
+    const updatedCardData = cardData.map(card => {
+      const updatedCardList = card.cardList.map((cardList: any) => {
+        if (cardList.id === selectedCardList.id) {
+          return { ...cardList, startDate, endDate };
+        }
+        return cardList;
+      });
+      return { ...card, cardList: updatedCardList };
+    });
+    setCardData(updatedCardData);
+    handleCloseDatesPopup();
   };
 
 
@@ -1019,7 +1034,7 @@ const WorkspaceProject = () => {
                               const newStatus = e.target.value;
                               handleUpdateStatusCardlist(cardList.id, newStatus);
                             }}
-                            onClick={(e) => e.stopPropagation()} // Add this line
+                            onClick={(e) => e.stopPropagation()}
                             className="text-[10px] text-black bg-white"
                           >
                             <option value="TODO">To Do</option>
@@ -1029,6 +1044,11 @@ const WorkspaceProject = () => {
                             <option value="APPROVED">Approved</option>
                             <option value="NOT_SURE">Not Sure</option>
                           </select>
+                          {cardList?.startDate && cardList?.endDate && (
+                            <div className="text-[9px] font-medium text-gray-600 ml-2">
+                              {`${format(new Date(cardList.startDate), 'PP')} - ${format(new Date(cardList.endDate), 'PP')}`}
+                            </div>
+                          )}
                           <div className='flex -space-x-1'>
                             {cardList.members && cardList.members.length > 0 &&
                               cardList.members.slice(0, 3).map((member: any) => (
@@ -1128,7 +1148,7 @@ const WorkspaceProject = () => {
                     type="text"
                     value={selectedCardList.name}
                     onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score)}
+                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate)}
                     autoFocus
                     className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
                   />
@@ -1148,7 +1168,7 @@ const WorkspaceProject = () => {
               <div className="cardlist flex gap-10 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
                   <div className="flex flex-row gap-4 mb-3">
-                    {labelColors.map((color, index) => (
+                    {labelColors?.map((color, index) => (
                       <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
                         {color.name}
                       </div>
@@ -1167,7 +1187,9 @@ const WorkspaceProject = () => {
                             selectedCardList.id,
                             selectedCardList.name,
                             selectedCardList.description,
-                            newScore
+                            newScore,
+                            selectedCardList.startDate,
+                            selectedCardList.endDate
                           );
                         }}
                         className="border bg-gray-300 rounded p-1 text-black"
@@ -1175,7 +1197,7 @@ const WorkspaceProject = () => {
                         <option value="" disabled>
                           Select Score
                         </option>
-                        {[1, 2, 3, 4, 5].map((score) => (
+                        {[0, 1, 2, 3, 4, 5].map((score) => (
                           <option key={score} value={score}>
                             {score}
                           </option>
@@ -1333,8 +1355,8 @@ const WorkspaceProject = () => {
                             <div className='ml-5 text-gray-800 text-sm'>
                               <p className="font-semibold text-base">{attachment.name}</p>
                               <div className="flex flex-wrap gap-2">
-                                <button className="underline"  
-                                onClick={() => handleDownloadAttachment(attachment)}>Download</button>
+                                <button className="underline"
+                                  onClick={() => handleDownloadAttachment(attachment)}>Download</button>
                                 <button
                                   className="underline"
                                   onClick={() => handleDeleteAttachmentClick(attachment)}
@@ -1676,6 +1698,7 @@ const WorkspaceProject = () => {
             isDatesPopupOpen={isDatesPopupOpen}
             selectedCardList={selectedCardList}
             handleCloseDatesPopup={handleCloseDatesPopup}
+            onSave={handleSaveDates}
           />
         )
       }

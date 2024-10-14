@@ -1,36 +1,63 @@
 import React, { useState } from "react";
-import { format } from 'date-fns';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
+import { format } from "date-fns";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
+import { updateCardList } from "../hooks/fetchCardList";
 
 interface DatesPopupProps {
   isDatesPopupOpen: boolean;
-  selectedCardList: { title: string };
+  selectedCardList: {
+    id: any;
+    title: string;
+    score: number;
+    description: string;
+  };
   handleCloseDatesPopup: () => void;
 }
 
-const DatesPopup: React.FC<DatesPopupProps> = ({ isDatesPopupOpen, selectedCardList, handleCloseDatesPopup }) => {
+const DatesPopup: React.FC<DatesPopupProps> = ({
+  isDatesPopupOpen,
+  selectedCardList,
+  handleCloseDatesPopup,
+}) => {
   if (!isDatesPopupOpen || !selectedCardList) return null;
 
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-  const [dueDate, setDueDate] = useState<string>('');
-  const [dueTime, setDueTime] = useState<string>('');
-  const [reminder, setReminder] = useState<string>('1');
+  const [dueDate, setDueDate] = useState<string>("");
+  const [dueTime, setDueTime] = useState<string>("");
+  const [reminder, setReminder] = useState<string>("1");
 
-  const handleSave = () => {
-    // Implement save logic here
-    console.log("Saving dates:", { startDate, endDate, dueDate, dueTime, reminder });
-    handleCloseDatesPopup();
+  const handleSave = async () => {
+    console.log("Saving dates:", {
+      startDate,
+      endDate,
+      dueDate,
+      dueTime,
+      reminder,
+    });
+
+    try {
+      await updateCardList(
+        selectedCardList.id,
+        selectedCardList.title,
+        selectedCardList.description,
+        selectedCardList.score,
+        startDate?.toISOString(),
+        endDate?.toISOString()
+      );
+      handleCloseDatesPopup();
+    } catch (error) {
+      console.error("Error updating card list:", error);
+    }
   };
 
   const handleRemove = () => {
-    // Implement remove logic here
     setStartDate(undefined);
     setEndDate(undefined);
-    setDueDate('');
-    setDueTime('');
-    setReminder('1');
+    setDueDate("");
+    setDueTime("");
+    setReminder("1");
   };
 
   return (
@@ -45,7 +72,9 @@ const DatesPopup: React.FC<DatesPopupProps> = ({ isDatesPopupOpen, selectedCardL
               ✕
             </button>
 
-            <h2 className="text-center text-sm font-bold mb-4">{selectedCardList.title} - Dates</h2>
+            <h2 className="text-center text-sm font-bold mb-4">
+              {selectedCardList.title} - Dates
+            </h2>
 
             <div className="flex justify-between mt-10">
               <div>
@@ -56,7 +85,9 @@ const DatesPopup: React.FC<DatesPopupProps> = ({ isDatesPopupOpen, selectedCardL
                   mode="single"
                   selected={startDate}
                   onSelect={setStartDate}
-                  footer={startDate ? <p>{format(startDate, 'PP')}</p> : <p>Please pick a day.</p>}
+                  footer={
+                    startDate ? <p>{format(startDate, "PP")}</p> : <p>Please pick a day.</p>
+                  }
                   className="text-black"
                 />
               </div>
@@ -68,34 +99,46 @@ const DatesPopup: React.FC<DatesPopupProps> = ({ isDatesPopupOpen, selectedCardL
                   mode="single"
                   selected={endDate}
                   onSelect={setEndDate}
-                  footer={endDate ? <p>{format(endDate, 'PP')}</p> : <p>Please pick a day.</p>}
+                  footer={
+                    endDate ? <p>{format(endDate, "PP")}</p> : <p>Please pick a day.</p>
+                  }
                   className="text-black"
                 />
               </div>
             </div>
 
             <div className="mt-4">
-              <label htmlFor="due-date-checkbox" className="text-sm font-semibold">Due Date</label>
+              <label
+                htmlFor="due-date-checkbox"
+                className="text-sm font-semibold"
+              >
+                Due Date
+              </label>
               <div className="flex space-x-2 mt-2">
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm" 
+                  className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm"
                 />
-                <input 
-                  type="time" 
+                <input
+                  type="time"
                   value={dueTime}
                   onChange={(e) => setDueTime(e.target.value)}
-                  className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm" 
+                  className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm"
                 />
               </div>
             </div>
 
             <div className="mt-4">
-              <label htmlFor="reminder" className="block text-sm font-semibold mb-2">Set Due Date Reminder</label>
-              <select 
-                id="reminder" 
+              <label
+                htmlFor="reminder"
+                className="block text-sm font-semibold mb-2"
+              >
+                Set Due Date Reminder
+              </label>
+              <select
+                id="reminder"
                 value={reminder}
                 onChange={(e) => setReminder(e.target.value)}
                 className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm text-gray-800"
@@ -108,10 +151,16 @@ const DatesPopup: React.FC<DatesPopupProps> = ({ isDatesPopupOpen, selectedCardL
             </div>
 
             <div className="flex justify-end mt-6 space-x-2">
-              <button onClick={handleRemove} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm">
+              <button
+                onClick={handleRemove}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm"
+              >
                 Remove
               </button>
-              <button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm">
+              <button
+                onClick={handleSave}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm"
+              >
                 Save
               </button>
             </div>
