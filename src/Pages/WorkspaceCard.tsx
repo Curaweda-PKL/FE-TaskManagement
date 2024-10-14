@@ -986,7 +986,7 @@ const WorkspaceProject = () => {
                     >
                       <div className=" justify-between items-start">
                         <div className='grid grid-cols-3 gap-2'>
-                          {cardList.labels.map((label: any, index: any) =>
+                          {cardList.labels?.map((label: any, index: any) =>
                             <div key={index} style={{ background: label.label.color }} className="w-full h-4 rounded-sm"></div>
                           )}
                         </div>
@@ -1143,22 +1143,36 @@ const WorkspaceProject = () => {
                         {color.name}
                       </div>
                     ))}
-                    <select
-                      value={selectedCardList.score}
-                      onChange={(e) => {
-                        const newScore = parseInt(e.target.value, 10);
-                        setSelectedCardList({ ...selectedCardList, score: newScore });
-                        handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, newScore);
-                      }}
-                      className="ml-4 border bg-gray-300 rounded p-1 text-black"
-                    >
-                      <option value="" disabled>Select Score</option>
-                      {[1, 2, 3, 4, 5].map((score) => (
-                        <option key={score} value={score}>
-                          {score}
+                    <div>
+                      <label htmlFor="score-select" className="block text-black text-sm font-medium mb-1">
+                        Score
+                      </label>
+                      <select
+                        id="score-select"
+                        value={selectedCardList.score}
+                        onChange={(e) => {
+                          const newScore = parseInt(e.target.value, 10);
+                          setSelectedCardList({ ...selectedCardList, score: newScore });
+                          handleUpdateListName(
+                            selectedCardList.id,
+                            selectedCardList.name,
+                            selectedCardList.description,
+                            newScore
+                          );
+                        }}
+                        className="border bg-gray-300 rounded p-1 text-black"
+                      >
+                        <option value="" disabled>
+                          Select Score
                         </option>
-                      ))}
-                    </select>
+                        {[1, 2, 3, 4, 5].map((score) => (
+                          <option key={score} value={score}>
+                            {score}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                   </div>
 
                   <div className="mt-4">
@@ -1691,4 +1705,4 @@ const WorkspaceProject = () => {
   );
 };
 
-export default WorkspaceProject;  
+export default WorkspaceProject;
