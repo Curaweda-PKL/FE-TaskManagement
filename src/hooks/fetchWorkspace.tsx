@@ -157,7 +157,6 @@ export const requestJoinWorkspace = async (workspaceId: any) => {
         }
       }
     );
-    window.location.reload();
     return response.data;
   } catch (error) {
     console.error('Failed to join workspace:', error);
