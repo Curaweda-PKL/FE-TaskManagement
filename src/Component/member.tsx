@@ -20,7 +20,7 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
   const { getUserDataById } = useAuth(onSuccess, onLogout);
 
   useEffect(() => {
-    updatedMembers.forEach((member: { userId: any }) => {
+    updatedMembers?.forEach((member: { userId: any }) => {
       const id = member.userId;
       getUserDataById(id)
         .then((data: any) => {
@@ -35,7 +35,7 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
   const cardListId = selectedCardList.id;
 
   const handleRemoveMember = async (userId: string) => {
-    const filteredMembers = updatedMembers.filter((member: any) => member.userId !== userId);
+    const filteredMembers = updatedMembers?.filter((member: any) => member?.userId !== userId);
     setUpdatedMembers(filteredMembers);
     try {
       await outCardList(cardListId, userId);
@@ -74,23 +74,23 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
           />
         </div>
 
-        <ul className="space-y-2">
-          {updatedMembers.slice(0, 3).map((member: any, index: any) => (
+        <ul className="space-y-2 mb-2">
+          {updatedMembers?.slice(0, 3).map((member: any, index: any) => (
             <li key={index} className="flex items-center px-2 py-1 bg-gray-200 rounded-md">
               <img
                 alt={`Profile of ${member.userId}`}
                 src={member.photoUrl || "/path/to/default/avatar.png"}
-                className="fas fa-user bg-gray-100 text-xs rounded-full text-gray-400 w-8 h-8 flex items-center justify-center"
+                className="fas fa-user bg-gray-100 text-xs rounded-full text-gray-400 w-8 h-8 mr-2 flex items-center justify-center"
               />
               <span className="text-sm">
                 {userData[member.userId] && (
                   <div className="flex justify-between">
                     <span>
-                      {userData[member.userId].name} ({userData[member.userId].email})
+                      {userData[member?.userId].name} ({userData[member?.userId].email})
                     </span>
                     <button
                       className="text-gray-500 hover:text-gray-700"
-                      onClick={() => handleRemoveMember(member.userId)}
+                      onClick={() => handleRemoveMember(member?.userId)}
                     >
                       <i className="fas fa-times"></i>
                     </button>
@@ -101,14 +101,10 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
           ))}
         </ul>
 
-        <div className="mb-4">
-          <h3 className="text-sm font-normal mb-2">Board members</h3>
-        </div>
-
         <div>
           <h3 className="text-sm font-normal mb-2">Workspace members</h3>
           <ul className="space-y-2">
-            {updatedMembers.slice(3, 6).map((member: any, index: any) => (
+            {updatedMembers?.slice(3, 6).map((member: any, index: any) => (
               <li key={index} className="flex items-center py-2 px-3 bg-gray-200 rounded-md">
                 <i className="fas fa-user bg-gray-100 text-xs rounded-full text-gray-400 mr-2 p-2 w-6 h-6 flex items-center justify-center"></i>
                 <span className="text-sm">{member.name}</span>
