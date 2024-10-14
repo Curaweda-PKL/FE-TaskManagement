@@ -233,7 +233,7 @@ const WorkspaceProject = () => {
   const handleOpenDatesPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsDatesPopupOpen(true);
-    setIsEditCard(false);
+    setIsEditCard(true);
   };
 
   const handleCloseDatesPopup = () => {
@@ -1492,17 +1492,17 @@ const WorkspaceProject = () => {
               <div
                 className="absolute bg-white rounded-md items-center"
                 style={{
-                  top: `${activeCardRect.top}px`,
-                  left: `${activeCardRect.left}px`,
-                  width: `${activeCardRect.width}px`,
-                  height: `${activeCardRect.height}px`,
+                  top: `${activeCardRect?.top}px`,
+                  left: `${activeCardRect?.left}px`,
+                  width: `${activeCardRect?.width}px`,
+                  height: `${activeCardRect?.height}px`,
                 }}
               >
                 {editingCard && (
                   <>
                     <div className="flex items-center px-3 py-2 mb-5 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-300">
-                      <div className={`w-2 h-2 rounded-full ${editingCard.color} mr-2`}></div>
-                      <span className="text-black text-sm">{editingCard.name}</span>
+                      <div className={`w-2 h-2 rounded-full ${editingCard?.color} mr-2`}></div>
+                      <span className="text-black text-sm">{editingCard?.name}</span>
                     </div>
                     <a
                       onClick={(e) => {
@@ -1521,8 +1521,8 @@ const WorkspaceProject = () => {
             <div
               className="fixed z-20"
               style={{
-                top: `${activeCardRect.top - 50}px`,
-                left: `${activeCardRect.right}px`,
+                top: `${activeCardRect?.top}px`,
+                left: `${activeCardRect?.right}px`,
               }}
             >
               <div className="py-1 ml-5" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
