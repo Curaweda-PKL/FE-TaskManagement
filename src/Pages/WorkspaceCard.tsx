@@ -820,6 +820,16 @@ const WorkspaceProject = () => {
     setSelectedImage(attachment);
   };
 
+  const handleDownloadAttachment = (attachment: any) => {
+    const link = document.createElement('a');
+    link.href = attachment.url;
+    link.download = attachment.name;
+    document.body.appendChild(link);
+    link.click(); 
+    document.body.removeChild(link);
+  };
+  
+
   const handleDeleteAttachment = async (attachmentId: string) => {
     if (!selectedCardList || !selectedCardList.id) {
       console.error('No card list selected');
@@ -1323,8 +1333,8 @@ const WorkspaceProject = () => {
                             <div className='ml-5 text-gray-800 text-sm'>
                               <p className="font-semibold text-base">{attachment.name}</p>
                               <div className="flex flex-wrap gap-2">
-                                <button className="underline">Comment</button>
-                                <button className="underline">Download</button>
+                                <button className="underline"  
+                                onClick={() => handleDownloadAttachment(attachment)}>Download</button>
                                 <button
                                   className="underline"
                                   onClick={() => handleDeleteAttachmentClick(attachment)}
@@ -1332,7 +1342,6 @@ const WorkspaceProject = () => {
                                 >
                                   Delete
                                 </button>
-                                <button className="underline">Edit</button>
                               </div>
                             </div>
                           </div>
