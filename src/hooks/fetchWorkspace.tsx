@@ -262,3 +262,80 @@ export const removeMemberWorkspace = async (workspaceId: any, memberId: any) => 
     throw error;
   }
 };
+
+export const getWorkspace = async (workspaceId: any) => {
+  try {
+    const response = await axios.get(
+      `${config}/report/workspace/${workspaceId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get workspace:', error);
+    throw error;
+  }
+};
+
+export const getWorkspaceRanks = async (workspaceId: any, startDate: Date, endDate: Date) => {
+  try {
+    const response = await axios.get(
+      `${config}/report/workspace/${workspaceId}/ranks`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        params: {
+          startDate,
+          endDate
+        }
+      }
+    );
+
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get workspace ranks', error);
+    throw error;
+  }
+};
+
+export const getBoardRanks = async (boardId: any, startDate: string, endDate: string) => {
+  try {
+    const response = await axios.get(
+      `${config}/report/board/${boardId}/ranks`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        params: {
+          startDate,
+          endDate
+        }
+      }
+    );
+
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get board ranks', error);
+    throw error;
+  }
+};
