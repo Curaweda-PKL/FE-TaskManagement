@@ -93,23 +93,30 @@ const WorkspaceReports: React.FC = () => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold">{selectedBoard} Content</h3>
+            <div className='flex justify-center'>
+              <h3 className="text-xl font-semibold">{selectedBoard} Content</h3>
+            </div>
             <button onClick={closePopup} className="text-gray-500 hover:text-gray-700">
               <X size={24} />
             </button>
           </div>
-          {Object.entries(board.cards).map(([cardKey, card]) => (
-            <div key={cardKey} className="mb-4">
-              <h4 className="font-medium text-lg">{cardKey}:</h4>
-              <ul className="list-disc list-inside pl-4">
-                {card.cardLists.map((list, index) => (
-                  <li key={index} className="mb-1">
-                    {list.name} (Score: {list.score})
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="flex justify-between flex-wrap gap-4 p-4">
+            {Object.entries(board.cards).map(([cardKey, card]) => (
+              <div key={cardKey} className="w-full sm:w-1/2 md:w-64 bg-gray-100 border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-semibold text-center mb-3">{cardKey}</h4>
+                <ul className="space-y-2">
+                  {card.cardLists.map((list, index) => (
+                    <li key={index} className="flex justify-between shadow-sm bg-white p-2 rounded-xl items-center">
+                      <span>{list.name}</span>
+                      <span className="text-sm text-blue-600">
+                        Score: {list.score}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -165,15 +172,15 @@ const WorkspaceReports: React.FC = () => {
           <tbody>
             {members.map((member, index) => (
               <tr key={index}>
-                <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.rank}</td>
-                <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm w-16'>{member.user}</td>
-                <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
+                <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
+                <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
+                <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
                   <div className="flex flex-col gap-2">
                     {member.boards && typeof member.boards === 'object' ? (
                       Object.keys(member.boards).map((boardKey, boardIndex) => (
                         <div
                           key={boardIndex}
-                          className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
+                          className='group relative p-1 h-10 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
                           onClick={() => handleBoardClick(boardKey, index)}
                         >
                           <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
