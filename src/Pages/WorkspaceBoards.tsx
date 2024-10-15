@@ -15,17 +15,17 @@ const WorkspaceBoards: React.FC = () => {
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, workspaceId: string | null, boardId: string | null }>({
-      isOpen: false,
-      workspaceId: null,
-      boardId: null
-    });
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean, workspaceId: string | null, boardId: string | null }>({
+    isOpen: false,
+    workspaceId: null,
+    boardId: null
+  });
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   const handleCancel = () => {
     setShowDeleteConfirmation(false);
   };
-  
+
   const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
     setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
     setShowDeleteConfirmation(true);
@@ -45,7 +45,7 @@ const WorkspaceBoards: React.FC = () => {
     //   socket.off(`board/${workspaceId}`);
     //   socket.disconnect();
     // };
-    
+
   }, [workspaceId]);
 
   useEffect(() => {
@@ -80,7 +80,7 @@ const WorkspaceBoards: React.FC = () => {
   };
 
   const handleCreateBoard = async (workspaceId: any, name: any, description: any) => {
-    console.log('Creating board with:', {workspaceId, name, description });
+    console.log('Creating board with:', { workspaceId, name, description });
     try {
       const response = await createBoard(workspaceId, name, description);
       const message = response?.message || 'Board created successfully.';
@@ -110,7 +110,7 @@ const WorkspaceBoards: React.FC = () => {
       setAlert({ type: 'error', message: errorMessage });
     }
   };
-  
+
   const closeDeleteConfirmation = () => {
     setDeleteConfirmation({ isOpen: false, boardId: null, workspaceId: null });
   };
@@ -118,7 +118,7 @@ const WorkspaceBoards: React.FC = () => {
   const handleDeleteBoard = async () => {
     if (deleteConfirmation.boardId && deleteConfirmation.workspaceId) {
       try {
-        const response = await deleteBoard(deleteConfirmation.boardId,  deleteConfirmation.workspaceId);
+        const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
         await fetchBoardsData();
         setAlert({ type: 'success', message: message });
@@ -130,7 +130,7 @@ const WorkspaceBoards: React.FC = () => {
         closeDeleteConfirmation();
       }
     } handleCancel();
-  };  
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -139,7 +139,7 @@ const WorkspaceBoards: React.FC = () => {
           {alert.message}
         </div>
       )}
-      <WorkspaceHeader workspace={workspace} inviteLinkEnabled={false}/>
+      <WorkspaceHeader workspace={workspace} inviteLinkEnabled={false} />
 
       <div className='px-6 py-2 text-gray-600'>
         <div className='mb-6'>
@@ -153,37 +153,37 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
-              <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
-                <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                <h5 className='text-white relative z-10'>{board?.name}</h5>
-                <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
-                  <i
-                    className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setEditingBoard(board);
-                    }}
-                  />
-                  <i
-                    className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openDeleteConfirmation(workspace?.id, board?.id);
-                    }}
-                  />
-                </div>
+                <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
+                  <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
+                  <h5 className='text-white relative z-10'>{board?.name}</h5>
+                  <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                    <i
+                      className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setEditingBoard(board);
+                      }}
+                    />
+                    <i
+                      className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openDeleteConfirmation(workspace?.id, board?.id);
+                      }}
+                    />
+                  </div>
                 </Link>
               </div>
             ))}
             {showDeleteConfirmation && (
               <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black opacity-50"></div>
+                <div className="absolute inset-0 bg-black opacity-50"></div>
                 <DeleteConfirmation
                   onDelete={handleDeleteBoard}
                   onCancel={handleCancel}
                   itemType="board"
                 />
-            </div>
+              </div>
             )}
             <div onClick={() => setShowCreateBoard(true)} className='group relative p-1 h-28 w-full bg-gray-400 rounded-[5px] cursor-pointer overflow-hidden flex items-center justify-center text-white'>
               <h5 className='text-white text-center'>Create New Board</h5>
@@ -208,25 +208,25 @@ const WorkspaceBoards: React.FC = () => {
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
               >
                 <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
-                <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                <h5 className='text-white relative z-10'>{board.name}</h5>
-                <div className='absolute right-2 gap-3 bottom-2 flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
-                  <i
-                    className='fas fa-pencil-alt text-white hover:text-yellow-300 cursor-pointer'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingBoard(board);
-                    }}
-                  />
-                  <i
-                    className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openDeleteConfirmation(workspace?.id, board?.id);
-                    }}
-                  />
-                </div>
-              </Link>
+                  <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
+                  <h5 className='text-white relative z-10'>{board.name}</h5>
+                  <div className='absolute right-2 gap-3 bottom-2 flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                    <i
+                      className='fas fa-pencil-alt text-white hover:text-yellow-300 cursor-pointer'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingBoard(board);
+                      }}
+                    />
+                    <i
+                      className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openDeleteConfirmation(workspace?.id, board?.id);
+                      }}
+                    />
+                  </div>
+                </Link>
               </div>
             ))}
           </div>

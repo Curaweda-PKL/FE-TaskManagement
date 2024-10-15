@@ -957,6 +957,7 @@ const WorkspaceProject = () => {
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
 
+
   return (
     <>
       <header className="flex bg-gray-100 p-3 justify-between items-center">
