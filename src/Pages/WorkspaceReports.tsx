@@ -49,7 +49,9 @@ const WorkspaceReports: React.FC = () => {
   const fetchMembers = useCallback(async (start: Date, end: Date) => {
     setIsLoading(true);
     try {
-      const data = await getWorkspaceRanks(workspaceId, start, end);
+      const formattedStart = format(start, 'yyyy-MM-dd');
+      const formattedEnd = format(end, 'yyyy-MM-dd');
+      const data = await getWorkspaceRanks(workspaceId, formattedStart, formattedEnd);
       setMembers(data);
     } catch (error) {
       console.error('Failed to get workspace members', error);
@@ -59,8 +61,7 @@ const WorkspaceReports: React.FC = () => {
   }, [workspaceId]);
 
   useEffect(() => {
-    const newStartDate = addDays(startDate, 1);
-    fetchMembers(newStartDate, endDate);
+    fetchMembers(startDate, endDate);
   }, [currentDate]); // Fetch data when currentDate changes
 
   const handleNavigation = (direction: string) => {
