@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { memberWorkspace, getWorkspace, getWorkspaceRanks, getBoardRanks } from '../hooks/fetchWorkspace';
+import { getWorkspaceRanks } from '../hooks/fetchWorkspace';
 import { X } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import { useMemo } from 'react';
 
 
 interface CardList {
@@ -36,14 +37,34 @@ const WorkspaceReports: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
   const [selectedMemberIndex, setSelectedMemberIndex] = useState<number | null>(null);
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [, setIsPopupOpen] = useState(false);
 
-  const [currentDate, setCurrentDate] = useState(new Date());
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-  const endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [dateRangeType, setDateRangeType] = useState<'week' | 'month'>('week'); // initialize with 'week'
+
+
+  const startDate = useMemo(() => {
+    return dateRangeType === 'week'
+      ? startOfWeek(currentDate, { weekStartsOn: 1 })
+      : startOfMonth(currentDate);
+  }, [dateRangeType, currentDate]);
+  
+  const endDate = useMemo(() => {
+    return dateRangeType === 'week'
+      ? endOfWeek(currentDate, { weekStartsOn: 1 })
+      : endOfMonth(currentDate);
+  }, [dateRangeType, currentDate]);
+  
+  useEffect(() => {
+    fetchMembers(startDate, endDate);
+  }, [dateRangeType, startDate, endDate]);
+  
+  const handleDateRangeChange = () => {
+    setDateRangeType(dateRangeType === 'week' ? 'month' : 'week');
+  };
   const formattedDateRange = `${format(startDate, 'd')} - ${format(endDate, 'd')} ${format(endDate, 'MMMM yyyy').toUpperCase()}`;
 
   const fetchMembers = useCallback(async (start: Date, end: Date) => {
@@ -60,15 +81,28 @@ const WorkspaceReports: React.FC = () => {
     }
   }, [workspaceId]);
 
-  useEffect(() => {
-    fetchMembers(startDate, endDate);
-  }, [currentDate]); // Fetch data when currentDate changes
-
-  const handleNavigation = (direction: string) => {
+  const handleNavigation = (direction: 'next' | 'prev') => {
     setCurrentDate((prevDate) => {
-      return direction === 'next' ? addWeeks(prevDate, 1) : subWeeks(prevDate, 1);
+      if (dateRangeType === 'month') {
+        return direction === 'next' ? addMonths(prevDate, 1) : subMonths(prevDate, 1);
+      } else {
+        return direction === 'next' ? addWeeks(prevDate, 1) : subWeeks(prevDate, 1);
+      }
     });
   };
+
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredMembers = members.filter((member) => {
+    const searchTerms = searchQuery.toLowerCase().split(' ');
+    return searchTerms.every((term: string) => {
+      return (
+        member.user.toLowerCase().includes(term) ||
+        member.rank.toString().toLowerCase().includes(term) ||
+        Object.keys(member.boards).some((boardKey) => boardKey.toLowerCase().includes(term))
+      );
+    });
+  });
 
 
   const handleBoardClick = (boardKey: string, memberIndex: number) => {
@@ -129,34 +163,44 @@ const WorkspaceReports: React.FC = () => {
       <h1 className='text-xl font-bold mb-5'>Reports</h1>
       <div className='container mx-auto md:px-4 px-0'>
         <h2 className='text-2xl font-bold text-gray-600'>YOUR PERFORMANCE THIS WEEK, <span className='text-yellow-400'>AVERAGE</span></h2>
-        <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
+        {/* <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
         <div className='flex items-center mt-4'>
           <div className='w-2/4 bg-gray-300 h-2 rounded-md'>
             <div className='bg-blue-500 h-2 rounded-md' style={{ width: '40%' }}></div>
           </div>
           <span className='ml-4'>2/5</span>
         </div>
-        <p className='text-gray-500 mb-11'>Bar resetting in : 4d 12h</p>
+        <p className='text-gray-500 mb-11'>Bar resetting in : 4d 12h</p> */}
 
-        <div className='mb-4 flex items-center text-center w-full'>
+        <div className='mb-4 flex items-center text-center w-full mt-10'>
           <div className='relative'>
             <input
               type='text'
               placeholder='Search...'
               className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl px-3 py-2 pl-10 text-sm sm:w-52 w-28'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <i className='fas fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500' />
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 ml-auto">
             <button onClick={() => handleNavigation('prev')} className="p-2" disabled={isLoading}>
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <h2 className="font-bold text-lg">{formattedDateRange}</h2>
+            <h2 className="font-bold text-lg">
+              {formattedDateRange}
+            </h2>
             <button onClick={() => handleNavigation('next')} className="p-2" disabled={isLoading}>
               <ChevronRight className="w-6 h-6" />
             </button>
           </div>
-          <h2 className='ml-auto lg:text-lg sm:text-sm text-xs text-gray-500 font-bold bg-gray-200 py-2 px-4 rounded-xl'>WEEK</h2>
+          <h2
+            className={`btn bg-purple-500 hover:bg-purple-800 border-none text-white font-bold ml-auto ${dateRangeType === 'month' ? 'active' : ''
+              }`}
+            onClick={handleDateRangeChange}
+          >
+            {dateRangeType === 'month' ? 'MONTH' : 'WEEK'}
+          </h2>
         </div>
 
         <table className='min-w-full bg-white border border-gray-300 text-center'>
@@ -170,7 +214,7 @@ const WorkspaceReports: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {members.map((member, index) => (
+            {filteredMembers.map((member, index) => (
               <tr key={index}>
                 <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
                 <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
