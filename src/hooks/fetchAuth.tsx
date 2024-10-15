@@ -13,6 +13,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [checkingLogin, setCheckingLogin] = useState<boolean>(true);
   const [userData, setUserData] = useState<{ name: string; email: string } | null>(null);
+  const [userData2, setUserData2] = useState<{ id: string, name: string; email: string } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -29,6 +30,8 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setUserData(response.data);
+      setUserData2(response.data);
+      return response.data;
     } catch (error: any) {
       console.error('Error fetching user data:', error);
       setError('Failed to fetch user data.');
@@ -417,7 +420,9 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
     useState: { userData, setUserData },
     getCodeVerify,
     verify,
-    resendVerification
+    resendVerification,
+    userData2,
+    fetchUserData,
   };
 };
 
