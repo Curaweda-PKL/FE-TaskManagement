@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
 import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
+import useAuth from '../hooks/fetchAuth';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -15,12 +16,36 @@ const WorkspaceMembers: React.FC = () => {
   const [inviteLinkEnabled, setInviteLinkEnabled] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
-  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
+  const onLogout = () => {
+    console.log('Logout')
+  };
+  const onSuccess = () => {
+    console.log('Success')
+  };
+
+  const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
 
   useEffect(() => {
-    fetchWorkspaceData();
+    const fetchData = async () => {
+      try {
+        await fetchWorkspaceData();
+        await fetchUserData(); // This will update the userData in the useAuth hook
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
   }, [workspaceId]);
+
+  useEffect(() => {
+    if (userData) {
+      console.log(userData);
+      setCurrentUserId(userData.id);
+    }
+  }, [userData]);
 
   const showAlert = (message: string, type: 'success' | 'error') => {
     setAlert({ type, message });
@@ -31,58 +56,55 @@ const WorkspaceMembers: React.FC = () => {
     try {
       const workspaces = await fetchWorkspaces(workspaceId);
       const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
-      setWorkspace(currentWorkspace);
-      setVisibility(currentWorkspace?.visibility || 'Private');
+      if (currentWorkspace) {
+        setWorkspace(currentWorkspace);
+        setVisibility(currentWorkspace.visibility || 'Private');
+        console.log('Workspace Owner ID:', currentWorkspace.ownerId);
 
-      const membersData = await memberWorkspace(workspaceId);
-
-      const membersWithPhotos = await Promise.all(
-        membersData.map(async (member: any) => {
-          if (member) {
-            try {
-              const memberPhoto = await getProfilePhotoMember(member.id);
-              console.log(`Fetched photo for ${member.name}:`, memberPhoto);
-
-              return { ...member, photoProfile: memberPhoto };
-            } catch (error) {
-              console.error(`Error fetching photo profile for ${member.name}:`, error);
-              return member;
+        const membersData = await memberWorkspace(workspaceId);
+        const membersWithPhotos = await Promise.all(
+          membersData.map(async (member: any) => {
+            if (member) {
+              try {
+                const memberPhoto = await getProfilePhotoMember(member.id);
+                return { ...member, photoProfile: memberPhoto };
+              } catch (error) {
+                console.error(`Error fetching photo profile for ${member.name}:`, error);
+                return member;
+              }
             }
-          }
-          return member;
-        })
-      );
+            return member;
+          })
+        );
+        setMembers(membersWithPhotos);
 
-      setMembers(membersWithPhotos);
+        const joinRequestsData = await joinRequestsWorkspace(workspaceId);
+        setJoinRequests(joinRequestsData);
 
-      const joinRequestsData = await joinRequestsWorkspace(workspaceId);
-      setJoinRequests(joinRequestsData);
-
-      const joinRequestsPhotoProfile = await Promise.all(
-        joinRequestsData.map(async (joinRequests: any) => {
-          if (joinRequests) {
-            try {
-              const joinRequestsPhoto = await getProfilePhotoMember(joinRequests.userId);
-              console.log(`Fetched photo for ${joinRequests.name}:`, joinRequestsPhoto);
-
-              return { ...joinRequests, photoProfile: joinRequestsPhoto };
-            } catch (error) {
-              console.error(`Error fetching photo profile for ${joinRequests.name}:`, error);
-              return joinRequests;
+        const joinRequestsPhotoProfile = await Promise.all(
+          joinRequestsData.map(async (joinRequest: any) => {
+            if (joinRequest) {
+              try {
+                const joinRequestPhoto = await getProfilePhotoMember(joinRequest.userId);
+                return { ...joinRequest, photoProfile: joinRequestPhoto };
+              } catch (error) {
+                console.error(`Error fetching photo profile for ${joinRequest.name}:`, error);
+                return joinRequest;
+              }
             }
-          }
-          return joinRequests;
-        })
-      );
-
-      setRequests(joinRequestsPhotoProfile);
-
+            return joinRequest;
+          })
+        );
+        setRequests(joinRequestsPhotoProfile);
+      } else {
+        console.error('Workspace not found');
+      }
     } catch (error) {
       console.error('Failed to fetch workspace data:', error);
     }
   };
 
-  const handleJoinRequest = async (requestId: any, status: 'APPROVED' | 'REJECTED') => {
+  const handleJoinRequest = async (requestId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
       await requestWorkspace(requestId, status);
       setJoinRequests((prevRequests) => prevRequests.filter(req => req.id !== requestId));
@@ -110,7 +132,6 @@ const WorkspaceMembers: React.FC = () => {
       } catch (error) {
         console.error('Failed to remove member:', error);
         showAlert('Failed to remove member. Please try again.', 'error');
-
       }
     }
   };
@@ -214,8 +235,14 @@ const WorkspaceMembers: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
-                        <button className="bg-gray-200 text-gray-600 px-4 py-1 rounded-md">Views Boards ({member.boardCount})</button>
-                        <button className="bg-red-100 text-red-600 px-4 py-1 rounded-md" onClick={() => handleRemoveMember(member.id)}>Remove</button>
+                        {currentUserId === workspace?.ownerId && (
+                          <button
+                            className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
+                            onClick={() => handleRemoveMember(member.id)}
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
