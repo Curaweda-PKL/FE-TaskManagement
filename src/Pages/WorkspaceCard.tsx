@@ -234,12 +234,12 @@ const WorkspaceProject = () => {
   const handleOpenDatesPopup = (cardList: any) => {
     setSelectedCardList(cardList);
     setIsDatesPopupOpen(true);
-    setIsEditCard(true);
+    setIsEditCard(false);
   };
 
   const handleCloseDatesPopup = () => {
     setIsDatesPopupOpen(false);
-    setIsEditCard(true);
+    setIsEditCard(false);
   };
 
   const handleOpenAttachPopup = (cardList: any) => {
@@ -1011,9 +1011,9 @@ const WorkspaceProject = () => {
                       onClick={() => handleOpenPopup(cardList)}
                     >
                       <div className=" justify-between items-start">
-                        <div className='grid grid-cols-3 gap-2'>
+                        <div className='grid grid-cols-3 gap-1'>
                           {cardList.labels?.map((label: any, index: any) =>
-                            <div key={index} style={{ background: label.label.color }} className="w-full h-4 rounded-sm"></div>
+                            <div key={index} style={{ background: label.label.color }} className="w-full h-2 rounded-sm"></div>
                           )}
                         </div>
                         <span className="text-black text-sm">{cardList?.name}</span>
@@ -1046,8 +1046,8 @@ const WorkspaceProject = () => {
                             <option value="NOT_SURE">Not Sure</option>
                           </select>
                           {cardList?.startDate && cardList?.endDate && (
-                            <div className="text-[9px] font-medium text-gray-600 ml-2">
-                              {`${format(new Date(cardList.startDate), 'PP')} - ${format(new Date(cardList.endDate), 'PP')}`}
+                            <div className="bg-green-300 py-[1px] px-[2px] rounded-[2px] text-[9px] font-medium text-gray-600">
+                              {`${format(new Date(cardList.endDate), 'PP')}`}
                             </div>
                           )}
                           <div className='flex -space-x-1'>
@@ -1524,10 +1524,10 @@ const WorkspaceProject = () => {
               <div
                 className="absolute bg-white rounded-md items-center"
                 style={{
-                  top: `${activeCardRect?.top}px`,
-                  left: `${activeCardRect?.left}px`,
-                  width: `${activeCardRect?.width}px`,
-                  height: `${activeCardRect?.height}px`,
+                  top: `${activeCardRect.top}px`,
+                  left: `${activeCardRect.left}px`,
+                  width: `${activeCardRect.width}px`,
+                  height: `${activeCardRect.height}px`,
                 }}
               >
                 {editingCard && (
@@ -1553,8 +1553,8 @@ const WorkspaceProject = () => {
             <div
               className="fixed z-20"
               style={{
-                top: `${activeCardRect?.top}px`,
-                left: `${activeCardRect?.right}px`,
+                top: `${activeCardRect.top}px`,
+                left: `${activeCardRect.right}px`,
               }}
             >
               <div className="py-1 ml-5" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
