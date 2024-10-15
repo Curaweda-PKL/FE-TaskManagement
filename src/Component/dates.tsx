@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -11,6 +11,10 @@ interface DatesPopupProps {
     title: string;
     score: number;
     description: string;
+    startDate?: string;
+    endDate?: string;
+    dueTime?: string;
+    reminder?: string;
   };
   handleCloseDatesPopup: () => void;
 }
@@ -22,21 +26,33 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
 }) => {
   if (!isDatesPopupOpen || !selectedCardList) return null;
 
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-  const [dueDate, setDueDate] = useState<string>("");
-  const [dueTime, setDueTime] = useState<string>("");
-  const [reminder, setReminder] = useState<string>("1");
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    selectedCardList.startDate ? new Date(selectedCardList.startDate) : undefined
+  );
+
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    selectedCardList.endDate ? new Date(selectedCardList.endDate) : undefined
+  );
+  const [dueDate, setDueDate] = useState<string>(
+    selectedCardList.endDate ? format(new Date(selectedCardList.endDate), "yyyy-MM-dd") : ""
+  );
+  const [dueTime, setDueTime] = useState<string>(selectedCardList.dueTime || "");
+  const [reminder, setReminder] = useState<string>(selectedCardList.reminder || "1");
+
+  useEffect(() => {
+    if (endDate) {
+      setDueDate(format(endDate, "yyyy-MM-dd"));
+    }
+  }, [endDate]);
+
+  useEffect(() => {
+    if (dueDate) {
+      const newEndDate = new Date(`${dueDate}T${dueTime || "00:00"}`);
+      setEndDate(newEndDate);
+    }
+  }, [dueDate, dueTime]);
 
   const handleSave = async () => {
-    console.log("Saving dates:", {
-      startDate,
-      endDate,
-      dueDate,
-      dueTime,
-      reminder,
-    });
-
     try {
       await updateCardList(
         selectedCardList.id,
@@ -52,118 +68,82 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
     }
   };
 
-  const handleRemove = () => {
-    setStartDate(undefined);
-    setEndDate(undefined);
-    setDueDate("");
-    setDueTime("");
-    setReminder("1");
-  };
-
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-lg w-fit max-w-[750px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
-        <div className="sticky top-0 bg-white z-10 p-6 border-b">
-          <div className="justify-center items-center mb-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100">
+      <div className="bg-white rounded-lg shadow-lg w-90 p-4 max-w-lg">
+        <div className="max-h-[75vh] overflow-y-auto p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg text-gray-800 font-semibold">Dates</h2>
             <button
               onClick={handleCloseDatesPopup}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700"
             >
               ✕
             </button>
+          </div>
 
-            <h2 className="text-center text-sm font-bold mb-4">
-              {selectedCardList.title} - Dates
-            </h2>
+          <DayPicker
+            mode="single"
+            selected={endDate}
+            onSelect={setEndDate}
+            className="mx-auto text-gray-800"
+          />
 
-            <div className="flex justify-between mt-10">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Start Date
-                </label>
-                <DayPicker
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  footer={
-                    startDate ? <p>{format(startDate, "PP")}</p> : <p>Please pick a day.</p>
-                  }
-                  className="text-black"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  End Date
-                </label>
-                <DayPicker
-                  mode="single"
-                  selected={endDate}
-                  onSelect={setEndDate}
-                  footer={
-                    endDate ? <p>{format(endDate, "PP")}</p> : <p>Please pick a day.</p>
-                  }
-                  className="text-black"
-                />
-              </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
+              onChange={(e) => setStartDate(new Date(e.target.value))}
+              className="w-full p-1 bg-gray-300 text-gray-800 border rounded"
+            />
+          </div>
+
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Due Date
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-1/2 p-1 bg-gray-300 text-gray-800 border rounded"
+              />
+              <input
+                type="time"
+                value={dueTime}
+                onChange={(e) => setDueTime(e.target.value)}
+                className="w-1/2 p-1 bg-gray-300 text-gray-800 border rounded"
+              />
             </div>
+          </div>
 
-            <div className="mt-4">
-              <label
-                htmlFor="due-date-checkbox"
-                className="text-sm font-semibold"
-              >
-                Due Date
-              </label>
-              <div className="flex space-x-2 mt-2">
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm"
-                />
-                <input
-                  type="time"
-                  value={dueTime}
-                  onChange={(e) => setDueTime(e.target.value)}
-                  className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm"
-                />
-              </div>
-            </div>
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Set Due Date Reminder
+            </label>
+            <select
+              value={reminder}
+              onChange={(e) => setReminder(e.target.value)}
+              className="w-full p-1 bg-gray-300 text-gray-800 border rounded"
+            >
+              <option value="1">1 - Day before</option>
+              <option value="2">2 - Days before</option>
+              <option value="3">3 - Days before</option>
+              <option value="7">1 - Week before</option>
+            </select>
+          </div>
 
-            <div className="mt-4">
-              <label
-                htmlFor="reminder"
-                className="block text-sm font-semibold mb-2"
-              >
-                Set Due Date Reminder
-              </label>
-              <select
-                id="reminder"
-                value={reminder}
-                onChange={(e) => setReminder(e.target.value)}
-                className="bg-gray-100 border border-gray-300 p-1 rounded w-full text-sm text-gray-800"
-              >
-                <option value="1">1 day before</option>
-                <option value="2">2 days before</option>
-                <option value="3">3 days before</option>
-                <option value="7">1 week before</option>
-              </select>
-            </div>
-
-            <div className="flex justify-end mt-6 space-x-2">
-              <button
-                onClick={handleRemove}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm"
-              >
-                Remove
-              </button>
-              <button
-                onClick={handleSave}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm"
-              >
-                Save
-              </button>
-            </div>
+          <div className="mt-6 space-y-2">
+            <button
+              onClick={handleSave}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>
