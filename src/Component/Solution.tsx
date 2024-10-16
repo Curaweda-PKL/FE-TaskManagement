@@ -47,7 +47,7 @@ function Solution({ isOpen }: SolutionProps) {
   }, [isOpen]);
 
   return (
-    <div 
+    <div
       ref={solutionRef}
       className={`
         absolute top-full left-0 w-full bg-white shadow-lg rounded-b-md overflow-hidden
@@ -58,26 +58,10 @@ function Solution({ isOpen }: SolutionProps) {
     >
       <div className="max-w-7xl mx-auto px-20 sm:px-20 lg:px-20 py-6">
         <h2 className="text-lg text-black border-b border-black mb-4">Take a page out of these pre-built TaskFlow playbooks designed for all teams</h2>
-        <div className="flex justify-center gap-6 mb-6">
-          <div className="flex flex-col items-start p-4 bg-gray-100" style={{ width: '350px', height: '145px' }}>
-            <div className="flex text-black items-center mb-2">
-              {solution[0].icon}
-              <h3 className="ml-3 text-lg font-medium text-gray-900">{solution[0].title}</h3>
-            </div>
-            <p className="text-sm text-black">{solution[0].description}</p>
-          </div>
-          <div className="flex flex-col items-start p-4 bg-gray-100" style={{ width: '350px', height: '145px' }}>
-            <div className="flex text-black items-center mb-2">
-              {solution[1].icon}
-              <h3 className="ml-3 text-lg font-medium text-gray-900">{solution[1].title}</h3>
-            </div>
-            <p className="text-sm text-black">{solution[1].description}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {solution.slice(2).map((item, index) => (
-            <div key={index + 2} className="flex flex-col items-start p-4 bg-gray-100" style={{ width: '350px', height: '145px' }}>
-              <div className="flex items-center text-black mb-2">
+        <div className="flex justify-center gap-6 mb-6 flex-wrap">
+          {solution.map((item, index) => (
+            <div key={index} className="flex flex-col items-start p-4 bg-gray-100" style={{ width: '350px', height: 'fit-content' }}>
+              <div className="flex text-black items-center mb-2">
                 {item.icon}
                 <h3 className="ml-3 text-lg font-medium text-gray-900">{item.title}</h3>
               </div>

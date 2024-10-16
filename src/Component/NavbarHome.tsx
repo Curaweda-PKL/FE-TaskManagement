@@ -15,6 +15,12 @@ function NavbarHome() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+    if (isFeaturesOpen) {
+      setIsFeaturesOpen(false);
+    }
+    if (isSolutionsOpen) {
+      setIsSolutionsOpen(false);
+    }
   };
 
   const toggleFeatures = () => {
@@ -77,7 +83,7 @@ function NavbarHome() {
             className={`flex items-center text-gray-600 btn btn-sm ${buttonClass} ${isSolutionsOpen ? 'underline-active' : ''
             }`}>Solutions<i className={`${isSolutionsOpen ? 'ph-caret-up ml-1' : 'ph-caret-down ml-1'}`}></i></button>
           <button onClick={handleBoardsClick} 
-            className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300">
+            className="bg-purple-600 text-white px-4 py-2 btn btn-sm border-none h-9 rounded-md text-sm font-semibold hover:bg-purple-900 transition duration-300">
             {isLoggedIn ? 'Go to your boards' : 'Sign In'}
           </button>
         </div>
@@ -86,10 +92,10 @@ function NavbarHome() {
       <div 
         className={`lg:hidden mt-4 bg-white rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-60 opacity-100 animate-slideDown' : 'max-h-0 opacity-0'}`}>
         <button onClick={toggleFeatures}
-          className={`flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left ${isFeaturesOpen ? 'underline-active' : ''}`}>Features<i className='ph-caret-down ml-1'></i>
+          className={`flex items-center justify-start px-4 py-2 text-gray-600 hover:bg-gray-100 btn bg-white border-none w-full ${isFeaturesOpen ? 'underline-active' : ''}`}>Features<i className={`${isFeaturesOpen ? 'ph-caret-up ml-1' : 'ph-caret-down ml-1'}`}></i>
         </button>
         <button onClick={toggleSolutions}
-          className={`flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left ${isSolutionsOpen ? 'underline-active' : ''}`}>Solutions<i className='ph-caret-down ml-1'></i>
+          className={`flex items-center px-4 py-2 justify-start text-gray-600 hover:bg-gray-100 btn bg-white border-none w-full text-left ${isSolutionsOpen ? 'underline-active' : ''}`}>Solutions<i className={`${isSolutionsOpen ? 'ph-caret-up ml-1' : 'ph-caret-down ml-1'}`}></i>
         </button>
 
         <button onClick={handleBoardsClick} className="block px-4 py-2 text-white bg-purple-600 hover:bg-purple-900 transition duration-300 w-full text-left">

@@ -162,7 +162,7 @@ const WorkspaceReports: React.FC = () => {
     <div className='bg-white py-4 px-5 min-h-screen text-black'>
       <h1 className='text-xl font-bold mb-5'>Reports</h1>
       <div className='container mx-auto md:px-4 px-0'>
-        <h2 className='text-2xl font-bold text-gray-600'>YOUR PERFORMANCE THIS WEEK, <span className='text-yellow-400'>AVERAGE</span></h2>
+        {/* <h2 className='text-2xl font-bold text-gray-600'>YOUR PERFORMANCE THIS WEEK, <span className='text-yellow-400'>AVERAGE</span></h2> */}
         {/* <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
         <div className='flex items-center mt-4'>
           <div className='w-2/4 bg-gray-300 h-2 rounded-md'>
