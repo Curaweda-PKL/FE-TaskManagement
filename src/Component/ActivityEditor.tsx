@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
-import { createActivity, fetchCardList } from '../hooks/fetchCardList';
+import { createActivity, updateActivity, getActivitiesByCardListId, fetchCardList, deleteActivity } from '../hooks/fetchCardList';
 
 interface ActivityEditorProps {
   initialActivity: string;
@@ -9,6 +9,7 @@ interface ActivityEditorProps {
 }
 
 interface SavedActivity {
+  id: string;
   content: string;
   timestamp: string;
 }
@@ -23,6 +24,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
   const [showHeadingDropdown, setShowHeadingDropdown] = useState(false);
   const [showListDropdown, setShowListDropdown] = useState(false);
   const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -36,14 +38,12 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
 
   const fetchActivities = async () => {
     try {
-      const cardLists = await fetchCardList(cardListId);
-      const selectedCardList = cardLists.find((cardList: any) => cardList.id === cardListId);
-      if (selectedCardList && selectedCardList.activity) {
-        setSavedActivities(selectedCardList.activity.map((act: any) => ({
-          content: act.activity,
-          timestamp: new Date(act.createdAt).toLocaleString()
-        })));
-      }
+      const activities = await getActivitiesByCardListId(cardListId);
+      setSavedActivities(activities.map((act: any) => ({
+        id: act.id,
+        content: act.activity,
+        timestamp: new Date(act.createdAt).toLocaleString()
+      })));
     } catch (error) {
       console.error('Failed to fetch activities:', error);
     }
@@ -169,23 +169,40 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
   const handleCancel = () => {
     setIsEditing(false);
     setActivity(prevActivity);
+    setEditingActivityId(null);
   };
 
   const handleSave = async () => {
     try {
-      await createActivity(cardListId, activity);
-      const newSavedActivity: SavedActivity = {
-        content: activity,
-        timestamp: new Date().toLocaleString(),
-      };
-      setSavedActivities([newSavedActivity, ...savedActivities]);
+      if (editingActivityId) {
+        await updateActivity(editingActivityId, activity);
+      } else {
+        await createActivity(cardListId, activity);
+      }
       onSave(activity);
       setPrevActivity(activity);
       setIsEditing(false);
       setActivity('');
+      setEditingActivityId(null);
       await fetchActivities();
     } catch (error) {
       console.error('Failed to save activity:', error);
+    }
+  };
+
+  const handleEdit = (savedActivity: SavedActivity) => {
+    setIsEditing(true);
+    setActivity(savedActivity.content);
+    setPrevActivity(savedActivity.content);
+    setEditingActivityId(savedActivity.id);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteActivity(id);
+      await fetchActivities();
+    } catch (error) {
+      console.error('Failed to delete activity:', error);
     }
   };
 
@@ -195,7 +212,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
 
       {!isEditing ? (
         <div
-          className="bg-gray-300 text-gray-600 py-1 px-2 rounded min-h-[35px] cursor-pointer w-[420px] max-w-[420px] break-words overflow-hidden"
+          className="bg-gray-300 text-gray-600 py-1 px-2 rounded min-h-[35px] cursor-pointer break-words overflow-hidden"
           onClick={() => setIsEditing(true)}
         >
           <span className="text-gray-600">Write an Activity...</span>
@@ -347,14 +364,23 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-2">
         {savedActivities.map((savedActivity, index) => (
-          <div key={index} className='text-gray-800'>
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-medium">Activity {savedActivities.length - index}</span>
+          <div key={savedActivity.id} className='text-gray-800 mb-2'>
+            <div className="flex justify-between items-center ">
+              <span className="font-medium text-[14px]">{savedActivities.length - index}</span>
               <span className="text-[11px] text-gray-500">{savedActivity.timestamp}</span>
             </div>
             <div className='bg-gray-300 p-1 px-2 rounded' dangerouslySetInnerHTML={{ __html: renderFormattedActivity(savedActivity.content) }} />
+            <div className='flex flex-wrap px-1 text-[13px] gap-1 mt-1'>
+              <button className="underline" onClick={() => handleEdit(savedActivity)}>
+                Edit
+              </button>
+              <p>•</p>
+              <button className="underline" onClick={() => handleDelete(savedActivity.id)}>
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
