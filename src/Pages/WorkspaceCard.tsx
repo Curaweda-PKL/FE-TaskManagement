@@ -24,8 +24,12 @@ import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
-import CardListPopup from '../Component/PopupCardlist';
 
+interface Attachment {
+  name: ReactNode;
+  id: string;
+  url: string;
+}
 interface ChecklistData {
   id: string;
   items: any;
@@ -34,6 +38,47 @@ interface ChecklistData {
   name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined;
 }
 
+interface LabelColor {
+  color: string; // Assuming color is a string (e.g., hex code)
+  name: string;  // Assuming name is a string
+}
+
+interface CustomFieldOption {
+  id: string; // or number, depending on your data
+  value: string;
+}
+
+interface CustomField {
+  id: string; // or number
+  name: string;
+  type: 'DROPDOWN' | 'OTHER_TYPE'; // Add other types as needed
+  options: CustomFieldOption[];
+}
+
+interface CardlistCustomField {
+  id: string; // or number
+  customField: CustomField;
+  selectedValue?: string; // or any type based on your logic
+}
+
+interface ActiveCardRect {
+  top: number;
+  left: number;
+  right:number;
+  width: number;
+  height: number;
+}
+
+interface editingCard {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface selectedImage {
+  url: string;
+  name: string;
+}
 
 const WorkspaceProject = () => {
   const onSuccess = () => {
@@ -83,6 +128,13 @@ const WorkspaceProject = () => {
     }
   };
 
+  const calculateChecklistPercentage = (items: any[]) => {
+    if (!items || items.length === 0) return 0;
+    const completedItems = items.filter(item => item.isDone).length;
+    return Math.round((completedItems / items.length) * 100);
+  };
+
+
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const [members, setMembers] = useState<any[]>([]);
   const [visibleMembers, setVisibleMembers] = useState<any[]>([]);
@@ -92,7 +144,7 @@ const WorkspaceProject = () => {
   const [boards, setBoards] = useState<any[]>([]);
   const [cardData, setCardData] = useState<any[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [isLabelsPopupOpen, setIsLabelsPopupOpen] = useState(false);
   const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
@@ -106,8 +158,8 @@ const WorkspaceProject = () => {
   const [isCopyPopupOpen, setIsCopyPopupOpen] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
   const [selectedCardList, setSelectedCardList] = useState<any | null>(null);
-  const [editingCard, setEditingCard] = useState(null);
-  const [activeCardRect, setActiveCardRect] = useState(null);
+  const [editingCard, setEditingCard] = useState<editingCard | null>(null);
+  const [activeCardRect, setActiveCardRect] = useState<ActiveCardRect | null>(null);
   const [isEditCard, setIsEditCard] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteCardlist, setDeleteCardlist] = useState(false);
@@ -118,11 +170,11 @@ const WorkspaceProject = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [showDeleteAttachmentConfirmation, setShowDeleteAttachmentConfirmation] = useState(false);
-  const [attachmentToDelete, setAttachmentToDelete] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<Attachment | null>(null);
+  const [selectedImage, setSelectedImage] = useState<selectedImage | null>(null);
   const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
-  const [cardlistCustomFields, setCardlistCustomFields] = useState([]);
-  const inputRef = useRef(null);
+  const [cardlistCustomFields, setCardlistCustomFields] = useState<CardlistCustomField[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -150,10 +202,6 @@ const WorkspaceProject = () => {
     fetchMembers();
   }, [workspaceId]);
 
-  interface Attachment {
-    id: string;
-    url: string;
-  }
 
   const handleDeletePopUp = (card: any) => {
     setShowDeleteConfirmation(true);
@@ -222,7 +270,7 @@ const WorkspaceProject = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [existingChecklistData, setExistingChecklistData] = useState<ChecklistData | null>(null);
 
-  const handleOpenChecklistPopup = (cardList: any, isEditMode: boolean, existingChecklistData: any) => {
+  const handleOpenChecklistPopup = (cardList: any, isEditMode: boolean = false, existingChecklistData?: any) => {
     setSelectedCardList(cardList);
     setIsChecklistPopupOpen(true);
     setIsEditMode(isEditMode);
@@ -307,7 +355,7 @@ const WorkspaceProject = () => {
     };
   }, []);
 
-  const [labelColors, setLabelColors] = useState([]);
+  const [labelColors, setLabelColors] = useState<LabelColor[]>([]);
 
   useEffect(() => {
     const handlefetchCardListLabels = async () => {
@@ -374,20 +422,6 @@ const WorkspaceProject = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  };
-
-  const processCustomFields = (cardListData) => {
-    const customFields = cardListData
-      .map(cardList => cardList.customFields)
-      .flat()
-      .filter(field => field && field.customField)
-      .map(field => ({
-        cardListId: field.cardListId,
-        ...field.customField,
-        options: field.customField.options || []
-      }));
-
-    return customFields;
   };
 
   useEffect(() => {
@@ -637,7 +671,7 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate: any, endDate: any, activity: any) => {
+  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate?: any, endDate?: any, activity?: any) => {
     try {
       await updateCardList(id, description, score, newName, startDate, endDate, activity);
       await fetchData();
@@ -1124,7 +1158,7 @@ const WorkspaceProject = () => {
           onClose={handleCloseCreateCard}
           onCreateCard={handleCreateCard}
           onUpdateCard={handleEditCard}
-          initialData={currentCard}
+          initialData={currentCard || { id: '', name: '' }}
           isEditing={false}
         />
       )}
@@ -1136,7 +1170,7 @@ const WorkspaceProject = () => {
           onClose={handleCloseEditCard}
           onCreateCard={handleCreateCard}
           onUpdateCard={handleEditCard}
-          initialData={currentCard}
+          initialData={currentCard || { id: '', name: '' }}
           isEditing={true}
         />
       )}
@@ -1237,8 +1271,7 @@ const WorkspaceProject = () => {
                       onSave={(description: any) => {
                         setSelectedCardList({ ...selectedCardList, description });
                         handleUpdateListName(selectedCardList.id, selectedCardList.name, description, selectedCardList.score);
-                      }}
-                    />
+                      } } cardListId={''}                    />
                   </div>
                   <div>
                     <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
@@ -1320,7 +1353,7 @@ const WorkspaceProject = () => {
                             <select
                               className="mt-1 p-1 bg-gray-300 rounded w-full text-gray-800"
                               value={field.selectedValue || ""}
-                              onChange={(e) => handleSelectChange(e, field.customFieldId, selectedCardList.id)}
+                              onChange={(e) => handleSelectChange(e, field.customField, selectedCardList.id)}
                             >
                               <option value="" disabled>
                                 select Option
@@ -1332,7 +1365,7 @@ const WorkspaceProject = () => {
                               ))}
                             </select>
                             <button
-                              onClick={() => handleRemoveCustomField(field.customFieldId, selectedCardList.id)}
+                              onClick={() => handleRemoveCustomField(field.customField.id, selectedCardList.id)}
                               className="text-red-500 hover:text-red-700 p-2"
                             >
                               <i className="fas fa-trash"></i>
@@ -1381,44 +1414,63 @@ const WorkspaceProject = () => {
                     </div>
                   </div>
                   <div className="activity flex flex-col justify-between mb-3 text-gray-800">
-                    {checklistData?.map((data, index) => (
-                      <div key={index} className="checklist-item">
-                        <div className='flex justify-between items-center'>
-                          <div className='flex items-center'>
-                            <i className='fa-regular fa-square-check mr-3 text-lg'></i>
-                            <h1 className='text-md items-center'>{data.name}</h1>
+                    {checklistData?.map((data, index) => {
+                      const completionPercentage = calculateChecklistPercentage(data.items);
+                      
+                      return (
+                        <div key={index} className="checklist-item mb-4">
+                          <div className='flex justify-between items-center mb-2'>
+                            <div className='flex items-center'>
+                              <i className='fa-regular fa-square-check mr-3 text-lg'></i>
+                              <h1 className='text-md items-center'>{data.name}</h1>
+                            </div>
+                            <div className='flex gap-1 items-center'>
+                              <span className="text-sm text-gray-600 mr-2">{completionPercentage}%</span>
+                              <i
+                                className="fa-regular fa-pen-to-square hover:text-blue-500 cursor-pointer"
+                                onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
+                              ></i>
+                              <i
+                                className="fa-regular fa-trash-can hover:text-red-500 cursor-pointer"
+                                onClick={() => handleDeleteChecklist(data.id)}
+                              ></i>
+                            </div>
                           </div>
-                          <div className='flex gap-1 items-center'>
-                            <i
-                              className="fa-regular fa-pen-to-square hover:text-blue-500"
-                              onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
-                            ></i>
-                            <i
-                              className="fa-regular fa-trash-can hover:text-red-500"
-                              onClick={() => handleDeleteChecklist(data.id)}
-                            ></i>
+                          
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                            <div 
+                              className="bg-blue-600 h-2.5 rounded-full" 
+                              style={{ width: `${completionPercentage}%` }}
+                            ></div>
                           </div>
+
+                          <div className='flex justify-between text-[10px] mb-2'>
+                            <p>Start Date: {data.startDate}</p>
+                            <p>End Date: {data.endDate}</p>
+                          </div>
+                          
+                          <ul className='mb-3'>
+                            {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
+                              <li key={itemIndex} className="flex items-center mb-1">
+                                <input
+                                  type="checkbox"
+                                  id={`checklist-item-${index}-${itemIndex}`}
+                                  checked={item.isDone}
+                                  onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
+                                  className="w-4 h-4 mr-3 rounded border-gray-300"
+                                />
+                                <label 
+                                  htmlFor={`checklist-item-${index}-${itemIndex}`}
+                                  className={`text-sm ${item.isDone ? 'line-through text-gray-500' : 'text-gray-700'}`}
+                                >
+                                  {item.name}
+                                </label>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                        <div className='flex justify-between text-[10px]'>
-                          <p>Start Date: {data.startDate}</p>
-                          <p>End Date: {data.endDate}</p>
-                        </div>
-                        <ul className='mb-3'>
-                          {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
-                            <li key={itemIndex}>
-                              <input
-                                type="checkbox"
-                                id={`checklist-item-${index}-${itemIndex}`}
-                                checked={item.isDone}
-                                onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
-                                className="w-3 h-3 mr-3"
-                              />
-                              <label htmlFor={`checklist-item-${index}-${itemIndex}`}>{item.name}</label>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <div className="mt-4">
                     <ActivityEditor
@@ -1535,10 +1587,10 @@ const WorkspaceProject = () => {
               <div
                 className="absolute bg-white rounded-md items-center"
                 style={{
-                  top: `${activeCardRect.top}px`,
-                  left: `${activeCardRect.left}px`,
-                  width: `${activeCardRect.width}px`,
-                  height: `${activeCardRect.height}px`,
+                  top: `${activeCardRect?.top}px`,
+                  left: `${activeCardRect?.left}px`,
+                  width: `${activeCardRect?.width}px`,
+                  height: `${activeCardRect?.height}px`,
                 }}
               >
                 {editingCard && (
@@ -1564,8 +1616,8 @@ const WorkspaceProject = () => {
             <div
               className="fixed z-20"
               style={{
-                top: `${activeCardRect.top}px`,
-                left: `${activeCardRect.right}px`,
+                top: `${activeCardRect?.top}px`,
+                left: `${activeCardRect?.right}px`,
               }}
             >
               <div className="py-1 ml-5" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">

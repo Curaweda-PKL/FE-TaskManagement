@@ -311,3 +311,61 @@ export const createActivity = async (cardListId: string, activity: string) => {
     throw error;
   }
 };
+
+export const updateActivity = async (id: string, activity: string) => {
+  try {
+    const response = await axios.put(
+      `${config}/cardlist/activity/update-activity`,
+      { id, activity },
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update activity:', error);
+    throw error;
+  }
+};
+
+export const getActivitiesByCardListId = async (cardListId: string) => {
+  try {
+    const response = await axios.get(
+      `${config}/cardlist/activity/take-activity/${cardListId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get activities:', error);
+    throw error;
+  }
+};
+
+export const deleteActivity = async (id: any) => {
+  try {
+    const response = await axios.delete(
+      `${config}/cardlist/activity/delete-activity/${id}`,
+      {
+        headers: {
+          'Authorization': `${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        data: { id }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete board:', error);
+    throw error;
+  }
+}
