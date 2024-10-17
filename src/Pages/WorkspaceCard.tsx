@@ -24,7 +24,6 @@ import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
-import CardListPopup from '../Component/PopupCardlist';
 
 interface Attachment {
   name: ReactNode;
