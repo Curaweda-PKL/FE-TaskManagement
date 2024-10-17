@@ -36,11 +36,11 @@ export const fetchCardList = async (cardId: string) => {
   }
 };
 
-export const createCardList = async (cardId: any, name: any, description: any, score: any) => {
+export const createCardList = async (cardId: any, name: any, description: any, score: any, startDate: any, endDate: any, activity: any) => {
   try {
     const response = await axios.post(
       config + "/cardlist/create",
-      { cardId, name, score, description},
+      { cardId, name, score, description, startDate, endDate, activity},
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
@@ -55,11 +55,11 @@ export const createCardList = async (cardId: any, name: any, description: any, s
     }
   };
 
-export const updateCardList = async (id: any, name: any, description: any, score: any, startDate: any, endDate: any) => {
+export const updateCardList = async (id: any, name: any, description: any, score: any, startDate: any, endDate: any, activity: any) => {
   try {
     const response = await axios.put(
       config + "/cardlist/update",
-      { id, name, score, description, startDate, endDate },
+      { id, name, score, description, startDate, endDate, activity },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
@@ -288,6 +288,26 @@ export const setCardListApproved = async (id: string) => {
     return response.data;
   } catch (error) {
     console.error('Failed to set card list approved:', error);
+    throw error;
+  }
+};
+
+export const createActivity = async (cardListId: string, activity: string) => {
+  try {
+    const response = await axios.post(
+      `${config}/cardlist/activity/createActivity`,
+      { cardListId, activity },
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create activity:', error);
     throw error;
   }
 };

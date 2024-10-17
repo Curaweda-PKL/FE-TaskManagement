@@ -20,9 +20,11 @@ import io from 'socket.io-client';
 import useAuth from '../hooks/fetchAuth';
 import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
 import DescriptionEditor from '../Component/descriptionEditor'
+import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
+import CardListPopup from '../Component/PopupCardlist';
 
 interface ChecklistData {
   id: string;
@@ -407,8 +409,6 @@ const WorkspaceProject = () => {
           //   socket.off(`board/${boardId}`);
           //   socket.disconnect();
           // };
-
-
           const cardResponse = await fetchCard(boardId);
           if (cardResponse) {
             const updatedCardData = await Promise.all(
@@ -492,6 +492,11 @@ const WorkspaceProject = () => {
       setBoardName(board ? board.name : 'Project');
 
       if (boardId) {
+        const socket = io(config);
+
+        socket.on(`board/${boardId}`, () => {
+          fetchData();
+        });
         const cardResponse = await fetchCard(boardId);
         if (cardResponse) {
           const updatedCardData = await Promise.all(
@@ -544,9 +549,6 @@ const WorkspaceProject = () => {
       console.error('Error fetching data:', error);
     }
   };
-
-
-
 
   const handleCreateCard = async (cardName: string) => {
     try {
@@ -635,9 +637,9 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate: any, endDate: any) => {
+  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate: any, endDate: any, activity: any) => {
     try {
-      await updateCardList(id, description, score, newName, startDate, endDate);
+      await updateCardList(id, description, score, newName, startDate, endDate, activity);
       await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
@@ -958,11 +960,6 @@ const WorkspaceProject = () => {
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
 
-  const calculateChecklistPercentage = (items: any[]) => {
-    if (!items || items.length === 0) return 0;
-    const completedItems = items.filter(item => item.isDone).length;
-    return Math.round((completedItems / items.length) * 100);
-  };
 
   return (
     <>
@@ -1155,7 +1152,7 @@ const WorkspaceProject = () => {
                     type="text"
                     value={selectedCardList.name}
                     onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate)}
+                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate, selectedCardList.activity)}
                     autoFocus
                     className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
                   />
@@ -1172,7 +1169,7 @@ const WorkspaceProject = () => {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="cardlist flex gap-10 max768:flex-col">
+              <div className="cardlist flex gap-5 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
                   <div className="flex flex-row gap-4 mb-3">
                     {labelColors?.map((color, index) => (
@@ -1196,7 +1193,8 @@ const WorkspaceProject = () => {
                             selectedCardList.description,
                             newScore,
                             selectedCardList.startDate,
-                            selectedCardList.endDate
+                            selectedCardList.endDate,
+                            selectedCardList.activity
                           );
                         }}
                         className="border bg-gray-300 rounded p-1 text-black"
@@ -1383,77 +1381,65 @@ const WorkspaceProject = () => {
                     </div>
                   </div>
                   <div className="activity flex flex-col justify-between mb-3 text-gray-800">
-                    {checklistData?.map((data, index) => {
-                      const completionPercentage = calculateChecklistPercentage(data.items);
-                      
-                      return (
-                        <div key={index} className="checklist-item mb-4">
-                          <div className='flex justify-between items-center mb-2'>
-                            <div className='flex items-center'>
-                              <i className='fa-regular fa-square-check mr-3 text-lg'></i>
-                              <h1 className='text-md items-center'>{data.name}</h1>
-                            </div>
-                            <div className='flex gap-1 items-center'>
-                              <span className="text-sm text-gray-600 mr-2">{completionPercentage}%</span>
-                              <i
-                                className="fa-regular fa-pen-to-square hover:text-blue-500 cursor-pointer"
-                                onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
-                              ></i>
-                              <i
-                                className="fa-regular fa-trash-can hover:text-red-500 cursor-pointer"
-                                onClick={() => handleDeleteChecklist(data.id)}
-                              ></i>
-                            </div>
+                    {checklistData?.map((data, index) => (
+                      <div key={index} className="checklist-item">
+                        <div className='flex justify-between items-center'>
+                          <div className='flex items-center'>
+                            <i className='fa-regular fa-square-check mr-3 text-lg'></i>
+                            <h1 className='text-md items-center'>{data.name}</h1>
                           </div>
-                          
-                          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                            <div 
-                              className="bg-blue-600 h-2.5 rounded-full" 
-                              style={{ width: `${completionPercentage}%` }}
-                            ></div>
+                          <div className='flex gap-1 items-center'>
+                            <i
+                              className="fa-regular fa-pen-to-square hover:text-blue-500"
+                              onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
+                            ></i>
+                            <i
+                              className="fa-regular fa-trash-can hover:text-red-500"
+                              onClick={() => handleDeleteChecklist(data.id)}
+                            ></i>
                           </div>
-
-                          <div className='flex justify-between text-[10px] mb-2'>
-                            <p>Start Date: {data.startDate}</p>
-                            <p>End Date: {data.endDate}</p>
-                          </div>
-                          
-                          <ul className='mb-3'>
-                            {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
-                              <li key={itemIndex} className="flex items-center mb-1">
-                                <input
-                                  type="checkbox"
-                                  id={`checklist-item-${index}-${itemIndex}`}
-                                  checked={item.isDone}
-                                  onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
-                                  className="w-4 h-4 mr-3 rounded border-gray-300"
-                                />
-                                <label 
-                                  htmlFor={`checklist-item-${index}-${itemIndex}`}
-                                  className={`text-sm ${item.isDone ? 'line-through text-gray-500' : 'text-gray-700'}`}
-                                >
-                                  {item.name}
-                                </label>
-                              </li>
-                            ))}
-                          </ul>
                         </div>
-                      );
-                    })}
+                        <div className='flex justify-between text-[10px]'>
+                          <p>Start Date: {data.startDate}</p>
+                          <p>End Date: {data.endDate}</p>
+                        </div>
+                        <ul className='mb-3'>
+                          {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
+                            <li key={itemIndex}>
+                              <input
+                                type="checkbox"
+                                id={`checklist-item-${index}-${itemIndex}`}
+                                checked={item.isDone}
+                                onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
+                                className="w-3 h-3 mr-3"
+                              />
+                              <label htmlFor={`checklist-item-${index}-${itemIndex}`}>{item.name}</label>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
                   </div>
-                  <div className="activity flex justify-between mb-3">
-                    <span className="text-black text-lg font-semibold">Activity</span>
-                    <div className="btn hover:bg-gray-400 btn-neutral h-6 min-h-6 bg-gray-300 border-none text-black rounded-md">
-                      Show Details
-                    </div>
+                  <div className="mt-4">
+                    <ActivityEditor
+                      initialActivity={selectedCardList.activity || ''}
+                      cardListId={ selectedCardList.id || ''}
+                      onSave={(activity: any) => {
+                        setSelectedCardList({ ...selectedCardList, activity });
+                        handleUpdateListName(
+                          selectedCardList.id,
+                          selectedCardList.name,
+                          selectedCardList.description,
+                          selectedCardList.score,
+                          selectedCardList.startDate,
+                          selectedCardList.endDate,
+                          activity
+                        );
+                      }}
+                    />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Write a comment..."
-                    className="h-7 w-full rounded text-sm p-2 bg-gray-300 text-black font-semibold"
-                  />
                 </div>
-                <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
+                <div className="cardlistend flex flex-col w-full gap-4 justify-start max768:ml-0 flex-[1]">
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
                     <i className="fas fa-user"></i>Join
                   </div>
