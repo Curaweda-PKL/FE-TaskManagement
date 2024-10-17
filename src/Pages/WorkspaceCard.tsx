@@ -1205,13 +1205,15 @@ const WorkspaceProject = () => {
               </div>
               <div className="cardlist flex gap-5 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
-                  <div className="flex flex-row gap-4 mb-3">
+                  <div className='flex items-center'>
+                  <div className="flex items-center flex-wrap gap-4">
                     {labelColors?.map((color, index) => (
                       <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
                         {color.name}
                       </div>
                     ))}
-                    <div>
+                    </div>
+                    <div className='ml-5'>
                       <label htmlFor="score-select" className="block text-black text-sm font-medium mb-1">
                         Score
                       </label>
@@ -1242,8 +1244,7 @@ const WorkspaceProject = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
-
+                      </div>
                   </div>
 
                   <div className="mt-4">
@@ -1416,7 +1417,7 @@ const WorkspaceProject = () => {
                   <div className="activity flex flex-col justify-between mb-3 text-gray-800">
                     {checklistData?.map((data, index) => {
                       const completionPercentage = calculateChecklistPercentage(data.items);
-                      
+
                       return (
                         <div key={index} className="checklist-item mb-4">
                           <div className='flex justify-between items-center mb-2'>
@@ -1436,10 +1437,10 @@ const WorkspaceProject = () => {
                               ></i>
                             </div>
                           </div>
-                          
+
                           <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                            <div 
-                              className="bg-blue-600 h-2.5 rounded-full" 
+                            <div
+                              className="bg-blue-600 h-2.5 rounded-full"
                               style={{ width: `${completionPercentage}%` }}
                             ></div>
                           </div>
@@ -1448,7 +1449,7 @@ const WorkspaceProject = () => {
                             <p>Start Date: {data.startDate}</p>
                             <p>End Date: {data.endDate}</p>
                           </div>
-                          
+
                           <ul className='mb-3'>
                             {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
                               <li key={itemIndex} className="flex items-center mb-1">
@@ -1459,7 +1460,7 @@ const WorkspaceProject = () => {
                                   onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
                                   className="w-4 h-4 mr-3 rounded border-gray-300"
                                 />
-                                <label 
+                                <label
                                   htmlFor={`checklist-item-${index}-${itemIndex}`}
                                   className={`text-sm ${item.isDone ? 'line-through text-gray-500' : 'text-gray-700'}`}
                                 >
