@@ -129,6 +129,13 @@ const WorkspaceProject = () => {
     }
   };
 
+  const calculateChecklistPercentage = (items: any[]) => {
+    if (!items || items.length === 0) return 0;
+    const completedItems = items.filter(item => item.isDone).length;
+    return Math.round((completedItems / items.length) * 100);
+  };
+
+
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const [members, setMembers] = useState<any[]>([]);
   const [visibleMembers, setVisibleMembers] = useState<any[]>([]);
