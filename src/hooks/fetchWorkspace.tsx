@@ -286,7 +286,7 @@ export const getWorkspace = async (workspaceId: any) => {
   }
 };
 
-export const getWorkspaceRanks = async (workspaceId: any, startDate: Date, endDate: Date) => {
+export const getWorkspaceRanks = async (workspaceId: any, startDate: string, endDate: string) => {
   try {
     const response = await axios.get(
       `${config}/report/workspace/${workspaceId}/ranks`,

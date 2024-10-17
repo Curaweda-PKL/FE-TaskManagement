@@ -20,9 +20,11 @@ import io from 'socket.io-client';
 import useAuth from '../hooks/fetchAuth';
 import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
 import DescriptionEditor from '../Component/descriptionEditor'
+import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
+import CardListPopup from '../Component/PopupCardlist';
 
 interface ChecklistData {
   id: string;
@@ -407,8 +409,6 @@ const WorkspaceProject = () => {
           //   socket.off(`board/${boardId}`);
           //   socket.disconnect();
           // };
-
-
           const cardResponse = await fetchCard(boardId);
           if (cardResponse) {
             const updatedCardData = await Promise.all(
@@ -492,6 +492,11 @@ const WorkspaceProject = () => {
       setBoardName(board ? board.name : 'Project');
 
       if (boardId) {
+        const socket = io(config);
+
+        socket.on(`board/${boardId}`, () => {
+          fetchData();
+        });
         const cardResponse = await fetchCard(boardId);
         if (cardResponse) {
           const updatedCardData = await Promise.all(
@@ -544,8 +549,6 @@ const WorkspaceProject = () => {
       console.error('Error fetching data:', error);
     }
   };
-
-
 
   const handleCreateCard = async (cardName: string) => {
     try {
@@ -634,9 +637,9 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate: any, endDate: any) => {
+  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate: any, endDate: any, activity: any) => {
     try {
-      await updateCardList(id, description, score, newName, startDate, endDate);
+      await updateCardList(id, description, score, newName, startDate, endDate, activity);
       await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
@@ -1149,7 +1152,7 @@ const WorkspaceProject = () => {
                     type="text"
                     value={selectedCardList.name}
                     onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate)}
+                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate, selectedCardList.activity)}
                     autoFocus
                     className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
                   />
@@ -1166,7 +1169,7 @@ const WorkspaceProject = () => {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="cardlist flex gap-10 max768:flex-col">
+              <div className="cardlist flex gap-5 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
                   <div className="flex flex-row gap-4 mb-3">
                     {labelColors?.map((color, index) => (
@@ -1190,7 +1193,8 @@ const WorkspaceProject = () => {
                             selectedCardList.description,
                             newScore,
                             selectedCardList.startDate,
-                            selectedCardList.endDate
+                            selectedCardList.endDate,
+                            selectedCardList.activity
                           );
                         }}
                         className="border bg-gray-300 rounded p-1 text-black"
@@ -1416,19 +1420,26 @@ const WorkspaceProject = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="activity flex justify-between mb-3">
-                    <span className="text-black text-lg font-semibold">Activity</span>
-                    <div className="btn hover:bg-gray-400 btn-neutral h-6 min-h-6 bg-gray-300 border-none text-black rounded-md">
-                      Show Details
-                    </div>
+                  <div className="mt-4">
+                    <ActivityEditor
+                      initialActivity={selectedCardList.activity || ''}
+                      cardListId={ selectedCardList.id || ''}
+                      onSave={(activity: any) => {
+                        setSelectedCardList({ ...selectedCardList, activity });
+                        handleUpdateListName(
+                          selectedCardList.id,
+                          selectedCardList.name,
+                          selectedCardList.description,
+                          selectedCardList.score,
+                          selectedCardList.startDate,
+                          selectedCardList.endDate,
+                          activity
+                        );
+                      }}
+                    />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Write a comment..."
-                    className="h-7 w-full rounded text-sm p-2 bg-gray-300 text-black font-semibold"
-                  />
                 </div>
-                <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
+                <div className="cardlistend flex flex-col w-full gap-4 justify-start max768:ml-0 flex-[1]">
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
                     <i className="fas fa-user"></i>Join
                   </div>
