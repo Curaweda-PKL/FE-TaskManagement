@@ -20,10 +20,16 @@ import io from 'socket.io-client';
 import useAuth from '../hooks/fetchAuth';
 import { fetchLabels, fetchCardListLabels } from '../hooks/ApiLabel';
 import DescriptionEditor from '../Component/descriptionEditor'
+import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
 
+interface Attachment {
+  name: ReactNode;
+  id: string;
+  url: string;
+}
 interface ChecklistData {
   id: string;
   items: any;
@@ -32,6 +38,47 @@ interface ChecklistData {
   name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined;
 }
 
+interface LabelColor {
+  color: string; // Assuming color is a string (e.g., hex code)
+  name: string;  // Assuming name is a string
+}
+
+interface CustomFieldOption {
+  id: string; // or number, depending on your data
+  value: string;
+}
+
+interface CustomField {
+  id: string; // or number
+  name: string;
+  type: 'DROPDOWN' | 'OTHER_TYPE'; // Add other types as needed
+  options: CustomFieldOption[];
+}
+
+interface CardlistCustomField {
+  id: string; // or number
+  customField: CustomField;
+  selectedValue?: string; // or any type based on your logic
+}
+
+interface ActiveCardRect {
+  top: number;
+  left: number;
+  right:number;
+  width: number;
+  height: number;
+}
+
+interface editingCard {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface selectedImage {
+  url: string;
+  name: string;
+}
 
 const WorkspaceProject = () => {
   const onSuccess = () => {
@@ -81,6 +128,13 @@ const WorkspaceProject = () => {
     }
   };
 
+  const calculateChecklistPercentage = (items: any[]) => {
+    if (!items || items.length === 0) return 0;
+    const completedItems = items.filter(item => item.isDone).length;
+    return Math.round((completedItems / items.length) * 100);
+  };
+
+
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const [members, setMembers] = useState<any[]>([]);
   const [visibleMembers, setVisibleMembers] = useState<any[]>([]);
@@ -90,7 +144,7 @@ const WorkspaceProject = () => {
   const [boards, setBoards] = useState<any[]>([]);
   const [cardData, setCardData] = useState<any[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [isLabelsPopupOpen, setIsLabelsPopupOpen] = useState(false);
   const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
@@ -104,8 +158,8 @@ const WorkspaceProject = () => {
   const [isCopyPopupOpen, setIsCopyPopupOpen] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
   const [selectedCardList, setSelectedCardList] = useState<any | null>(null);
-  const [editingCard, setEditingCard] = useState(null);
-  const [activeCardRect, setActiveCardRect] = useState(null);
+  const [editingCard, setEditingCard] = useState<editingCard | null>(null);
+  const [activeCardRect, setActiveCardRect] = useState<ActiveCardRect | null>(null);
   const [isEditCard, setIsEditCard] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteCardlist, setDeleteCardlist] = useState(false);
@@ -116,11 +170,11 @@ const WorkspaceProject = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [showDeleteAttachmentConfirmation, setShowDeleteAttachmentConfirmation] = useState(false);
-  const [attachmentToDelete, setAttachmentToDelete] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<Attachment | null>(null);
+  const [selectedImage, setSelectedImage] = useState<selectedImage | null>(null);
   const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
-  const [cardlistCustomFields, setCardlistCustomFields] = useState([]);
-  const inputRef = useRef(null);
+  const [cardlistCustomFields, setCardlistCustomFields] = useState<CardlistCustomField[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -148,10 +202,6 @@ const WorkspaceProject = () => {
     fetchMembers();
   }, [workspaceId]);
 
-  interface Attachment {
-    id: string;
-    url: string;
-  }
 
   const handleDeletePopUp = (card: any) => {
     setShowDeleteConfirmation(true);
@@ -220,7 +270,7 @@ const WorkspaceProject = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [existingChecklistData, setExistingChecklistData] = useState<ChecklistData | null>(null);
 
-  const handleOpenChecklistPopup = (cardList: any, isEditMode: boolean, existingChecklistData: any) => {
+  const handleOpenChecklistPopup = (cardList: any, isEditMode: boolean = false, existingChecklistData?: any) => {
     setSelectedCardList(cardList);
     setIsChecklistPopupOpen(true);
     setIsEditMode(isEditMode);
@@ -305,7 +355,7 @@ const WorkspaceProject = () => {
     };
   }, []);
 
-  const [labelColors, setLabelColors] = useState([]);
+  const [labelColors, setLabelColors] = useState<LabelColor[]>([]);
 
   useEffect(() => {
     const handlefetchCardListLabels = async () => {
@@ -374,20 +424,6 @@ const WorkspaceProject = () => {
     }
   };
 
-  const processCustomFields = (cardListData) => {
-    const customFields = cardListData
-      .map(cardList => cardList.customFields)
-      .flat()
-      .filter(field => field && field.customField)
-      .map(field => ({
-        cardListId: field.cardListId,
-        ...field.customField,
-        options: field.customField.options || []
-      }));
-
-    return customFields;
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -407,8 +443,6 @@ const WorkspaceProject = () => {
           //   socket.off(`board/${boardId}`);
           //   socket.disconnect();
           // };
-
-
           const cardResponse = await fetchCard(boardId);
           if (cardResponse) {
             const updatedCardData = await Promise.all(
@@ -492,6 +526,11 @@ const WorkspaceProject = () => {
       setBoardName(board ? board.name : 'Project');
 
       if (boardId) {
+        const socket = io(config);
+
+        socket.on(`board/${boardId}`, () => {
+          fetchData();
+        });
         const cardResponse = await fetchCard(boardId);
         if (cardResponse) {
           const updatedCardData = await Promise.all(
@@ -544,9 +583,6 @@ const WorkspaceProject = () => {
       console.error('Error fetching data:', error);
     }
   };
-
-
-
 
   const handleCreateCard = async (cardName: string) => {
     try {
@@ -635,9 +671,9 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate: any, endDate: any) => {
+  const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate?: any, endDate?: any, activity?: any) => {
     try {
-      await updateCardList(id, description, score, newName, startDate, endDate);
+      await updateCardList(id, description, score, newName, startDate, endDate, activity);
       await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
@@ -958,11 +994,6 @@ const WorkspaceProject = () => {
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
 
-  const calculateChecklistPercentage = (items: any[]) => {
-    if (!items || items.length === 0) return 0;
-    const completedItems = items.filter(item => item.isDone).length;
-    return Math.round((completedItems / items.length) * 100);
-  };
 
   return (
     <>
@@ -1127,7 +1158,7 @@ const WorkspaceProject = () => {
           onClose={handleCloseCreateCard}
           onCreateCard={handleCreateCard}
           onUpdateCard={handleEditCard}
-          initialData={currentCard}
+          initialData={currentCard || { id: '', name: '' }}
           isEditing={false}
         />
       )}
@@ -1139,7 +1170,7 @@ const WorkspaceProject = () => {
           onClose={handleCloseEditCard}
           onCreateCard={handleCreateCard}
           onUpdateCard={handleEditCard}
-          initialData={currentCard}
+          initialData={currentCard || { id: '', name: '' }}
           isEditing={true}
         />
       )}
@@ -1155,7 +1186,7 @@ const WorkspaceProject = () => {
                     type="text"
                     value={selectedCardList.name}
                     onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate)}
+                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate, selectedCardList.activity)}
                     autoFocus
                     className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
                   />
@@ -1172,15 +1203,17 @@ const WorkspaceProject = () => {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="cardlist flex gap-10 max768:flex-col">
+              <div className="cardlist flex gap-5 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
-                  <div className="flex flex-row gap-4 mb-3">
+                  <div className='flex items-center'>
+                  <div className="flex items-center flex-wrap gap-4">
                     {labelColors?.map((color, index) => (
                       <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
                         {color.name}
                       </div>
                     ))}
-                    <div>
+                    </div>
+                    <div className='ml-5'>
                       <label htmlFor="score-select" className="block text-black text-sm font-medium mb-1">
                         Score
                       </label>
@@ -1196,7 +1229,8 @@ const WorkspaceProject = () => {
                             selectedCardList.description,
                             newScore,
                             selectedCardList.startDate,
-                            selectedCardList.endDate
+                            selectedCardList.endDate,
+                            selectedCardList.activity
                           );
                         }}
                         className="border bg-gray-300 rounded p-1 text-black"
@@ -1210,8 +1244,7 @@ const WorkspaceProject = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
-
+                      </div>
                   </div>
 
                   <div className="mt-4">
@@ -1239,8 +1272,7 @@ const WorkspaceProject = () => {
                       onSave={(description: any) => {
                         setSelectedCardList({ ...selectedCardList, description });
                         handleUpdateListName(selectedCardList.id, selectedCardList.name, description, selectedCardList.score);
-                      }}
-                    />
+                      } } cardListId={''}                    />
                   </div>
                   <div>
                     <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
@@ -1322,7 +1354,7 @@ const WorkspaceProject = () => {
                             <select
                               className="mt-1 p-1 bg-gray-300 rounded w-full text-gray-800"
                               value={field.selectedValue || ""}
-                              onChange={(e) => handleSelectChange(e, field.customFieldId, selectedCardList.id)}
+                              onChange={(e) => handleSelectChange(e, field.customField, selectedCardList.id)}
                             >
                               <option value="" disabled>
                                 select Option
@@ -1334,7 +1366,7 @@ const WorkspaceProject = () => {
                               ))}
                             </select>
                             <button
-                              onClick={() => handleRemoveCustomField(field.customFieldId, selectedCardList.id)}
+                              onClick={() => handleRemoveCustomField(field.customField.id, selectedCardList.id)}
                               className="text-red-500 hover:text-red-700 p-2"
                             >
                               <i className="fas fa-trash"></i>
@@ -1385,7 +1417,7 @@ const WorkspaceProject = () => {
                   <div className="activity flex flex-col justify-between mb-3 text-gray-800">
                     {checklistData?.map((data, index) => {
                       const completionPercentage = calculateChecklistPercentage(data.items);
-                      
+
                       return (
                         <div key={index} className="checklist-item mb-4">
                           <div className='flex justify-between items-center mb-2'>
@@ -1405,10 +1437,10 @@ const WorkspaceProject = () => {
                               ></i>
                             </div>
                           </div>
-                          
+
                           <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                            <div 
-                              className="bg-blue-600 h-2.5 rounded-full" 
+                            <div
+                              className="bg-blue-600 h-2.5 rounded-full"
                               style={{ width: `${completionPercentage}%` }}
                             ></div>
                           </div>
@@ -1417,7 +1449,7 @@ const WorkspaceProject = () => {
                             <p>Start Date: {data.startDate}</p>
                             <p>End Date: {data.endDate}</p>
                           </div>
-                          
+
                           <ul className='mb-3'>
                             {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
                               <li key={itemIndex} className="flex items-center mb-1">
@@ -1428,7 +1460,7 @@ const WorkspaceProject = () => {
                                   onChange={(e) => handleToggleIsDone(data, itemIndex as number, e.target.checked, data.id)}
                                   className="w-4 h-4 mr-3 rounded border-gray-300"
                                 />
-                                <label 
+                                <label
                                   htmlFor={`checklist-item-${index}-${itemIndex}`}
                                   className={`text-sm ${item.isDone ? 'line-through text-gray-500' : 'text-gray-700'}`}
                                 >
@@ -1441,19 +1473,26 @@ const WorkspaceProject = () => {
                       );
                     })}
                   </div>
-                  <div className="activity flex justify-between mb-3">
-                    <span className="text-black text-lg font-semibold">Activity</span>
-                    <div className="btn hover:bg-gray-400 btn-neutral h-6 min-h-6 bg-gray-300 border-none text-black rounded-md">
-                      Show Details
-                    </div>
+                  <div className="mt-4">
+                    <ActivityEditor
+                      initialActivity={selectedCardList.activity || ''}
+                      cardListId={ selectedCardList.id || ''}
+                      onSave={(activity: any) => {
+                        setSelectedCardList({ ...selectedCardList, activity });
+                        handleUpdateListName(
+                          selectedCardList.id,
+                          selectedCardList.name,
+                          selectedCardList.description,
+                          selectedCardList.score,
+                          selectedCardList.startDate,
+                          selectedCardList.endDate,
+                          activity
+                        );
+                      }}
+                    />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Write a comment..."
-                    className="h-7 w-full rounded text-sm p-2 bg-gray-300 text-black font-semibold"
-                  />
                 </div>
-                <div className="cardlistend flex flex-col w-full gap-3 justify-start max768:ml-0 flex-[1]">
+                <div className="cardlistend flex flex-col w-full gap-4 justify-start max768:ml-0 flex-[1]">
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-1" onClick={() => handleJoinClick(selectedCardList.id)}>
                     <i className="fas fa-user"></i>Join
                   </div>
@@ -1549,10 +1588,10 @@ const WorkspaceProject = () => {
               <div
                 className="absolute bg-white rounded-md items-center"
                 style={{
-                  top: `${activeCardRect.top}px`,
-                  left: `${activeCardRect.left}px`,
-                  width: `${activeCardRect.width}px`,
-                  height: `${activeCardRect.height}px`,
+                  top: `${activeCardRect?.top}px`,
+                  left: `${activeCardRect?.left}px`,
+                  width: `${activeCardRect?.width}px`,
+                  height: `${activeCardRect?.height}px`,
                 }}
               >
                 {editingCard && (
@@ -1578,8 +1617,8 @@ const WorkspaceProject = () => {
             <div
               className="fixed z-20"
               style={{
-                top: `${activeCardRect.top}px`,
-                left: `${activeCardRect.right}px`,
+                top: `${activeCardRect?.top}px`,
+                left: `${activeCardRect?.right}px`,
               }}
             >
               <div className="py-1 ml-5" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">

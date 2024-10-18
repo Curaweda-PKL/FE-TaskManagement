@@ -1,27 +1,53 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
+import { createActivity, updateActivity, getActivitiesByCardListId, fetchCardList, deleteActivity } from '../hooks/fetchCardList';
 
-interface DescriptionEditorProps {
-  initialDescription: string;
+interface ActivityEditorProps {
+  initialActivity: string;
+  onSave: (activity: string) => void;
   cardListId: string;
-  onSave: (description: string) => void;
 }
 
-const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescription, onSave }) => {
+interface SavedActivity {
+  id: string;
+  content: string;
+  timestamp: string;
+}
+
+const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave, cardListId }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [description, setDescription] = useState(initialDescription);
-  const [prevDescription, setPrevDescription] = useState(initialDescription);
+  const [activity, setActivity] = useState(initialActivity);
+  const [prevActivity, setPrevActivity] = useState(initialActivity);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
   const [showHeadingDropdown, setShowHeadingDropdown] = useState(false);
   const [showListDropdown, setShowListDropdown] = useState(false);
-  const textareaRef = useRef(null);
+  const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
-    setDescription(initialDescription);
-    setPrevDescription(initialDescription);
-  }, [initialDescription]);
+    setActivity(initialActivity);
+    setPrevActivity(initialActivity);
+  }, [initialActivity]);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [cardListId]);
+
+  const fetchActivities = async () => {
+    try {
+      const activities = await getActivitiesByCardListId(cardListId);
+      setSavedActivities(activities.map((act: any) => ({
+        id: act.id,
+        content: act.activity,
+        timestamp: new Date(act.createdAt).toLocaleString()
+      })));
+    } catch (error) {
+      console.error('Failed to fetch activities:', error);
+    }
+  };
 
   const headingOptions = [
     { label: 'Normal text', value: 'normal' },
@@ -37,20 +63,22 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
 
   const getSelectedText = () => {
     const textarea = textareaRef.current;
-    return textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    return textarea?.value.substring(textarea.selectionStart, textarea.selectionEnd) || '';
   };
 
-  const replaceSelectedText = (replacementText: any) => {
+  const replaceSelectedText = (replacementText: string) => {
     const textarea = textareaRef.current;
+    if (!textarea) return;
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
 
-    const newText = 
-      description.substring(0, start) + 
-      replacementText + 
-      description.substring(end);
+    const newText =
+      activity.substring(0, start) +
+      replacementText +
+      activity.substring(end);
 
-    setDescription(newText);
+    setActivity(newText);
 
     setTimeout(() => {
       textarea.focus();
@@ -61,7 +89,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
     }, 0);
   };
 
-  const applyTextStyle = (type: any) => {
+  const applyTextStyle = (type: string) => {
     const selectedText = getSelectedText();
     if (!selectedText) return;
 
@@ -94,7 +122,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
       case 'number':
         formattedText = selectedText
           .split('\n')
-          .map((line: any, index: any) => `${index + 1}. ${line}`)
+          .map((line, index) => `${index + 1}. ${line}`)
           .join('\n');
         break;
       default:
@@ -111,7 +139,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
       if (selectedText) {
         replaceSelectedText(linkMarkdown);
       } else {
-        setDescription(description + linkMarkdown);
+        setActivity(activity + linkMarkdown);
       }
       setLinkUrl('');
       setLinkText('');
@@ -119,8 +147,8 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
     }
   };
 
-  const renderFormattedDescription = () => {
-    let formatted = description;
+  const renderFormattedActivity = (text: string) => {
+    let formatted = text;
 
     formatted = formatted.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold">$1</h1>');
     formatted = formatted.replace(/^## (.*$)/gm, '<h2 class="text-xl font-bold">$1</h2>');
@@ -140,35 +168,60 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
 
   const handleCancel = () => {
     setIsEditing(false);
-    setDescription(prevDescription);
+    setActivity(prevActivity);
+    setEditingActivityId(null);
   };
 
-  const handleSave = () => {
-    onSave(description);
-    setPrevDescription(description);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      if (editingActivityId) {
+        await updateActivity(editingActivityId, activity);
+      } else {
+        await createActivity(cardListId, activity);
+      }
+      onSave(activity);
+      setPrevActivity(activity);
+      setIsEditing(false);
+      setActivity('');
+      setEditingActivityId(null);
+      await fetchActivities();
+    } catch (error) {
+      console.error('Failed to save activity:', error);
+    }
+  };
+
+  const handleEdit = (savedActivity: SavedActivity) => {
+    setIsEditing(true);
+    setActivity(savedActivity.content);
+    setPrevActivity(savedActivity.content);
+    setEditingActivityId(savedActivity.id);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteActivity(id);
+      await fetchActivities();
+    } catch (error) {
+      console.error('Failed to delete activity:', error);
+    }
   };
 
   return (
     <div className="w-full mb-4">
-      <h2 className="text-black mb-3 font-semibold text-lg">Description</h2>
+      <h2 className="text-black mb-3 font-semibold text-lg">Activity</h2>
 
       {!isEditing ? (
-        <div 
-          className=" text-gray-600 text-[14px] py-1 px-2 rounded min-h-[35px] cursor-pointer"
-          style={{
-            wordBreak: 'break-word',
-            overflowWrap: 'break-word',
-            whiteSpace: 'pre-wrap'
-          }}
+        <div
+          className="bg-gray-300 text-gray-600 py-1 px-2 rounded min-h-[35px] cursor-pointer break-words overflow-hidden"
           onClick={() => setIsEditing(true)}
-          dangerouslySetInnerHTML={{ __html: renderFormattedDescription() }}
-        />
+        >
+          <span className="text-gray-600">Write an Activity...</span>
+        </div>
       ) : (
         <div className="border rounded">
           <div className="flex items-center gap-2 p-2 border-b bg-gray-100">
             <div className="relative">
-              <button 
+              <button
                 className="flex items-center gap-1 p-1 hover:bg-gray-300 rounded"
                 onClick={() => setShowHeadingDropdown(!showHeadingDropdown)}
               >
@@ -193,14 +246,14 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
               )}
             </div>
 
-            <button 
+            <button
               className="p-1 hover:bg-gray-200 rounded"
               onClick={() => applyTextStyle('bold')}
             >
               <Bold size={16} />
             </button>
 
-            <button 
+            <button
               className="p-1 hover:bg-gray-200 rounded"
               onClick={() => applyTextStyle('italic')}
             >
@@ -208,7 +261,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
             </button>
 
             <div className="relative">
-              <button 
+              <button
                 className="flex items-center gap-1 p-1 hover:bg-gray-200 rounded"
                 onClick={() => setShowListDropdown(!showListDropdown)}
               >
@@ -240,7 +293,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
               <Link2 size={16} />
             </button>
 
-            <button 
+            <button
               className="p-1 hover:bg-gray-200 rounded"
               onClick={() => applyTextStyle('image')}
             >
@@ -259,23 +312,23 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
                   />
                   <input
                     type="text"
-                    placeholder="Enter text"
+                    placeholder="Enter link text"
                     className="border p-1 rounded"
                     value={linkText}
                     onChange={(e) => setLinkText(e.target.value)}
                   />
-                  <div className="flex gap-2 justify-end mt-2">
+                  <div className="flex justify-between">
                     <button
-                      className="px-3 py-1 bg-gray-200 rounded"
-                      onClick={() => setShowLinkDialog(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="px-3 py-1 bg-blue-500 text-white rounded"
+                      className="p-1 bg-blue-500 text-white rounded"
                       onClick={handleInsertLink}
                     >
                       Insert Link
+                    </button>
+                    <button
+                      className="p-1 bg-red-500 text-white rounded"
+                      onClick={() => setShowLinkDialog(false)}
+                    >
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -285,21 +338,24 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
 
           <textarea
             ref={textareaRef}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 border-none bg-gray-300 text-black outline-none"
-            rows={5}
+            className="w-full p-1 bg-gray-300 h-40 resize-none"
+            value={activity}
+            onChange={(e) => setActivity(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                handleCancel();
+              }
+            }}
           />
-
-          <div className="flex justify-end gap-2 p-2 border-t">
+          <div className="flex justify-between p-2">
             <button
-              className="px-3 py-1 bg-red-500 text-white rounded"
+              className="bg-gray-300 hover:bg-gray-400 p-2 rounded"
               onClick={handleCancel}
             >
               Cancel
             </button>
             <button
-              className="px-3 py-1 bg-green-500 text-white rounded"
+              className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
               onClick={handleSave}
             >
               Save
@@ -307,8 +363,29 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
           </div>
         </div>
       )}
+
+      <div className="mt-2">
+        {savedActivities.map((savedActivity, index) => (
+          <div key={savedActivity.id} className='text-gray-800 mb-2'>
+            <div className="flex justify-between items-center ">
+              <span className="font-medium text-[14px]">{savedActivities.length - index}</span>
+              <span className="text-[11px] text-gray-500">{savedActivity.timestamp}</span>
+            </div>
+            <div className='bg-gray-300 p-1 px-2 rounded' dangerouslySetInnerHTML={{ __html: renderFormattedActivity(savedActivity.content) }} />
+            <div className='flex flex-wrap px-1 text-[13px] gap-1 mt-1'>
+              <button className="underline" onClick={() => handleEdit(savedActivity)}>
+                Edit
+              </button>
+              <p>•</p>
+              <button className="underline" onClick={() => handleDelete(savedActivity.id)}>
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default DescriptionEditor;
+export default ActivityEditor;
