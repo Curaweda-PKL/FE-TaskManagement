@@ -518,28 +518,36 @@ const WorkspaceProject = () => {
     fetchData();
   }, [workspaceId, boardId]);
 
+  const socket = io(config);
+
+  useEffect(() => {
+    // Listener untuk event socket
+    socket.on(`board/${boardId}`, () => {
+      
+    });
+  
+    return () => {
+      socket.off(`board/${boardId}`);
+      socket.disconnect();
+    };
+  }, [boardId]);
+  
   const fetchData2 = async () => {
     try {
       const boardData = await fetchBoards(workspaceId);
       setBoards(boardData);
       const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
       setBoardName(board ? board.name : 'Project');
-
+  
       if (boardId) {
-        const socket = io(config);
-
-        socket.on(`board/${boardId}`, () => {
-          fetchData();
-        });
         const cardResponse = await fetchCard(boardId);
         if (cardResponse) {
           const updatedCardData = await Promise.all(
             cardResponse.map(async (card: { id: string }) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
-
                 const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
-
+  
                 const updatedCardList = await Promise.all(cardList.map(async (list) => {
                   if (list.members && list.members.length > 0) {
                     const membersWithPhotos = await Promise.all(
@@ -555,7 +563,7 @@ const WorkspaceProject = () => {
                   }
                   return list;
                 }));
-
+  
                 const cardListWithAttachments = await Promise.all(
                   updatedCardList.map(async (cardList: any) => {
                     if (cardList.attachments && cardList.attachments.length > 0) {
@@ -569,13 +577,13 @@ const WorkspaceProject = () => {
                     return { ...cardList, attachmentDetails: [] };
                   })
                 );
-
+  
                 return { ...card, cardList: cardListWithAttachments };
               }
               return { ...card, cardList: [] };
             })
           );
-
+  
           setCardData(updatedCardData);
         }
       }
@@ -583,7 +591,24 @@ const WorkspaceProject = () => {
       console.error('Error fetching data:', error);
     }
   };
-
+  
+  const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
+    try {
+      switch (status) {
+        case 'APPROVED':
+          setCardListApproved(cardlistId);
+          break;
+        case 'IN_REVIEW':
+          setCardListInReview(cardlistId);
+          break;
+        default:
+          await updateCardListStatus(cardlistId, status); // Pastikan ini adalah async
+      }
+      await fetchData2(); // Memanggil fetchData2 setelah status diperbarui
+    } catch (error) {
+      console.error('Error updating cardlist status:', error);
+    }
+  };
   const handleCreateCard = async (cardName: string) => {
     try {
       await createCard(boardId, cardName);
@@ -969,19 +994,6 @@ const WorkspaceProject = () => {
     handleTakeCardlistChecklist()
   };
 
-  const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        setCardListApproved(cardlistId);
-        break;
-      case 'IN_REVIEW':
-        setCardListInReview(cardlistId);
-        break;
-      default:
-        updateCardListStatus(cardlistId, status);
-    }
-    await fetchData2();
-  }
 
 
   const getContrastColor = (hexColor: any) => {
