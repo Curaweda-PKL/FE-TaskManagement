@@ -131,7 +131,7 @@ const WorkspaceSettings: React.FC = () => {
       )}
       <WorkspaceHeader workspace={workspace} showEditIcon={true} onEdit={handleEditClick} inviteLinkEnabled={false} />
 
-      <div className='py-10 text-black px-16'>
+      <div className='py-10 text-black sm:px-16 px-10'>
         <h2 className='text-xl font-medium mb-4'>Workspace Settings</h2>
 
         <div className='mb-6 relative'>
@@ -147,15 +147,15 @@ const WorkspaceSettings: React.FC = () => {
 
         <div className='mb-6 relative'>
           <h3 className='text-lg mb-2 border-b py-1'>Workspace visibility</h3>
-          <div className='flex justify-between items-center'>
-            <div className='flex items-center mb-1'>
-              <i className={`fas ${visibility === 'Private' ? 'fa-lock text-red-600' : 'fa-globe text-green-600'} mr-2`}></i>
-              <span>{visibility} - This Workspace is {visibility === 'Private' ? "private. It's not indexed or visible to those outside the Workspace." : "public. It's visible to everyone."}</span>
+          <div className='flex   justify-between'>
+            <div className='flex mb-1'>
+              <i className={`fas ${visibility === 'Private' ? 'fa-lock text-red-600' : 'fa-globe text-green-600'} mr-2 mt-1`}></i>
+              <span className='sm:text-lg text-xs'>{visibility} - This Workspace is {visibility === 'Private' ? "private. It's not indexed or visible to those outside the Workspace." : "public. It's visible to everyone."}</span>
             </div>
             <button onClick={(e) => {
               e.stopPropagation();
               togglePopup('visibility');
-            }} className='bg-gray-200 px-3 py-1 rounded text-sm relative'>
+            }} className='bg-gray-200 px-3 py-1 h-fit w-fit rounded sm:text-sm text-xs relative'>
               Change
             </button>
           </div>
@@ -168,11 +168,14 @@ const WorkspaceSettings: React.FC = () => {
           </div>
 
           {activePopup === 'delete' && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
             <DeleteConfirmation
               onDelete={handleDeleteWorkspace}
               onCancel={closeAllPopups}
               itemType='workspace'
             />
+            </div>
           )}
 
           {activePopup === 'visibility' && (

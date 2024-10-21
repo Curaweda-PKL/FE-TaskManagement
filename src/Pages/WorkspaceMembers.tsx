@@ -18,7 +18,9 @@ const WorkspaceMembers: React.FC = () => {
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
+
   const onLogout = () => {
     console.log('Logout')
   };
@@ -32,7 +34,7 @@ const WorkspaceMembers: React.FC = () => {
     const fetchData = async () => {
       try {
         await fetchWorkspaceData();
-        await fetchUserData(); // This will update the userData in the useAuth hook
+        await fetchUserData();
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -145,6 +147,22 @@ const WorkspaceMembers: React.FC = () => {
     setInviteLinkEnabled(!inviteLinkEnabled);
   };
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Filter function for members
+  const filteredMembers = members.filter(member =>
+    member?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Filter function for requests
+  const filteredRequests = requests.filter(request =>
+    request?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    request?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className='bg-white pb-14 min-h-screen'>
       <div className="max-w-6xl mx-auto">
@@ -200,14 +218,18 @@ const WorkspaceMembers: React.FC = () => {
                           <button className="bg-gray-200 text-black px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0">
                             <i className='fas fa-link mr-3' />Invite with link
                           </button>
-                          <button className="py-2 text-gray-500 hover:text-black" onClick={toggleInviteLink}>Disable invite link</button>
+                          <button className="py-2 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
+                            Disable invite link
+                          </button>
                         </>
                       ) : (
                         <>
                           <button className="flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
                             <i className='fas fa-link mr-3' />Invite with link
                           </button>
-                          <button className="bg-gray-200 px-6 py-2 rounded-md  text-black">Disable invite link</button>
+                          <button className="bg-gray-200 px-6 py-2 rounded-md  text-black">
+                            Disable invite link
+                          </button>
                         </>
                       )}
                     </div>
@@ -218,10 +240,12 @@ const WorkspaceMembers: React.FC = () => {
                     type="text"
                     placeholder="Search members..."
                     className="w-full lg:w-1/3 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700"
+                    value={searchTerm}
+                    onChange={handleSearch}
                   />
                 </div>
                 <div className="space-y-2 text-black w-full lg:w-5/6">
-                  {members.map((member) => (
+                  {filteredMembers.map((member) => (
                     <div key={member.id} className="bg-yellow-200 p-4 rounded-md flex justify-between items-center flex-wrap">
                       <div className="flex items-center flex-wrap">
                         <img
@@ -261,10 +285,12 @@ const WorkspaceMembers: React.FC = () => {
                     type="text"
                     placeholder="Search requests..."
                     className="w-full lg:w-1/3 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700"
+                    value={searchTerm}
+                    onChange={handleSearch}
                   />
                 </div>
                 <div className="space-y-4 w-full lg:w-4/5 text-black">
-                  {requests.map((request) => (
+                  {filteredRequests.map((request) => (
                     <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
                       <div className="flex items-center mb-4 lg:mb-0">
                         <img
