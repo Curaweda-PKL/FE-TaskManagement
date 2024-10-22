@@ -425,6 +425,8 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
+
+    let socket;
     const fetchData = async () => {
       try {
         const boardData = await fetchBoards(workspaceId);
@@ -491,6 +493,7 @@ const WorkspaceProject = () => {
                     })
                   );
 
+
                   return {
                     ...card,
                     cardList: cardListWithCustomFields
@@ -516,6 +519,22 @@ const WorkspaceProject = () => {
     };
 
     fetchData();
+
+    // if (boardId) {
+    //   socket = io(config);
+    //   socket.on(`board/${boardId}`, () => {
+    //     console.log(`Board updated for board ${boardId}`);
+    //     fetchData();
+    //   });
+    // }
+
+    // return () => {
+    //   if (socket) {
+    //     socket.off(`board/${boardId}`);
+    //     socket.disconnect();
+    //   }
+    // };
+
   }, [workspaceId, boardId]);
 
   const [cardIdsSocket, setCardIdsSocket] = useState<string[]>([]); // Ubah menjadi array
@@ -627,6 +646,11 @@ const WorkspaceProject = () => {
       setBoardName(board ? board.name : 'Project');
 
       if (boardId) {
+        const socket = io(config);
+
+        socket.on(`board/${boardId}`, () => {
+          fetchData();
+        });
         const cardResponse = await fetchCard(boardId);
         setCardData2(cardResponse);
 
