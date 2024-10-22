@@ -128,14 +128,14 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
   return (
     <>
-      <div className="flex items-center justify-between bg-white text-black border-black border-b p-[6px] mx-6 mb-2">
+      <div className="flex items-center justify-between bg-white text-black border-black border-b p-[6px] mx-0 md:mx-6 mb-2">
         {alert && (
           <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
             {alert.message}
           </div>
         )}
-        <div className="flex items-center px-10 font-sem">
-          <div className="w-14 h-14 rounded bg-red-700 mr-3"></div>
+        <div className="flex sm:items-center md:px-10 px-5 font-sem">
+          <div className="min-w-11 h-11 sm:w-14 sm:h-14 rounded bg-red-700 mr-3"></div>
           <div>
             <h1 className="text-xl -mt-1 text-gray-600 font-semibold flex items-center">
               {workspace ? workspace.name : 'Loading...'}
@@ -151,7 +151,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             <p className="text-sm flex -mt-1 items-center text-gray-500">
               {workspace ? workspace.description : 'Loading...'}
             </p>
-            <p className="text-sm flex items-center">
+            <p className="sm:text-sm text-xs flex items-center">
               <i className={`fas ${workspace?.isPublic ? 'fa-globe' : 'fa-lock'} mr-1`} />
               {workspace?.isPublic ? 'Public' : 'Private'} | Workspace id: {workspace ? workspace.id : 'Loading...'}
             </p>
@@ -161,8 +161,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
-          <div className="bg-white pt-8 px-6 pb-5 rounded-md shadow-md w-80 relative right-16 top-0 cursor-pointer">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white pt-8 px-6 pb-5 rounded-md shadow-md w-80 relative cursor-pointer">
             <i className='fas fa-times text-lg text-black absolute top-2 right-2 cursor-pointer' onClick={handleCloseModal} />
             <div
               className="bg-gray-200 p-1 rounded-md text-gray-700 font-semibold hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-300"
@@ -180,8 +180,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       )}
 
       {isInviteOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
-          <div className="bg-white rounded-lg shadow-lg w-[300px] relative right-16">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg shadow-lg w-[300px] relative">
             <div className="flex justify-between items-center p-4">
               <h3 className="text-md text-black font-medium">Invite Member Workspace</h3>
               <i className="fas fa-times text-black cursor-pointer" onClick={() => setIsInviteOpen(false)} />
@@ -208,8 +208,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       )}
 
       {isRequestOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-[100]">
-          <div className="bg-white rounded-lg shadow-lg w-[470px] relative right-16">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg shadow-lg w-[470px] relative">
             <div className="flex justify-between items-center p-4">
               <h3 className="text-md text-black font-medium">Request Join Workspace</h3>
               <i className="fas fa-times text-black cursor-pointer" onClick={handleClose} />
