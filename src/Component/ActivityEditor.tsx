@@ -12,6 +12,9 @@ interface SavedActivity {
   id: string;
   content: string;
   timestamp: string;
+  userId: string;
+  userName: string;
+  userPhoto: string;
 }
 
 const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave, cardListId }) => {
@@ -42,7 +45,10 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
       setSavedActivities(activities.map((act: any) => ({
         id: act.id,
         content: act.activity,
-        timestamp: new Date(act.createdAt).toLocaleString()
+        timestamp: new Date(act.createdAt).toLocaleString(),
+        userId: act.userId,
+        userName: act.userName,
+        userPhoto: act.userPhoto
       })));
     } catch (error) {
       console.error('Failed to fetch activities:', error);
@@ -364,22 +370,30 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
         </div>
       )}
 
-      <div className="mt-2">
-        {savedActivities.map((savedActivity, index) => (
-          <div key={savedActivity.id} className='text-gray-800 mb-2'>
-            <div className="flex justify-between items-center ">
-              <span className="font-medium text-[14px]">{savedActivities.length - index}</span>
-              <span className="text-[11px] text-gray-500">{savedActivity.timestamp}</span>
+      <div className="mt-2 p-2">
+        {savedActivities?.map((savedActivity, index) => (
+          <div key={savedActivity?.id} className='text-gray-800 mb-2 flex items-start'>
+            <div className="flex-shrink-0 w-8 h-8 bg-red-500 rounded-full mr-2 flex items-center justify-center text-white font-bold overflow-hidden">
+              {savedActivity?.userPhoto ? (
+                <img src={savedActivity.userPhoto} alt={savedActivity.userName} className="w-full h-full object-cover" />
+              ) : (
+                savedActivity.userId
+              )}
             </div>
-            <div className='bg-gray-300 p-1 px-2 rounded' dangerouslySetInnerHTML={{ __html: renderFormattedActivity(savedActivity.content) }} />
-            <div className='flex flex-wrap px-1 text-[13px] gap-1 mt-1'>
-              <button className="underline" onClick={() => handleEdit(savedActivity)}>
-                Edit
-              </button>
-              <p>•</p>
-              <button className="underline" onClick={() => handleDelete(savedActivity.id)}>
-                Delete
-              </button>
+            <div className="flex-grow">
+              <div className="flex items-center">
+                <span className="font-medium text-[14px] pr-3">{savedActivity.userName}</span>
+                <span className="text-[14px]">{savedActivity.content}</span>
+              </div>
+              <div className='flex flex-wrap text-[13px] gap-1 mt-1'>
+                <button className="text-gray-500 hover:underline" onClick={() => handleEdit(savedActivity)}>
+                  Edit
+                </button>
+                <span>•</span>
+                <button className="text-gray-500 hover:underline" onClick={() => handleDelete(savedActivity.id)}>
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ))}

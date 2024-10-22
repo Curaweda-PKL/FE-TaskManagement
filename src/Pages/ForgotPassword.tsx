@@ -27,6 +27,10 @@ function ForgotPassword() {
       const success = await forgotPassword(email);
       if (success) {
         setLoading(false);
+      } else {
+        setError('Email not registered.');
+        setLoading(false);
+        setSubmitted(false);
       }
     } catch (err) {
       setError('Failed to send email. Please try again.');
@@ -61,7 +65,6 @@ function ForgotPassword() {
         <div className="text-center mt-3 sm:mt-4">
           <p className="text-gray-600 text-sm sm:text-base">We'll send an email with instructions to reset your password.</p>
         </div>
-        {error && <p className="text-red-500 text-center mt-2 text-sm">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-4 sm:mt-6">
           <div className="mb-4">
             <input
@@ -80,6 +83,7 @@ function ForgotPassword() {
           >
             {loading ? 'Sending...' : 'Send Email'}
           </button>
+          {error && <p className="text-red-500 text-center mt-2 text-sm">{error}</p>}
         </form>
       </div>
     </div>
