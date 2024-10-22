@@ -13,14 +13,25 @@ function Navbar() {
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceDescription, setWorkspaceDescription] = useState('');
-  const [workspaces, setWorkspaces] = useState<any[]>([]);
-  const navbarRef = useRef<HTMLDivElement | null>(null);
-
+  const [workspaces, setWorkspaces] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const navbarRef = useRef(null);
+  const searchRef = useRef(null);
   const { userData, isLoggedIn, handleLogout, getProfilePhoto } = useAuth(() => { }, () => navigate('/'));
 
   useEffect(() => {
     fetchWorkspacesData();
     fetchUserProfilePhoto();
+
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const fetchWorkspacesData = async () => {
@@ -103,6 +114,13 @@ function Navbar() {
 
   const buttonClass = 'bg-white border-none shadow-none hover:bg-gray-200';
 
+  const filteredWorkspaces = workspaces.filter(workspace =>
+    workspace.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   return (
     <nav
@@ -159,9 +177,35 @@ function Navbar() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="hidden md:block relative">
-            <input type="text" placeholder="Search" className="bg-gray-100 text-black rounded-md px-3 py-2 pl-10 text-sm w-64" />
+          <div ref={searchRef} className="hidden md:block relative">
+            <input
+              type="text"
+              placeholder="Search workspaces..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => setShowSearchResults(true)}
+              className="bg-gray-100 text-black rounded-md px-3 py-2 pl-10 text-sm w-64"
+            />
             <i className='ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'></i>
+            
+            {showSearchResults && searchQuery && (
+              <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                {filteredWorkspaces.length > 0 ? (
+                  filteredWorkspaces.map(workspace => (
+                    <div
+                      key={workspace.id}
+                      onClick={() => handleWorkspaceClick(workspace.id)}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2"
+                    >
+                      <div className="w-3 h-3 bg-red-600 rounded"></div>
+                      <span className="text-gray-800">{workspace.name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-500 text-sm">No workspaces found</div>
+                )}
+              </div>
+            )}
           </div>
           <div className="hidden md:flex items-center">
             <div className="relative inline-block">
