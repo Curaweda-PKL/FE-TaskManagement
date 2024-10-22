@@ -1366,7 +1366,7 @@ const WorkspaceProject = () => {
                             <select
                               className="mt-1 p-1 bg-gray-300 rounded w-full text-gray-800"
                               value={field.selectedValue || ""}
-                              onChange={(e) => handleSelectChange(e, field.customField, selectedCardList.id)}
+                              onChange={(e) => handleSelectChange(e, field.customField.id, selectedCardList.id)}
                             >
                               <option value="" disabled>
                                 select Option

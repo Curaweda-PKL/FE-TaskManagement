@@ -77,8 +77,6 @@ function Profile() {
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } else {
-      setAlert({ type: 'error', message: 'Failed to change password. Please try again.' });
     }
   };
 
@@ -308,7 +306,7 @@ function Profile() {
                 <h3 className='font-semibold mb-6 text-lg'>Password</h3>
                 <p className='text-sm text-gray-600 mb-4 font-bold'>Change your password</p>
                 <p className='text-sm text-gray-600 mb-10'>When you change your password, we keep you logged in on this device but may log you out of your other devices.</p>
-                <form className='space-y-4' onSubmit={handlePasswordChange}>
+                <form className='space-y-4'>
                   <div>
                     <label className='block text-sm mb-1 font-bold'>Current Password</label>
                     <input
@@ -337,8 +335,9 @@ function Profile() {
                     />
                   </div>
                   <button
-                    type="submit"
+                    type="button"
                     className='bg-purple-600 text-white px-4 py-2 rounded text-sm'
+                    onClick={handlePasswordChange}
                     disabled={loading}
                   >
                     {loading ? 'Saving...' : 'Save'}

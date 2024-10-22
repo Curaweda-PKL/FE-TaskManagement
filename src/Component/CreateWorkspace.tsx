@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X } from 'phosphor-react';
 import createWork from '../assets/Media/createWork.svg';
 import work from '../assets/Media/work.png';
@@ -22,8 +22,16 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
   onCreate,
   isEditMode,
 }) => {
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = async () => {
+    if (!workspaceName.trim()) {
+      setError('Workspace name is required.');
+      return;
+    }
+
     try {
+      setError(null); // Reset error if submission is successful
       await onCreate(workspaceName, workspaceDescription);
       onClose();
     } catch (error) {
@@ -37,7 +45,7 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
         <div className="w-full md:w-1/2 p-8 overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-black">
-              {isEditMode ? "Edit Workspace" : "Let's Build a Workspace"}
+              {isEditMode ? 'Edit Workspace' : "Let's Build a Workspace"}
             </h2>
           </div>
           <div className="mb-6">
@@ -46,11 +54,16 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             </label>
             <input
               type="text"
-              className="w-full px-3 py-2 bg-white border border-gray-300"
+              className={`w-full px-3 py-2 bg-white border ${
+                error ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Workspace..."
               value={workspaceName}
               onChange={(e) => setWorkspaceName(e.target.value)}
             />
+            {error && (
+              <p className="text-xs text-red-500 mt-1">{error}</p>
+            )}
             <p className="text-xs text-gray-500 mt-1">
               This is the name of your team or your organization.
             </p>
@@ -74,7 +87,7 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             onClick={handleSubmit}
             className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full"
           >
-            {isEditMode ? "Save Changes" : "Continue"}
+            {isEditMode ? 'Save Changes' : 'Continue'}
           </button>
         </div>
         <div className="hidden md:flex w-1/2 items-center justify-center relative">
