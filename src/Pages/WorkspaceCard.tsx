@@ -64,7 +64,7 @@ interface CardlistCustomField {
 interface ActiveCardRect {
   top: number;
   left: number;
-  right:number;
+  right: number;
   width: number;
   height: number;
 }
@@ -425,6 +425,8 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
+
+    let socket;
     const fetchData = async () => {
       try {
         const boardData = await fetchBoards(workspaceId);
@@ -491,6 +493,7 @@ const WorkspaceProject = () => {
                     })
                   );
 
+
                   return {
                     ...card,
                     cardList: cardListWithCustomFields
@@ -516,38 +519,157 @@ const WorkspaceProject = () => {
     };
 
     fetchData();
+
+    // if (boardId) {
+    //   socket = io(config);
+    //   socket.on(`board/${boardId}`, () => {
+    //     console.log(`Board updated for board ${boardId}`);
+    //     fetchData();
+    //   });
+    // }
+
+    // return () => {
+    //   if (socket) {
+    //     socket.off(`board/${boardId}`);
+    //     socket.disconnect();
+    //   }
+    // };
+
   }, [workspaceId, boardId]);
 
-  const socket = io(config);
+  const [cardIdsSocket, setCardIdsSocket] = useState<string[]>([]); // Ubah menjadi array
+  const [cardData2, setCardData2] = useState<any[]>([]); // Inisialisasi cardData
+
+  // Ref untuk menyimpan nilai terbaru dari cardIdsSocket
+  const cardIdsSocketRef = useRef(cardIdsSocket);
+  const cardData2Ref = useRef(cardData2); // Ref for storing the latest cardData2
+
 
   useEffect(() => {
+    cardData2Ref.current = cardData2;
+  }, [cardData2]);
+  // Update ref setiap kali cardIdsSocket berubah
+  useEffect(() => {
+    cardIdsSocketRef.current = cardIdsSocket;
+  }, [cardIdsSocket]);
+
+  useEffect(() => {
+    if (!boardId) return; // Hentikan jika boardId belum diatur
+
+    const socket = io(config);
+
     // Listener untuk event socket
-    socket.on(`board/${boardId}`, () => {
-      
+    socket.on(`board/${boardId}`, async () => {
+      console.log('Board event detected for:', boardId);
+      console.log('Latest cardData2:', cardData2Ref.current); // Log the latest value of cardData2
+      try {
+        // const updatedCardData = await Promise.all(
+        //   cardIdsSocketRef.current.map(async (cardId) => {
+        //     try {
+        //       const cardListData = await fetchCardList(cardId);
+        //       const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
+
+        //       const updatedCardList = await Promise.all(cardList.map(async (list) => {
+        //         if (list.members && list.members.length > 0) {
+        //           try {
+        //             const membersWithPhotos = await Promise.all(
+        //               list.members.map(async (member: { userId: string }) => {
+        //                 try {
+        //                   const photoUrl = await getProfilePhotoMember(member.userId);
+        //                   return { ...member, photoUrl };
+        //                 } catch (error) {
+        //                   console.error(`Error fetching photo for user ${member.userId}:`, error);
+        //                   return { ...member, photoUrl: null };
+        //                 }
+        //               })
+        //             );
+        //             return { ...list, members: membersWithPhotos };
+        //           } catch (error) {
+        //             console.error('Error updating card list:', error);
+        //             return list;
+        //           }
+        //         }
+        //         return list;
+        //       }));
+
+        //       return { cardList: updatedCardList };
+        //     } catch (error) {
+        //       console.error('Error fetching card list:', error);
+        //       return { cardList: [] };
+        //     }
+        //   })
+        // );
+        const updatedCardData = await Promise.all(
+          cardData2Ref.current.map(async (card: { id: string }) => {
+            if (card && card.id) {
+              const cardListData = await fetchCardList(card.id);
+              const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
+
+              const updatedCardList = await Promise.all(cardList.map(async (list) => {
+                if (list.members && list.members.length > 0) {
+                  const membersWithPhotos = await Promise.all(
+                    list.members.map(async (member: { userId: string }) => {
+                      const photoUrl = await getProfilePhotoMember(member.userId).catch(error => {
+                        console.error(`Error fetching photo for user ${member.userId}:`, error);
+                        return null;
+                      });
+                      return { ...member, photoUrl };
+                    })
+                  );
+                  return { ...list, members: membersWithPhotos };
+                }
+                return list;
+              }));
+
+              return { ...card, cardList: updatedCardList }; // Return card dengan cardList yang diperbarui
+            }
+            return { ...card, cardList: [] };
+          })
+        );
+        setCardData(updatedCardData);
+
+      } catch (error) {
+        console.error('Error fetching card:', error);
+      }
     });
-  
+
     return () => {
       socket.off(`board/${boardId}`);
       socket.disconnect();
     };
   }, [boardId]);
-  
+
   const fetchData2 = async () => {
     try {
       const boardData = await fetchBoards(workspaceId);
-      setBoards(boardData);
       const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
       setBoardName(board ? board.name : 'Project');
-  
+
       if (boardId) {
+        const socket = io(config);
+
+        socket.on(`board/${boardId}`, () => {
+          fetchData();
+        });
         const cardResponse = await fetchCard(boardId);
+        setCardData2(cardResponse);
+
         if (cardResponse) {
           const updatedCardData = await Promise.all(
             cardResponse.map(async (card: { id: string }) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
+
+                // Hanya tambahkan card.id jika belum ada di cardIdsSocket
+                setCardIdsSocket(prevIds => {
+                  if (!prevIds.includes(card.id)) {
+                    return [...prevIds, card.id];
+                  }
+                  return prevIds;
+                });
+
                 const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
-  
+
                 const updatedCardList = await Promise.all(cardList.map(async (list) => {
                   if (list.members && list.members.length > 0) {
                     const membersWithPhotos = await Promise.all(
@@ -563,35 +685,25 @@ const WorkspaceProject = () => {
                   }
                   return list;
                 }));
-  
-                const cardListWithAttachments = await Promise.all(
-                  updatedCardList.map(async (cardList: any) => {
-                    if (cardList.attachments && cardList.attachments.length > 0) {
-                      const attachmentDetails = await Promise.all(
-                        cardList.attachments.map((attachment: { attachmentId: string }) =>
-                          fetchCardListAttachments(attachment.attachmentId)
-                        )
-                      );
-                      return { ...cardList, attachmentDetails };
-                    }
-                    return { ...cardList, attachmentDetails: [] };
-                  })
-                );
-  
-                return { ...card, cardList: cardListWithAttachments };
+
+                return { ...card, cardList: updatedCardList }; // Return card dengan cardList yang diperbarui
               }
               return { ...card, cardList: [] };
             })
           );
-  
-          setCardData(updatedCardData);
+
+          setCardData(updatedCardData); // Update cardData dengan data terbaru
         }
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
-  
+
+  useEffect(() => {
+    fetchData2(); // Panggil fetchData2 ketika boardId berubah
+  }, [boardId]);
+
   const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
     try {
       switch (status) {
@@ -1218,12 +1330,12 @@ const WorkspaceProject = () => {
               <div className="cardlist flex gap-5 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
                   <div className='flex items-center'>
-                  <div className="flex items-center flex-wrap gap-4">
-                    {labelColors?.map((color, index) => (
-                      <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
-                        {color.name}
-                      </div>
-                    ))}
+                    <div className="flex items-center flex-wrap gap-4">
+                      {labelColors?.map((color, index) => (
+                        <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
+                          {color.name}
+                        </div>
+                      ))}
                     </div>
                     <div className='ml-5'>
                       <label htmlFor="score-select" className="block text-black text-sm font-medium mb-1">
@@ -1256,7 +1368,7 @@ const WorkspaceProject = () => {
                           </option>
                         ))}
                       </select>
-                      </div>
+                    </div>
                   </div>
 
                   <div className="mt-4">
@@ -1284,7 +1396,7 @@ const WorkspaceProject = () => {
                       onSave={(description: any) => {
                         setSelectedCardList({ ...selectedCardList, description });
                         handleUpdateListName(selectedCardList.id, selectedCardList.name, description, selectedCardList.score);
-                      } } cardListId={''}                    />
+                      }} cardListId={''} />
                   </div>
                   <div>
                     <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
@@ -1488,7 +1600,7 @@ const WorkspaceProject = () => {
                   <div className="mt-4">
                     <ActivityEditor
                       initialActivity={selectedCardList.activity || ''}
-                      cardListId={ selectedCardList.id || ''}
+                      cardListId={selectedCardList.id || ''}
                       onSave={(activity: any) => {
                         setSelectedCardList({ ...selectedCardList, activity });
                         handleUpdateListName(
