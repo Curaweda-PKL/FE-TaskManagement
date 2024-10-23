@@ -51,17 +51,17 @@ const WorkspaceReports: React.FC = () => {
       ? startOfWeek(currentDate, { weekStartsOn: 1 })
       : startOfMonth(currentDate);
   }, [dateRangeType, currentDate]);
-  
+
   const endDate = useMemo(() => {
     return dateRangeType === 'week'
       ? endOfWeek(currentDate, { weekStartsOn: 1 })
       : endOfMonth(currentDate);
   }, [dateRangeType, currentDate]);
-  
+
   useEffect(() => {
     fetchMembers(startDate, endDate);
   }, [dateRangeType, startDate, endDate]);
-  
+
   const handleDateRangeChange = () => {
     setDateRangeType(dateRangeType === 'week' ? 'month' : 'week');
   };
@@ -99,7 +99,15 @@ const WorkspaceReports: React.FC = () => {
       return (
         member.user.toLowerCase().includes(term) ||
         member.rank.toString().toLowerCase().includes(term) ||
-        Object.keys(member.boards).some((boardKey) => boardKey.toLowerCase().includes(term))
+<<<<<<< Updated upstream
+        (member.boards && typeof member.boards === 'object' && 
+          Object.keys(member.boards).some((boardKey) => 
+            boardKey.toLowerCase().includes(term)
+          )
+        )
+=======
+        Object?.keys(member?.boards)?.some((boardKey) => boardKey?.toLowerCase()?.includes(term))
+>>>>>>> Stashed changes
       );
     });
   });
@@ -128,7 +136,7 @@ const WorkspaceReports: React.FC = () => {
         <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <div className='flex justify-center'>
-              <h3 className="text-xl font-semibold">{selectedBoard} Content</h3>
+              <h3 className="text-xl font-semibold">{selectedBoard}</h3>
             </div>
             <button onClick={closePopup} className="text-gray-500 hover:text-gray-700">
               <X size={24} />
@@ -140,11 +148,16 @@ const WorkspaceReports: React.FC = () => {
                 <h4 className="text-lg font-semibold text-center mb-3">{cardKey}</h4>
                 <ul className="space-y-2">
                   {card.cardLists.map((list, index) => (
-                    <li key={index} className="flex justify-between shadow-sm bg-white p-2 rounded-xl items-center">
+                    <li key={index} className="flex flex-col shadow-sm bg-white p-2 rounded-xl items-start gap-2">
                       <span>{list.name}</span>
-                      <span className="text-sm text-blue-600">
-                        Score: {list.score}
-                      </span>
+                      <div className='flex justify-between w-full'>
+                        <span className="text-xs">
+                          Status: <span className='text-green-600'>{list.status}</span>
+                        </span>
+                        <span className="text-xs">
+                          Score: <span className='text-red-600'>{list.score}</span>
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -172,78 +185,85 @@ const WorkspaceReports: React.FC = () => {
         </div>
         <p className='text-gray-500 mb-11'>Bar resetting in : 4d 12h</p> */}
 
-        <div className='mb-4 flex items-center text-center w-full mt-10'>
-          <div className='relative'>
+        <div className='mb-4 flex sm:items-center text-center w-full min-w-1 mt-10 gap-5 sm:flex-row justify-between max850:flex-col-reverse'>
+          <div className='relative justify-start max850:w-full'>
             <input
               type='text'
               placeholder='Search...'
-              className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl px-3 py-2 pl-10 text-sm sm:w-52 w-28'
+              className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl px-3 py-2 pl-10 text-sm w-full'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <i className='fas fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500' />
           </div>
-          <div className="flex items-center space-x-4 ml-auto">
-            <button onClick={() => handleNavigation('prev')} className="p-2" disabled={isLoading}>
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <h2 className="font-bold text-lg">
-              {formattedDateRange}
+          <div className='flex items-center max850:w-full'>
+            <div className="flex items-center space-x-4">
+              <button onClick={() => handleNavigation('prev')} className="" disabled={isLoading}>
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <h2 className="font-bold sm:text-lg text-md">
+                {formattedDateRange}
+              </h2>
+              <button onClick={() => handleNavigation('next')} className="" disabled={isLoading}>
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+            <h2
+              className={`btn bg-purple-500 btn-sm sm:btn-md hover:bg-purple-800 border-none text-white font-bold ${dateRangeType === 'month' ? 'active' : ''
+                }`}
+              onClick={handleDateRangeChange}
+            >
+              {dateRangeType === 'month' ? 'MONTH' : 'WEEK'}
             </h2>
-            <button onClick={() => handleNavigation('next')} className="p-2" disabled={isLoading}>
-              <ChevronRight className="w-6 h-6" />
-            </button>
           </div>
-          <h2
-            className={`btn bg-purple-500 hover:bg-purple-800 border-none text-white font-bold ml-auto ${dateRangeType === 'month' ? 'active' : ''
-              }`}
-            onClick={handleDateRangeChange}
-          >
-            {dateRangeType === 'month' ? 'MONTH' : 'WEEK'}
-          </h2>
         </div>
 
-        <table className='min-w-full bg-white border border-gray-300 text-center'>
-          <thead>
-            <tr>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>RANK</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>USERS</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>TASK</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>SCORE</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>AVERAGE</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredMembers.map((member, index) => (
-              <tr key={index}>
-                <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
-                <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
-                <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
-                  <div className="flex flex-col gap-2">
-                    {member.boards && typeof member.boards === 'object' ? (
-                      Object.keys(member.boards).map((boardKey, boardIndex) => (
-                        <div
-                          key={boardIndex}
-                          className='group relative p-1 h-10 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
-                          onClick={() => handleBoardClick(boardKey, index)}
-                        >
-                          <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                          <h5 className='text-white relative z-10 text-start'>{boardKey}</h5>
-                        </div>
-                      ))
-                    ) : (
-                      <span>No tasks available</span>
-                    )}
-                  </div>
-                </td>
-                <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.totalScore}</td>
-                <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
-                  {member.boards && Object.keys(member.boards).length > 0 ? (member.totalScore / Object.keys(member.boards).length).toFixed(2) : '0.00'}
-                </td>
+        <div className='w-full overflow-auto'>
+          <table className='min-w-full bg-white border border-gray-300 text-center'>
+            <thead>
+              <tr>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>RANK</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>USERS</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>TASK</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>SCORE</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>AVERAGE</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredMembers.map((member, index) => (
+                <tr key={index}>
+                  <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
+                  <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
+                  <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
+                    <div className='text-start'>Boards:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {member.boards && typeof member.boards === 'object' ? (
+                        Object.keys(member.boards).map((boardKey, boardIndex) => (
+                          <h5 key={boardIndex} onClick={() => handleBoardClick(boardKey, index)} className='underline cursor-pointer text-start'>{boardKey},</h5>
+                        ))
+                      ) : (
+                        <span>No tasks available</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.totalScore}</td>
+                  <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
+                    {member.boards && Object.keys(member.boards).length > 0 ?
+                      (
+                        (member.totalScore +
+                          Object.values(member.boards).reduce((acc, board) =>
+                            acc + Object.values(board.cards).reduce((cardAcc, card) =>
+                              cardAcc + card.cardLists.length, 0),
+                            0)
+                        ) / 2
+                      ).toFixed(2)
+                      : '0.00'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {renderBoardContent()}
       </div>
     </div>

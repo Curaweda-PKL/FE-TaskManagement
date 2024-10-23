@@ -602,7 +602,7 @@ const WorkspaceProject = () => {
                 return list;
               }));
 
-              return { ...card, cardList: updatedCardList }; // Return card dengan cardList yang diperbarui
+              return { ...card, cardList: updatedCardList };
             }
             return { ...card, cardList: [] };
           })
@@ -690,9 +690,9 @@ const WorkspaceProject = () => {
           setCardListInReview(cardlistId);
           break;
         default:
-          await updateCardListStatus(cardlistId, status); // Pastikan ini adalah async
+          await updateCardListStatus(cardlistId, status);
       }
-      await fetchData2(); // Memanggil fetchData2 setelah status diperbarui
+      await fetchData2();
     } catch (error) {
       console.error('Error updating cardlist status:', error);
     }
@@ -790,8 +790,8 @@ const WorkspaceProject = () => {
       await fetchData();
       const updatedCardData = cardData.map(card => ({
         ...card,
-        cardList: card.cardList.map((list: { id: any; }) =>
-          list.id === listId ? { ...list, name: newName } : list
+        cardList: card?.cardList?.map((list: { id: any; }) =>
+          list?.id === listId ? { ...list, name: newName } : list
         )
       }));
       setCardData(updatedCardData);
@@ -910,10 +910,17 @@ const WorkspaceProject = () => {
     try {
       const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, selectedValue);
       console.log("Custom field updated successfully:", response);
+      const updatedFields = cardlistCustomFields.map((field) =>
+        field.customField.id === customFieldId
+          ? { ...field, selectedValue }
+          : field
+      );
+      setCardlistCustomFields(updatedFields);
     } catch (error) {
       console.error("Failed to update custom field value:", error);
     }
   };
+
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
@@ -1153,7 +1160,20 @@ const WorkspaceProject = () => {
                             <div key={index} style={{ background: label.label.color }} className="w-full h-2 rounded-sm"></div>
                           )}
                         </div>
-                        <span className="text-black text-sm">{cardList?.name}</span>
+                        <div className='flex justify-between items-center'>
+                          <span className="text-black text-sm">{cardList?.name}</span>
+                          <p
+                            className={`text-xs px-2 rounded-sm ${cardList?.score === 5 ? 'text-red-600 bg-red-100' :
+                              cardList?.score === 4 ? 'text-orange-600 bg-orange-100' :
+                                cardList?.score === 3 ? 'text-yellow-600 bg-yellow-100' :
+                                  cardList?.score === 2 ? 'text-blue-600 bg-blue-100' :
+                                    cardList?.score === 1 ? 'text-green-600 bg-green-100' :
+                                      'text-gray-500 bg-gray-300'
+                              }`}
+                          >
+                            {cardList?.score}
+                          </p>
+                        </div>
                         <button
                           className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           onClick={(e) => {
@@ -1445,37 +1465,44 @@ const WorkspaceProject = () => {
                       )}
                     </div>
                   </div>
-                  {cardlistCustomFields.map((field) => (
-                    <div key={field.id} className="flex items-center justify-between mb-3 rounded-md">
-                      <div>
+                  <div className="flex flex-wrap gap-2">
+                    {cardlistCustomFields.map((field) => (
+                      <div key={field.id} className="mb-2 rounded-md w-36 p-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-gray-700 text-sm font-semibold">
+                            {field.customField.name}
+                          </label>
+                          <button
+                            onClick={() =>
+                              handleRemoveCustomField(field.customField.id, selectedCardList.id)
+                            }
+                            className="text-red-500 hover:text-red-700 ml-2"
+                          >
+                            <i className="fas fa-trash text-[12px]"></i>
+                          </button>
+                        </div>
                         {field.customField.type === 'DROPDOWN' && (
-                          <div>
-                            <label className="text-gray-700 text-sm font-semibold">{field.customField.name}</label>
-                            <select
-                              className="mt-1 p-1 bg-gray-300 rounded w-full text-gray-800"
-                              value={field.selectedValue || ""}
-                              onChange={(e) => handleSelectChange(e, field.customField.id, selectedCardList.id)}
-                            >
-                              <option value="" disabled>
-                                select Option
+                          <select
+                            className="p-1 bg-gray-300 rounded w-full text-gray-800 mt-1"
+                            value={field.selectedValue || ""}
+                            onChange={(e) =>
+                              handleSelectChange(e, field.customField.id, selectedCardList.id)
+                            }
+                          >
+                            <option value="" disabled>
+                              {field.value}
+                            </option>
+                            {field.customField.options.map((opt) => (
+                              <option key={opt.id} value={opt.value}>
+                                {opt.value}
                               </option>
-                              {field.customField.options.map((opt: any) => (
-                                <option key={opt.id} value={opt.value}>
-                                  {opt.value}
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() => handleRemoveCustomField(field.customField.id, selectedCardList.id)}
-                              className="text-red-500 hover:text-red-700 p-2"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
+                            ))}
+                          </select>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+
                   <div>
                     <div className="flex-wrap gap-2">
                       <h2 className="text-black mb-3 font-semibold text-lg">Attachment</h2>

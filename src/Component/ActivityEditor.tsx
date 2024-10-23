@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
 import { createActivity, updateActivity, getActivitiesByCardListId, fetchCardList, deleteActivity } from '../hooks/fetchCardList';
+import { getProfilePhotoMember } from '../hooks/fetchWorkspace';
+import useAuth from '../hooks/fetchAuth';
 
 interface ActivityEditorProps {
+  selectedCardList: any;
   initialActivity: string;
   onSave: (activity: string) => void;
   cardListId: string;
@@ -13,11 +16,11 @@ interface SavedActivity {
   content: string;
   timestamp: string;
   userId: string;
-  userName: string;
-  userPhoto: string;
+  name?: string;
+  photo?: string;
 }
 
-const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave, cardListId }) => {
+const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initialActivity, onSave, cardListId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [activity, setActivity] = useState(initialActivity);
   const [prevActivity, setPrevActivity] = useState(initialActivity);
@@ -29,6 +32,9 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
   const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { getUserDataById } = useAuth(() => {}, () => {});
+  const [userData, setUserData] = useState<{ [key: string]: { name: string; email: string } }>({});
+  const [activities, setactivities] = useState(selectedCardList?.members);
 
   useEffect(() => {
     setActivity(initialActivity);
@@ -39,17 +45,36 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
     fetchActivities();
   }, [cardListId]);
 
+  useEffect(() => {
+    activities?.forEach((member: { userId: any }) => {
+      const id = member.userId;
+      getUserDataById(id)
+        .then((data: any) => {
+          setUserData((prevUserData) => ({ ...prevUserData, [id]: data }));
+        })
+        .catch((error: any) => {
+          console.error(error);
+        });
+    });
+  }, [activities]);
+
   const fetchActivities = async () => {
     try {
       const activities = await getActivitiesByCardListId(cardListId);
-      setSavedActivities(activities.map((act: any) => ({
-        id: act.id,
-        content: act.activity,
-        timestamp: new Date(act.createdAt).toLocaleString(),
-        userId: act.userId,
-        userName: act.userName,
-        userPhoto: act.userPhoto
-      })));
+      const activitiesWithPhotos = await Promise.all(
+        activities.map(async (act: any) => {
+          const photo = await getProfilePhotoMember(act.userId);
+          return {
+            id: act.id,
+            content: act.activity,
+            timestamp: new Date(act.createdAt).toLocaleString(),
+            name: name,
+            userId: act.userId,
+            photo: photo
+          };
+        })
+      );
+      setSavedActivities(activitiesWithPhotos);
     } catch (error) {
       console.error('Failed to fetch activities:', error);
     }
@@ -371,21 +396,30 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ initialActivity, onSave
       )}
 
       <div className="mt-2 p-2">
-        {savedActivities?.map((savedActivity, index) => (
+        {savedActivities?.map((savedActivity) => (
           <div key={savedActivity?.id} className='text-gray-800 mb-2 flex items-start'>
-            <div className="flex-shrink-0 w-8 h-8 bg-red-500 rounded-full mr-2 flex items-center justify-center text-white font-bold overflow-hidden">
-              {savedActivity?.userPhoto ? (
-                <img src={savedActivity.userPhoto} alt={savedActivity.userName} className="w-full h-full object-cover" />
+            <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
+              {savedActivity.photo ? (
+                <img 
+                  src={savedActivity.photo} 
+                  alt={`${savedActivity.name}'s profile`}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                savedActivity.userId
+                <span className="text-gray-500 font-bold">
+                  {savedActivity.name?.charAt(0)?.toUpperCase()}
+                </span>
               )}
             </div>
             <div className="flex-grow">
+              {userData[savedActivity.userId] && (
               <div className="flex items-center">
-                <span className="font-medium text-[14px] pr-3">{savedActivity.userName}</span>
+                <span className="font-medium text-[14px] pr-3">{userData[savedActivity?.userId].name}</span>
                 <span className="text-[14px]">{savedActivity.content}</span>
               </div>
+              )}
               <div className='flex flex-wrap text-[13px] gap-1 mt-1'>
+              <span className="text-gray-500">{savedActivity.timestamp}</span>
                 <button className="text-gray-500 hover:underline" onClick={() => handleEdit(savedActivity)}>
                   Edit
                 </button>

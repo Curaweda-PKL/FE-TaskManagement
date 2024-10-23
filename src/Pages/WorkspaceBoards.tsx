@@ -7,9 +7,13 @@ import WorkspaceHeader from '../Component/WorkspaceHeader';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import config from '../config/baseUrl';
 import io from 'socket.io-client';
+import useAuth from '../hooks/fetchAuth';
+
+type SortOrder = 'asc' | 'desc' | 'recent'; // Define a type for sorting order
 
 const WorkspaceBoards: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: any }>();
+  const { user } = useAuth();
   const [workspace, setWorkspace] = useState<any>(null);
   const [boards, setBoards] = useState<any[]>([]);
   const [showCreateBoard, setShowCreateBoard] = useState(false);
@@ -132,6 +136,26 @@ const WorkspaceBoards: React.FC = () => {
     } handleCancel();
   };
 
+  const [sortOrder, setSortOrder] = useState<SortOrder>('recent'); // State for sorting order
+
+  // ... existing useEffect and functions
+
+  // Function to handle sorting change
+  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOrder(event.target.value as SortOrder); // Type assertion
+  };
+
+  // Sort boards based on the selected order
+  const sortedBoards = [...boards].sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return a.name.localeCompare(b.name); // Sort A-Z
+    } else if (sortOrder === 'desc') {
+      return b.name.localeCompare(a.name); // Sort Z-A
+    } else {
+      // For "Most recently active", you can implement your logic here
+      return new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime(); // Sort by last active date
+    }
+  });
   return (
     <div className="bg-white min-h-screen">
       {alert && (
@@ -148,33 +172,35 @@ const WorkspaceBoards: React.FC = () => {
             Your Boards
           </h2>
           <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
-            {boards.map((board) => (
-              <div
-                key={board.id}
-                className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
-              >
-                <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
-                  <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                  <h5 className='text-white relative z-10'>{board?.name}</h5>
-                  <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
-                    <i
-                      className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setEditingBoard(board);
-                      }}
-                    />
-                    <i
-                      className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
-                      onClick={(e) => {
-                        e.preventDefault();
-                        openDeleteConfirmation(workspace?.id, board?.id);
-                      }}
-                    />
-                  </div>
-                </Link>
-              </div>
-            ))}
+            {boards
+              .filter((board) => board?.createdBy === user?.id)
+              .map((board) => (
+                <div
+                  key={board.id}
+                  className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
+                >
+                  <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
+                    <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
+                    <h5 className='text-white relative z-10'>{board?.name}</h5>
+                    <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                      <i
+                        className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingBoard(board);
+                        }}
+                      />
+                      <i
+                        className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openDeleteConfirmation(workspace?.id, board?.id);
+                        }}
+                      />
+                    </div>
+                  </Link>
+                </div>
+              ))}
             {showDeleteConfirmation && (
               <div className="fixed inset-0 z-50 flex items-center justify-center">
                 <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -197,12 +223,18 @@ const WorkspaceBoards: React.FC = () => {
           </h2>
           <div className='items-center gap-4 mt-4'>
             <p className='mr-2'>Sort by</p>
-            <select className='bg-gray-400 border p-1 border-gray-300 text-white rounded-md'>
-              <option>Most recently active</option>
+            <select
+              className='bg-gray-400 border p-1 border-gray-300 text-white rounded-md'
+              onChange={handleSortChange}
+              value={sortOrder}
+            >
+              <option value="recent">Most recently active</option>
+              <option value="asc">A-Z</option>
+              <option value="desc">Z-A</option>
             </select>
           </div>
           <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
-            {boards.map((board) => (
+            {sortedBoards.map((board) => (
               <div
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
@@ -230,17 +262,6 @@ const WorkspaceBoards: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
-        <div>
-          <h2 className='text-xl font-bold'>YOUR PERFORMANCE THIS WEEK</h2>
-          <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
-          <div className='flex items-center mt-4'>
-            <div className='w-2/3 bg-gray-300 h-1 rounded-md'>
-              <div className='bg-blue-500 h-1 rounded-md' style={{ width: '35%' }}></div>
-            </div>
-            <span className='ml-4'>2/5</span>
-          </div>
-          <p className='text-gray-500 mt-2'>Bar resetting in : 4d 12h</p>
         </div>
       </div>
       {showCreateBoard && (

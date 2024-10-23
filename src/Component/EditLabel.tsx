@@ -76,10 +76,16 @@ const EditLabel: React.FC<EditLabelProps> = ({
         <div className="flex justify-between">
           <div className="flex justify-between">
             <button
-              className="bg-purple-600 text-sm text-white font-medium py-1 px-10 rounded-lg hover:bg-purple-700"
+              className="bg-purple-600 text-sm mr-5 text-white font-medium py-1 px-7 rounded-lg hover:bg-purple-700"
               onClick={handleSubmit}
             >
               {labelId ? 'Update' : 'Save'}
+            </button>
+            <button
+              className="bg-gray-200 text-sm text-black font-medium py-1 px-7 rounded-lg hover:bg-purple-700"
+              onClick={onCloseCreate}
+            >
+              Cancel
             </button>
           </div>
         </div>
