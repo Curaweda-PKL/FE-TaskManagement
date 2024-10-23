@@ -172,81 +172,85 @@ const WorkspaceReports: React.FC = () => {
         </div>
         <p className='text-gray-500 mb-11'>Bar resetting in : 4d 12h</p> */}
 
-        <div className='mb-4 flex items-center text-center w-full mt-10'>
-          <div className='relative'>
+        <div className='mb-4 flex sm:items-center text-center w-full min-w-1 mt-10 gap-5 sm:flex-row justify-between max850:flex-col-reverse'>
+          <div className='relative justify-start max850:w-full'>
             <input
               type='text'
               placeholder='Search...'
-              className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl px-3 py-2 pl-10 text-sm sm:w-52 w-28'
+              className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl px-3 py-2 pl-10 text-sm w-full'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <i className='fas fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500' />
           </div>
-          <div className="flex items-center space-x-4 ml-auto">
-            <button onClick={() => handleNavigation('prev')} className="p-2" disabled={isLoading}>
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <h2 className="font-bold text-lg">
-              {formattedDateRange}
+          <div className='flex items-center max850:w-full'>
+            <div className="flex items-center space-x-4">
+              <button onClick={() => handleNavigation('prev')} className="" disabled={isLoading}>
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <h2 className="font-bold sm:text-lg text-md">
+                {formattedDateRange}
+              </h2>
+              <button onClick={() => handleNavigation('next')} className="" disabled={isLoading}>
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+            <h2
+              className={`btn bg-purple-500 btn-sm sm:btn-md hover:bg-purple-800 border-none text-white font-bold ${dateRangeType === 'month' ? 'active' : ''
+                }`}
+              onClick={handleDateRangeChange}
+            >
+              {dateRangeType === 'month' ? 'MONTH' : 'WEEK'}
             </h2>
-            <button onClick={() => handleNavigation('next')} className="p-2" disabled={isLoading}>
-              <ChevronRight className="w-6 h-6" />
-            </button>
           </div>
-          <h2
-            className={`btn bg-purple-500 hover:bg-purple-800 border-none text-white font-bold ml-auto ${dateRangeType === 'month' ? 'active' : ''
-              }`}
-            onClick={handleDateRangeChange}
-          >
-            {dateRangeType === 'month' ? 'MONTH' : 'WEEK'}
-          </h2>
         </div>
 
-        <table className='min-w-full bg-white border border-gray-300 text-center'>
-          <thead>
-            <tr>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>RANK</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>USERS</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>TASK</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>SCORE</th>
-              <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>AVERAGE</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredMembers.map((member, index) => (
-              <tr key={index}>
-                <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
-                <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
-                <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
-                  <div className='text-start'>Boards:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {member.boards && typeof member.boards === 'object' ? (
-                      Object.keys(member.boards).map((boardKey, boardIndex) => (
-                        <h5 key={boardIndex} onClick={() => handleBoardClick(boardKey, index)} className='underline cursor-pointer text-start'>{boardKey},</h5>
-                      ))
-                    ) : (
-                      <span>No tasks available</span>
-                    )}
-                  </div>
-                </td>
-                <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.totalScore}</td>
-                <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
-                  {member.boards && Object.keys(member.boards).length > 0 ?
-                    (
-                      (member.totalScore +
-                        Object.values(member.boards).reduce((acc, board) =>
-                          acc + Object.values(board.cards).reduce((cardAcc, card) =>
-                            cardAcc + card.cardLists.length, 0),
-                          0)
-                      ) / 2
-                    ).toFixed(2)
-                    : '0.00'}
-                </td>
+        <div className='w-full overflow-auto'>
+          <table className='min-w-full bg-white border border-gray-300 text-center'>
+            <thead>
+              <tr>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>RANK</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>USERS</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>TASK</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>SCORE</th>
+                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>AVERAGE</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredMembers.map((member, index) => (
+                <tr key={index}>
+                  <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
+                  <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
+                  <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
+                    <div className='text-start'>Boards:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {member.boards && typeof member.boards === 'object' ? (
+                        Object.keys(member.boards).map((boardKey, boardIndex) => (
+                          <h5 key={boardIndex} onClick={() => handleBoardClick(boardKey, index)} className='underline cursor-pointer text-start'>{boardKey},</h5>
+                        ))
+                      ) : (
+                        <span>No tasks available</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.totalScore}</td>
+                  <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
+                    {member.boards && Object.keys(member.boards).length > 0 ?
+                      (
+                        (member.totalScore +
+                          Object.values(member.boards).reduce((acc, board) =>
+                            acc + Object.values(board.cards).reduce((cardAcc, card) =>
+                              cardAcc + card.cardLists.length, 0),
+                            0)
+                        ) / 2
+                      ).toFixed(2)
+                      : '0.00'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {renderBoardContent()}
       </div>
     </div>

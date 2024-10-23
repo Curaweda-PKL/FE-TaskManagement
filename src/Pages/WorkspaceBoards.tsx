@@ -231,17 +231,6 @@ const WorkspaceBoards: React.FC = () => {
             ))}
           </div>
         </div>
-        <div>
-          <h2 className='text-xl font-bold'>YOUR PERFORMANCE THIS WEEK</h2>
-          <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
-          <div className='flex items-center mt-4'>
-            <div className='w-2/3 bg-gray-300 h-1 rounded-md'>
-              <div className='bg-blue-500 h-1 rounded-md' style={{ width: '35%' }}></div>
-            </div>
-            <span className='ml-4'>2/5</span>
-          </div>
-          <p className='text-gray-500 mt-2'>Bar resetting in : 4d 12h</p>
-        </div>
       </div>
       {showCreateBoard && (
         <CreateBoard
