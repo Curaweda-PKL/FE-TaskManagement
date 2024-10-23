@@ -8,6 +8,8 @@ import DeleteConfirmation from '../Component/DeleteConfirmation';
 import config from '../config/baseUrl';
 import io from 'socket.io-client';
 
+type SortOrder = 'asc' | 'desc' | 'recent'; // Define a type for sorting order
+
 const WorkspaceBoards: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: any }>();
   const [workspace, setWorkspace] = useState<any>(null);
@@ -132,6 +134,26 @@ const WorkspaceBoards: React.FC = () => {
     } handleCancel();
   };
 
+  const [sortOrder, setSortOrder] = useState<SortOrder>('recent'); // State for sorting order
+
+  // ... existing useEffect and functions
+
+  // Function to handle sorting change
+  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOrder(event.target.value as SortOrder); // Type assertion
+  };
+
+  // Sort boards based on the selected order
+  const sortedBoards = [...boards].sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return a.name.localeCompare(b.name); // Sort A-Z
+    } else if (sortOrder === 'desc') {
+      return b.name.localeCompare(a.name); // Sort Z-A
+    } else {
+      // For "Most recently active", you can implement your logic here
+      return new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime(); // Sort by last active date
+    }
+  });
   return (
     <div className="bg-white min-h-screen">
       {alert && (
@@ -197,12 +219,18 @@ const WorkspaceBoards: React.FC = () => {
           </h2>
           <div className='items-center gap-4 mt-4'>
             <p className='mr-2'>Sort by</p>
-            <select className='bg-gray-400 border p-1 border-gray-300 text-white rounded-md'>
-              <option>Most recently active</option>
+            <select
+              className='bg-gray-400 border p-1 border-gray-300 text-white rounded-md'
+              onChange={handleSortChange}
+              value={sortOrder}
+            >
+              <option value="recent">Most recently active</option>
+              <option value="asc">A-Z</option>
+              <option value="desc">Z-A</option>
             </select>
           </div>
           <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
-            {boards.map((board) => (
+            {sortedBoards.map((board) => (
               <div
                 key={board.id}
                 className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
