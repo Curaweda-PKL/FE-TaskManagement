@@ -140,11 +140,16 @@ const WorkspaceReports: React.FC = () => {
                 <h4 className="text-lg font-semibold text-center mb-3">{cardKey}</h4>
                 <ul className="space-y-2">
                   {card.cardLists.map((list, index) => (
-                    <li key={index} className="flex justify-between shadow-sm bg-white p-2 rounded-xl items-center">
+                    <li key={index} className="flex flex-col shadow-sm bg-white p-2 rounded-xl items-start gap-2">
                       <span>{list.name}</span>
-                      <span className="text-sm text-blue-600">
-                        Score: {list.score}
-                      </span>
+                      <div className='flex justify-between w-full'>
+                        <span className="text-xs">
+                          Status: <span className='text-green-600'>{list.status}</span>
+                        </span>
+                        <span className="text-xs">
+                          Score: <span className='text-red-600'>{list.score}</span>
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
