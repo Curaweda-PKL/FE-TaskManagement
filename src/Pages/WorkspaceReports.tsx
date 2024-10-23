@@ -51,17 +51,17 @@ const WorkspaceReports: React.FC = () => {
       ? startOfWeek(currentDate, { weekStartsOn: 1 })
       : startOfMonth(currentDate);
   }, [dateRangeType, currentDate]);
-  
+
   const endDate = useMemo(() => {
     return dateRangeType === 'week'
       ? endOfWeek(currentDate, { weekStartsOn: 1 })
       : endOfMonth(currentDate);
   }, [dateRangeType, currentDate]);
-  
+
   useEffect(() => {
     fetchMembers(startDate, endDate);
   }, [dateRangeType, startDate, endDate]);
-  
+
   const handleDateRangeChange = () => {
     setDateRangeType(dateRangeType === 'week' ? 'month' : 'week');
   };
@@ -128,7 +128,7 @@ const WorkspaceReports: React.FC = () => {
         <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <div className='flex justify-center'>
-              <h3 className="text-xl font-semibold">{selectedBoard} Content</h3>
+              <h3 className="text-xl font-semibold">{selectedBoard}</h3>
             </div>
             <button onClick={closePopup} className="text-gray-500 hover:text-gray-700">
               <X size={24} />
@@ -219,17 +219,11 @@ const WorkspaceReports: React.FC = () => {
                 <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
                 <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
                 <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
-                  <div className="flex flex-col gap-2">
+                  <div className='text-start'>Boards:</div>
+                  <div className="flex flex-wrap gap-2">
                     {member.boards && typeof member.boards === 'object' ? (
                       Object.keys(member.boards).map((boardKey, boardIndex) => (
-                        <div
-                          key={boardIndex}
-                          className='group relative p-1 h-10 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
-                          onClick={() => handleBoardClick(boardKey, index)}
-                        >
-                          <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                          <h5 className='text-white relative z-10 text-start'>{boardKey}</h5>
-                        </div>
+                        <h5 key={boardIndex} onClick={() => handleBoardClick(boardKey, index)} className='underline cursor-pointer text-start'>{boardKey},</h5>
                       ))
                     ) : (
                       <span>No tasks available</span>
@@ -238,7 +232,16 @@ const WorkspaceReports: React.FC = () => {
                 </td>
                 <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.totalScore}</td>
                 <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
-                  {member.boards && Object.keys(member.boards).length > 0 ? (member.totalScore / Object.keys(member.boards).length).toFixed(2) : '0.00'}
+                  {member.boards && Object.keys(member.boards).length > 0 ?
+                    (
+                      (member.totalScore +
+                        Object.values(member.boards).reduce((acc, board) =>
+                          acc + Object.values(board.cards).reduce((cardAcc, card) =>
+                            cardAcc + card.cardLists.length, 0),
+                          0)
+                      ) / 2
+                    ).toFixed(2)
+                    : '0.00'}
                 </td>
               </tr>
             ))}
