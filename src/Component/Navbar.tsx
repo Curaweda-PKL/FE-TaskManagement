@@ -3,6 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/fetchAuth';
 import { fetchWorkspaces, createWorkspace } from '../hooks/fetchWorkspace';
 import CreateWorkspace from './CreateWorkspace';
+import { fetchUserNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../hooks/ApiNotification';
+import config from '../config/baseUrl';
+import axios from 'axios';
+
+interface Notification {
+  id: string; // atau number, tergantung tipe ID yang Anda gunakan
+  userId: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string; // Format tanggal bisa disesuaikan
+}
+
+interface UserData {
+  id: string;
+  name: string;
+}
 
 function Navbar() {
   const navigate = useNavigate();
@@ -19,6 +35,34 @@ function Navbar() {
   const navbarRef = useRef(null);
   const searchRef = useRef(null);
   const { userData, isLoggedIn, handleLogout, getProfilePhoto } = useAuth(() => { }, () => navigate('/'));
+
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await fetchUserNotifications(); // Tidak mengirimkan unreadOnly
+        setNotifications(data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    loadNotifications();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false, // Ganti ke true jika ingin format 12 jam
+    };
+    const date = new Date(dateString);
+    return date.toLocaleString(undefined, options); // Gunakan locale default
+  };
 
   useEffect(() => {
     fetchWorkspacesData();
@@ -117,10 +161,75 @@ function Navbar() {
   const filteredWorkspaces = workspaces.filter(workspace =>
     workspace.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
+
+  const renderMessage = (message: string) => {
+    const parts = message.split(/(\*.*?\*)/g);
+    return (
+      <>
+        {parts.map((part, index) =>
+          part.startsWith('*') && part.endsWith('*') ? (
+            <strong key={index}>{part.slice(1, -1)}</strong>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
+
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [userData2, setUserData2] = useState<UserData[]>([]);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await fetchUserNotifications(unreadOnly ? 'yes' : undefined);
+      setNotifications(data);
+
+      const userDataPromises = data.map(async (notification: { userId: any; }) => {
+        return await getUserDataById(notification.userId);
+      });
+
+      const userData2 = await Promise.all(userDataPromises);
+      setUserData2(userData2);
+
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [unreadOnly]); // Memanggil fetchNotifications saat unreadOnly berubah
+
+  const handleCheckboxChange = () => {
+    setUnreadOnly((prev) => !prev); // Toggle status checkbox
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead(); // Memanggil fungsi untuk menandai semua notifikasi sebagai dibaca
+      fetchNotifications(); // Mengambil notifikasi terbaru setelah menandai sebagai dibaca
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+  };
+
+  const getUserDataById = async (id: string | number): Promise<any> => {
+    try {
+      const response = await axios.get(`${config}/user/user-data/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching user data by id:', error);
+    }
+  };
+
+
 
   return (
     <nav
@@ -187,7 +296,7 @@ function Navbar() {
               className="bg-gray-100 text-black rounded-md px-3 py-2 pl-10 text-sm w-64"
             />
             <i className='ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'></i>
-            
+
             {showSearchResults && searchQuery && (
               <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                 {filteredWorkspaces.length > 0 ? (
@@ -213,36 +322,52 @@ function Navbar() {
                 <i className="fas fa-bell text-gray-600 cursor-pointer" />
               </button>
               {openDropdown === 'notification' && (
-                <div className="fixed right-0 mt-5 bg-white rounded-lg shadow-md p-4 w-w100 h-80 text-black">
+                <div className="fixed right-0 mt-5 bg-white rounded-lg shadow-md p-4 w-w100 h-80 text-black overflow-auto">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Notifications</h2>
                     <div className="flex items-center">
                       <span className="text-sm text-gray-600 mr-2">only show unread</span>
-                      <div className="w-12 h-6 bg-green-500 rounded-full p-1 cursor-pointer">
-                        <div className="bg-white w-4 h-4 rounded-full shadow-md transform translate-x-6"></div>
-                      </div>
+                      <input
+                        type="checkbox"
+                        checked={unreadOnly}
+                        onChange={handleCheckboxChange}
+                        className="toggle theme-controller col-span-2 col-start-1 row-start-1 border-sky-400 bg-amber-300 [--tglbg:theme(colors.sky.500)] checked:border-blue-800 checked:bg-blue-300 checked:[--tglbg:theme(colors.blue.900)]"
+                      />
                     </div>
                   </div>
                   <div className="border-t border-black pt-2">
+                    <button className='btn btn-sm text-xs text-white bg-purple-600 hover:bg-purple-800 border-none flex ml-auto' onClick={handleMarkAllAsRead}>Mark All as Read</button>
                     <div className='p-2'>
-                      <div className='flex items-center gap-2'>
-                        <i className='fas fa-users' />
-                        <p className="flex font-semibold border-b">Task Management</p>
-                      </div>
-                      <div className="flex items-start py-2 border-b gap-2">
-                        <div>
-                          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
-                            <i className="fas fa-user text-white text-[12px]" />
+                      {notifications.map((notification) => {
+                        const user = userData2.find((user) => user.id === notification.userId);
+
+                        return (
+                          <div key={notification.id} className="flex items-start py-2 border-b gap-2 relative">
+                            <div>
+                              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
+                                <i className="fas fa-user text-white text-[12px]" />
+                              </div>
+                            </div>
+                            <div>
+                              <p className="font-semibold">{user ? user.name : 'Unknown'}</p>
+                              <p className="text-sm text-gray-800">
+                                {renderMessage(notification.message)} {formatDate(notification.createdAt)}
+                              </p>
+                              <p className='text-xs text-gray-600 mt-2 underline cursor-pointer' onClick={async () => {
+                                await markNotificationAsRead(notification.id);
+                                fetchNotifications();
+                              }}>
+                                Mark as Read
+                              </p>
+                            </div>
+                            {!notification.isRead && (
+                              <div className="absolute top-2 right-2">
+                                <div className="w-2 h-2 bg-red-500 rounded-full" />
+                              </div>
+                            )}
                           </div>
-                        </div>
-                        <div>
-                          <p className="font-semibold">Najwan</p>
-                          <p className="text-sm text-gray-600">
-                            Added you to the Workspace Task management as an admin Jul 31, 2024,
-                            10:52 AM
-                          </p>
-                        </div>
-                      </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
