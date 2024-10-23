@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import useAuth from '../hooks/fetchAuth';
 import { fetchWorkspaces, joinWorkspace, requestJoinWorkspace } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
 import CreateBoard from '../Component/CreateBoard';
@@ -17,6 +18,7 @@ const Workspace: React.FC = () => {
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, workspaceId: any, boardId: any | null }>({
     isOpen: false,
@@ -32,6 +34,33 @@ const Workspace: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setIsPrivateWorkspace(false);
+  };
+
+  const onLogout = () => {
+    console.log('Logout');
+  };
+  const onSuccess = () => {
+    console.log('Success');
+  };
+  const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userData) {
+          setCurrentUserId(userData.id);
+          console.log("Current User ID:", userData.id); // Untuk debugging
+        }
+      } catch (error) {
+        console.error("Error setting currentUserId:", error);
+      }
+    };
+    fetchData();
+  }, [userData]);
+
+  const isOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false; 
+    return workspace.ownerId === currentUserId;
   };
 
   useEffect(() => {
@@ -233,7 +262,7 @@ const Workspace: React.FC = () => {
                 <div className='min-h-5 max768:min-h-[18px] max768:min-w-[18px] min-w-5 bg-[#AE1616]'></div>
                 <span className='font-semibold text-[#4A4A4A] text-[15px] overflow-hidden text-ellipsis whitespace-nowrap'>{workspace.name}</span>
               </div>
-              <div className='grid grid-cols-4 max850:grid-cols-2 gap-5 max850:gap-2'>
+              <div className={`grid ${isOwner(workspace) ? 'grid-cols-4' : 'grid-cols-3'} max850:grid-cols-2 gap-5 max850:gap-2 justify-self-end`}>
                 <Link to={`/workspace/${workspace.id}/boards-ws`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
                   <i className='fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
                   <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Board</span>
@@ -246,10 +275,12 @@ const Workspace: React.FC = () => {
                   <i className='fas fa-users max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
                   <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Member</span>
                 </Link>
-                <Link to={`/workspace/${workspace.id}/settings`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
-                  <i className='fas fa-gear max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
-                  <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Settings</span>
-                </Link>
+                {isOwner(workspace) && (
+                  <Link to={`/workspace/${workspace.id}/settings`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
+                    <i className='fas fa-gear max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
+                    <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Settings</span>
+                  </Link>
+                )}
               </div>
             </div>
 

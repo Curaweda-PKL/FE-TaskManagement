@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
+import useAuth from '../hooks/fetchAuth';
 
 const Sidebar: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -10,11 +11,40 @@ const Sidebar: React.FC = () => {
 
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
   const activeClass = "bg-gray-100 text-purple-600";
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const isActive = (path: string) => location.pathname === path;
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const onLogout = () => {
+    console.log('Logout');
+  };
+  const onSuccess = () => {
+    console.log('Success');
+  };
+  const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userData) {
+          setCurrentUserId(userData.id);
+          console.log("Current User ID:", userData.id); // Untuk debugging
+        }
+      } catch (error) {
+        console.error("Error setting currentUserId:", error);
+      }
+    };
+    fetchData();
+  }, [userData]);
+
+  const isOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false; 
+    return workspace.ownerId === currentUserId;
   };
 
   useEffect(() => {
@@ -86,11 +116,12 @@ const Sidebar: React.FC = () => {
                       <i className='fas fa-plus mr-2'></i>
                     </div>
                   </Link>
-                  <Link to={`/workspace/${workspace.id}/settings`} className={`flex items-center justify-between p-1 ${hoverClass} ${isActive(`/workspace/${workspace.id}/settings`) ? activeClass : ''}`}>
-                    <div className="flex items-center">
-                      <i className='fas fa-cog mr-2'></i><span>Settings</span>
-                    </div>
+                  {isOwner(workspace) && (
+                  <Link to={`/workspace/${workspace.id}/settings`} className={`group flex gap-2 rounded-lg cursor-pointer p-1 items-center ${hoverClass}`}>
+                    <i className='fas fa-gear max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
+                    <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Settings</span>
                   </Link>
+                )}
                 </div>
               )}
             </div>
