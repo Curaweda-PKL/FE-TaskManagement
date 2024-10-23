@@ -1153,7 +1153,21 @@ const WorkspaceProject = () => {
                             <div key={index} style={{ background: label.label.color }} className="w-full h-2 rounded-sm"></div>
                           )}
                         </div>
-                        <span className="text-black text-sm">{cardList?.name}</span>
+                        <div className='flex justify-between items-center'>
+                          <span className="text-black text-sm">{cardList?.name}</span>
+                          <p
+                            className={`text-xs px-2 rounded-sm ${
+                              cardList?.score === 5 ? 'text-red-600 bg-red-100' :
+                              cardList?.score === 4 ? 'text-orange-600 bg-orange-100' :
+                              cardList?.score === 3 ? 'text-yellow-600 bg-yellow-100' :
+                              cardList?.score === 2 ? 'text-blue-600 bg-blue-100' :
+                              cardList?.score === 1 ? 'text-green-600 bg-green-100' :
+                              'text-gray-500 bg-gray-300' 
+                            }`}
+                          >
+                            {cardList?.score}
+                          </p>
+                        </div>
                         <button
                           className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           onClick={(e) => {
