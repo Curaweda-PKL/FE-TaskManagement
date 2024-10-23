@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, deleteBoard, createBoard } from '../hooks/fetchBoard';
+import useAuth from '../hooks/fetchAuth';
 import DeleteConfirmation from './DeleteConfirmation';
 import CreateBoard  from './CreateBoard';
 
@@ -17,6 +18,7 @@ const SidebarWorkspace: React.FC = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, workspaceId: any, boardId: any | null }>({
     isOpen: false,
@@ -29,6 +31,42 @@ const SidebarWorkspace: React.FC = () => {
   const activeClass = "bg-gray-100 text-purple-600";
 
   const isActive = (path: string) => location.pathname === path;
+
+  const onLogout = () => {
+    console.log('Logout');
+  };
+  const onSuccess = () => {
+    console.log('Success');
+  };
+  const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userData) {
+          setCurrentUserId(userData.id);
+          console.log("Current User ID:", userData.id); // Untuk debugging
+        }
+      } catch (error) {
+        console.error("Error setting currentUserId:", error);
+      }
+    };
+    fetchData();
+  }, [userData]);
+
+  const isOwner = () => {
+    console.log("Checking isOwner:");
+    console.log("Current User ID:", currentUserId);
+    console.log("Selected Workspace:", selectedWorkspace);
+    console.log("Workspace Owner ID:", selectedWorkspace?.ownerId);
+    
+    const ownerStatus = selectedWorkspace && 
+                       currentUserId && 
+                       selectedWorkspace.ownerId === currentUserId;
+    
+    console.log("Is Owner:", ownerStatus);
+    return ownerStatus;
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -172,10 +210,12 @@ const SidebarWorkspace: React.FC = () => {
                   className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`) ? activeClass : ''}`}>
                   <i className="fas fa-user-friends mr-2"></i><span>Members</span>
                 </Link>
-                <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`}
-                  className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`) ? activeClass : ''}`}>
-                  <i className="fas fa-cog mr-2"></i><span>Workspace Settings</span>
-                </Link>
+                {isOwner() && (
+                  <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`}
+                    className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`) ? activeClass : ''}`}>
+                    <i className="fas fa-cog mr-2"></i><span>Workspace Settings</span>
+                  </Link>
+                )}
               </div>
             </div>
 
