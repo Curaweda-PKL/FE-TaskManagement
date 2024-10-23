@@ -306,12 +306,12 @@ function Navbar() {
                       onClick={() => handleWorkspaceClick(workspace.id)}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2"
                     >
-                      <div className="w-3 h-3 bg-red-600 rounded"></div>
-                      <span className="text-gray-800">{workspace.name}</span>
+                      <div className="w-5 h-5 bg-red-600 rounded"></div>
+                      <span className="text-gray-900 font-semibold">{workspace.name}</span>
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-gray-500 text-sm">No workspaces found</div>
+                  <div className="px-4 py-2 text-gray-500 text-[13px]">No workspaces found</div>
                 )}
               </div>
             )}

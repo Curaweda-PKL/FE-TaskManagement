@@ -155,7 +155,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
 
       {!isEditing ? (
         <div 
-          className=" text-gray-600 text-[14px] py-1 px-2 rounded min-h-[35px] cursor-pointer"
+          className=" text-gray-600 bg-gray-300 text-[14px] py-1 px-2 rounded min-h-[35px] cursor-pointer"
           style={{
             wordBreak: 'break-word',
             overflowWrap: 'break-word',

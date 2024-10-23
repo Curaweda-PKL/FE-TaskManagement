@@ -10,6 +10,7 @@ const SidebarWorkspace: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { workspaceId } = useParams<{ workspaceId: string }>();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
@@ -27,8 +28,8 @@ const SidebarWorkspace: React.FC = () => {
   });
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
-  const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
-  const activeClass = "bg-gray-100 text-purple-600";
+  const hoverClass = 'hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md';
+  const activeClass = 'bg-gray-100 text-purple-600';
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -84,17 +85,12 @@ const SidebarWorkspace: React.FC = () => {
 
   useEffect(() => {
     if (alert) {
-      const timer = setTimeout(() => {
-        setAlert(null);
-      }, 3000);
-
+      const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [alert]);
 
-  const handleCancel = () => {
-    setShowDeleteConfirmation(false);
-  };
+  const handleCancel = () => setShowDeleteConfirmation(false);
 
   const openDeleteConfirmation = (boardId: any, workspaceId: any) => {
     setDeleteConfirmation({ isOpen: true, boardId, workspaceId });
@@ -128,15 +124,16 @@ const SidebarWorkspace: React.FC = () => {
         const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
         await fetchBoards(selectedWorkspace.id);
-        setAlert({ type: 'success', message: message });
+        setAlert({ type: 'success', message });
       } catch (error: any) {
         console.error('Failed to delete board:', error);
-        let errorMessage = error.response?.data?.error || 'Failed to delete board. Please try again.';
+        const errorMessage = error.response?.data?.error || 'Failed to delete board. Please try again.';
         setAlert({ type: 'error', message: errorMessage });
       } finally {
         closeDeleteConfirmation();
       }
-    } handleCancel();
+    }
+    handleCancel();
   };
 
   useEffect(() => {
@@ -184,7 +181,10 @@ const SidebarWorkspace: React.FC = () => {
         <i className={`fas fa-chevron-right ${isSidebarOpen ? 'transform rotate-180' : ''}`} />
       </div>
       {alert && (
-        <div className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+        <div
+          className={`fixed top-16 z-20 right-5 p-4 rounded-md ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`}
+        >
           {alert.message}
         </div>
       )}
@@ -202,9 +202,13 @@ const SidebarWorkspace: React.FC = () => {
                 </div>
               </div>
               <div className="mt-2 space-y-1 px-4">
-                <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/boards-ws`}
-                  className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/boards-ws`) ? activeClass : ''}`}>
-                  <i className="fas fa-th-large mr-2"></i><span>Boards</span>
+                <Link
+                  to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/boards-ws`}
+                  className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/boards-ws`) ? activeClass : ''
+                    }`}
+                >
+                  <i className="fas fa-th-large mr-2"></i>
+                  <span>Boards</span>
                 </Link>
                 <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`}
                   className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`) ? activeClass : ''}`}>
@@ -221,9 +225,13 @@ const SidebarWorkspace: React.FC = () => {
 
             <div className="mb-4 px-4">
               <h2 className="text-sm font-semibold text-gray-600 mb-2">Workspace View</h2>
-              <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/reports`}
-                className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/reports`) ? activeClass : ''}`}>
-                <i className="fas fa-book-open mr-2"></i><span>Reports</span>
+              <Link
+                to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/reports`}
+                className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/reports`) ? activeClass : ''
+                  }`}
+              >
+                <i className="fas fa-book-open mr-2"></i>
+                <span>Reports</span>
               </Link>
             </div>
 
@@ -239,7 +247,11 @@ const SidebarWorkspace: React.FC = () => {
 
                   return (
                     <div key={board.id} className="relative flex items-center justify-between mb-1">
-                      <Link to={boardUrl} className={`text-gray-600 p-2 flex items-center w-full ${hoverClass} ${isActive(boardUrl) ? activeClass : ''}`}>
+                      <Link
+                        to={boardUrl}
+                        className={`text-gray-600 p-2 flex items-center w-full ${hoverClass} ${isActive(boardUrl) ? activeClass : ''
+                          }`}
+                      >
                         <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
                         <span>{board.name}</span>
                         <button

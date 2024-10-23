@@ -7,11 +7,13 @@ import WorkspaceHeader from '../Component/WorkspaceHeader';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import config from '../config/baseUrl';
 import io from 'socket.io-client';
+import useAuth from '../hooks/fetchAuth';
 
 type SortOrder = 'asc' | 'desc' | 'recent'; // Define a type for sorting order
 
 const WorkspaceBoards: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: any }>();
+  const { user } = useAuth();
   const [workspace, setWorkspace] = useState<any>(null);
   const [boards, setBoards] = useState<any[]>([]);
   const [showCreateBoard, setShowCreateBoard] = useState(false);
@@ -170,33 +172,35 @@ const WorkspaceBoards: React.FC = () => {
             Your Boards
           </h2>
           <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
-            {boards.map((board) => (
-              <div
-                key={board.id}
-                className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
-              >
-                <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
-                  <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                  <h5 className='text-white relative z-10'>{board?.name}</h5>
-                  <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
-                    <i
-                      className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setEditingBoard(board);
-                      }}
-                    />
-                    <i
-                      className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
-                      onClick={(e) => {
-                        e.preventDefault();
-                        openDeleteConfirmation(workspace?.id, board?.id);
-                      }}
-                    />
-                  </div>
-                </Link>
-              </div>
-            ))}
+            {boards
+              .filter((board) => board?.createdBy === user?.id)
+              .map((board) => (
+                <div
+                  key={board.id}
+                  className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
+                >
+                  <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
+                    <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
+                    <h5 className='text-white relative z-10'>{board?.name}</h5>
+                    <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                      <i
+                        className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingBoard(board);
+                        }}
+                      />
+                      <i
+                        className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openDeleteConfirmation(workspace?.id, board?.id);
+                        }}
+                      />
+                    </div>
+                  </Link>
+                </div>
+              ))}
             {showDeleteConfirmation && (
               <div className="fixed inset-0 z-50 flex items-center justify-center">
                 <div className="absolute inset-0 bg-black opacity-50"></div>

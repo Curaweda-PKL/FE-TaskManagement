@@ -113,6 +113,9 @@ const WorkspaceMembers: React.FC = () => {
       if (status === 'APPROVED') {
         fetchWorkspaceData();
       }
+      if (status === 'REJECTED') {
+        fetchWorkspaceData();
+      }
     } catch (error) {
       console.error(`Failed to ${status} join request:`, error);
     }
