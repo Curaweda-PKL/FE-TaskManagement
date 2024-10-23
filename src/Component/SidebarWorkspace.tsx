@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
-import { fetchBoards, deleteBoard } from '../hooks/fetchBoard';
+import { fetchBoards, deleteBoard, createBoard } from '../hooks/fetchBoard';
 import DeleteConfirmation from './DeleteConfirmation';
+import CreateBoard  from './CreateBoard';
 
 const SidebarWorkspace: React.FC = () => {
   const location = useLocation();
@@ -14,6 +15,8 @@ const SidebarWorkspace: React.FC = () => {
   const [boards, setBoards] = useState<any[]>([]);
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [showCreateBoard, setShowCreateBoard] = useState(false);
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: any, workspaceId: any, boardId: any | null }>({
     isOpen: false,
@@ -29,6 +32,11 @@ const SidebarWorkspace: React.FC = () => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const openCreateBoard = (workspaceId: any) => {
+    setCurrentWorkspaceId(workspaceId);
+    setShowCreateBoard(true);
   };
 
   const togglePopup = (boardId: string) => {
@@ -108,6 +116,27 @@ const SidebarWorkspace: React.FC = () => {
     getBoards();
   }, [selectedWorkspace]);
 
+  const handleCreateBoard = async (workspaceId: string, name: string, description: string) => {
+    try {
+      const response = await createBoard(workspaceId, name, description);
+      const message = response?.message || 'Board created successfully.';
+      const data = await fetchBoards(selectedWorkspace.id);
+      setBoards(data);
+      setShowCreateBoard(false);
+      setAlert({ type: 'success', message: message });
+    } catch (error: any) {
+      console.error('Failed to create board:', error);
+      let errorMessage;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else {
+        errorMessage = 'Failed to create board. Please try again.';
+      }
+
+      setAlert({ type: 'error', message: errorMessage });
+    }
+  };
+
   return (
     <>
       <div
@@ -159,7 +188,10 @@ const SidebarWorkspace: React.FC = () => {
             </div>
 
             <div className="px-4">
-              <h2 className="text-sm font-semibold text-gray-600 mb-2">Your Boards</h2>
+              <div className='flex justify-between items-center text-sm font-semibold text-gray-600 mb-2'>
+                <h2 className="">Your Boards</h2>
+                <i className="fa fa-plus cursor-pointer" onClick={() => openCreateBoard(selectedWorkspace?.id)}></i>
+              </div>
               {boards.length > 0 ? (
                 boards.map(board => {
                   const boardUrl = `/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/board/${board.id}`;
@@ -187,13 +219,13 @@ const SidebarWorkspace: React.FC = () => {
 
                       {isPopupVisible && activeBoardId === board.id && isOnBoardPage && (
                         <div 
-                        className="fixed bg-white shadow-lg rounded-md p-2"
-                        style={{
-                          transform: 'translateX(1rem)', // Add some spacing from the sidebar
-                          width: '16rem', // w-64
-                          zIndex: 50
-                        }}
-                      >
+                          className="fixed bg-white shadow-lg rounded-md p-2"
+                          style={{
+                            transform: 'translateX(1rem)',
+                            width: '16rem',
+                            zIndex: 50
+                          }}
+                        >
                           <div className="flex items-center justify-between px-4 py-2 border-b">
                             <span className="text-black">{board.name}</span>
                             <button onClick={() => setIsPopupVisible(false)} className="text-gray-500">
@@ -232,6 +264,14 @@ const SidebarWorkspace: React.FC = () => {
             itemType="board"
           />
         </div>
+      )}
+
+      {showCreateBoard && (
+        <CreateBoard
+          workspaceId={currentWorkspaceId}
+          onClose={() => setShowCreateBoard(false)}
+          onCreateBoard={handleCreateBoard}
+        />
       )}
     </>
   );
