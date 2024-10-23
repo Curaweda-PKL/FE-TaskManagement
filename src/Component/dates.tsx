@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { updateCardList } from "../hooks/fetchCardList";
+import { Activity } from "phosphor-react";
 
 interface DatesPopupProps {
   isDatesPopupOpen: boolean;
@@ -29,7 +30,6 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
   const [startDate, setStartDate] = useState<Date | undefined>(
     selectedCardList.startDate ? new Date(selectedCardList.startDate) : undefined
   );
-
   const [endDate, setEndDate] = useState<Date | undefined>(
     selectedCardList.endDate ? new Date(selectedCardList.endDate) : undefined
   );
@@ -38,6 +38,9 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
   );
   const [dueTime, setDueTime] = useState<string>(selectedCardList.dueTime || "");
   const [reminder, setReminder] = useState<string>(selectedCardList.reminder || "1");
+
+  const [startDateChecked, setStartDateChecked] = useState<boolean>(false);
+  const [endDateChecked, setEndDateChecked] = useState<boolean>(false);
 
   useEffect(() => {
     if (endDate) {
@@ -52,6 +55,20 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
     }
   }, [dueDate, dueTime]);
 
+  // Set start date to current date if checkbox is checked
+  useEffect(() => {
+    if (startDateChecked) {
+      setStartDate(new Date());
+    }
+  }, [startDateChecked]);
+
+  // Set end date to current date if checkbox is checked
+  useEffect(() => {
+    if (endDateChecked) {
+      setEndDate(new Date());
+    }
+  }, [endDateChecked]);
+
   const handleSave = async () => {
     try {
       await updateCardList(
@@ -60,7 +77,25 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
         selectedCardList.description,
         selectedCardList.score,
         startDate?.toISOString(),
-        endDate?.toISOString()
+        endDate?.toISOString(),
+        Activity
+      );
+      handleCloseDatesPopup();
+    } catch (error) {
+      console.error("Error updating card list:", error);
+    }
+  };
+
+  const handleRemove = async () => {
+    try {
+      await updateCardList(
+        selectedCardList.id,
+        selectedCardList.title,
+        selectedCardList.description,
+        selectedCardList.score,
+        null,
+        null,
+        Activity
       );
       handleCloseDatesPopup();
     } catch (error) {
@@ -84,7 +119,7 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
 
           <DayPicker
             mode="single"
-            selected={endDate}
+            selected={!endDateChecked ? endDate : undefined}
             onSelect={setEndDate}
             className="mx-auto text-gray-800"
           />
@@ -93,23 +128,37 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Start Date
             </label>
-            <input
-              type="date"
-              value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
-              onChange={(e) => setStartDate(new Date(e.target.value))}
-              className="w-full p-1 bg-gray-300 text-gray-800 border rounded"
-            />
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={startDateChecked}
+                onChange={(e) => setStartDateChecked(e.target.checked)}
+              />
+              <input
+                type="date"
+                value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
+                onChange={(e) => setStartDate(new Date(e.target.value))}
+                disabled={startDateChecked}
+                className="w-full p-1 bg-gray-300 text-gray-800 border rounded"
+              />
+            </div>
           </div>
 
           <div className="mt-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Due Date
             </label>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={endDateChecked}
+                onChange={(e) => setEndDateChecked(e.target.checked)}
+              />
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                disabled={endDateChecked}
                 className="w-1/2 p-1 bg-gray-300 text-gray-800 border rounded"
               />
               <input
@@ -143,6 +192,12 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
               className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
             >
               Save
+            </button>
+            <button
+              onClick={handleRemove}
+              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded"
+            >
+              Remove
             </button>
           </div>
         </div>
