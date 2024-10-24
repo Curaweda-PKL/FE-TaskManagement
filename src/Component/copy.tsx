@@ -13,7 +13,7 @@ interface Board {
 interface Card {
   id: string;
   title: string;
-  list?: any; // tambahkan properti lain sesuai response API
+  list?: any;
 }
 
 interface CopyPopupProps {
@@ -41,12 +41,11 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
     position: '1'
   });
 
-  // Fetch boards when component mounts
   useEffect(() => {
     const loadBoards = async () => {
       try {
         const boardsData = await fetchBoards(workspaceId);
-        console.log('Boards Data:', boardsData); // Debug log
+        console.log('Boards Data:', boardsData);
         setBoards(boardsData);
         if (boardsData.length > 0) {
           setFormData(prev => ({ ...prev, boardId: boardsData[0].id }));
@@ -61,19 +60,16 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
     }
   }, [workspaceId]);
 
-  // Fetch cards when selected board changes
   useEffect(() => {
     const loadCards = async () => {
       if (formData.boardId) {
         try {
           const response = await fetchCard(formData.boardId);
-          console.log('Raw Card Response:', response); // Debug log
+          console.log('Raw Card Response:', response);
 
-          // Asumsikan response memiliki properti 'data' atau struktur lain
-          // Sesuaikan dengan struktur response API Anda
           const cardsData = Array.isArray(response) ? response : response.data || [];
 
-          console.log('Processed Cards Data:', cardsData); // Debug log
+          console.log('Processed Cards Data:', cardsData);
           setCards(cardsData);
 
           if (cardsData.length > 0) {
@@ -108,7 +104,7 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
 
       console.log('Copying data:', copyData);
 
-      await axios.post(config + "/cardlist/copy", {
+      await axios.post(`${config}/cardlist/copy`, {
         items: copyData,
         destinationBoardId: formData.boardId,
         destinationCardId: formData.cardId,
@@ -119,12 +115,12 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
           'Content-Type': 'application/json'
         }
       });
-
       close();
     } catch (error) {
       console.error('Error copying card list:', error);
     }
   };
+
 
 
   if (!isCopyPopupOpen || !selectedCardList) return null;
@@ -143,7 +139,7 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
         </div>
 
         <div className="p-4 space-y-4">
-          {/* Name Section */}
+
           <div>
             <label className="block text-sm mb-1">Name</label>
             <input

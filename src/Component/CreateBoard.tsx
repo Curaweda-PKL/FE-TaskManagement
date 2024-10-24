@@ -19,6 +19,7 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
   const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
   const [selectedBackground, setSelectedBackground] = useState(initialData?.backgroundColor || '');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // State for error message
 
   const backgroundOptions = [
     'bg-red-800',
@@ -27,7 +28,6 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
     'bg-red-500',
   ];
 
-  // Fungsi untuk mendapatkan background color random
   const getRandomBackground = () => {
     const randomIndex = Math.floor(Math.random() * backgroundOptions.length);
     return backgroundOptions[randomIndex];
@@ -44,9 +44,16 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
   }, [initialData]);
 
   const handleSubmit = () => {
-    // Jika user tidak memilih background, pilih random
     const finalBackground = selectedBackground || getRandomBackground();
-    
+
+    // Check if the name is empty
+    if (!name.trim()) {
+      setErrorMessage('You must enter a name'); // Set the error message
+      return; // Stop the function if name is empty
+    } else {
+      setErrorMessage(null); // Clear error message if name is filled
+    }
+
     if (isEditing && initialData) {
       onCreateBoard(workspaceId, initialData.id, name, description, finalBackground);
     } else {
@@ -94,6 +101,7 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
               onChange={(e) => setName(e.target.value)}
             />
             <p className="text-xs text-gray-500 mt-1">* Board title is required</p>
+            {errorMessage && <p className="text-xs text-red-600 mt-1">{errorMessage}</p>}
           </div>
         </div>
         <div className="p-4 border-t border-gray-200">

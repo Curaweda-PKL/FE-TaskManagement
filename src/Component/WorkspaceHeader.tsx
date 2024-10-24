@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { generateLinkWorkspace, joinRequestsWorkspace, requestWorkspace } from '../hooks/fetchWorkspace';
+import useAuth from '../hooks/fetchAuth';
 
 interface Workspace {
   name: string;
@@ -33,6 +34,35 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: any } | null>(null);
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const onLogout = () => {
+    console.log('Logout');
+  };
+  const onSuccess = () => {
+    console.log('Success');
+  };
+  const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userData) {
+          setCurrentUserId(userData.id);
+          console.log("Current User ID:", userData.id); // Untuk debugging
+        }
+      } catch (error) {
+        console.error("Error setting currentUserId:", error);
+      }
+    };
+    fetchData();
+  }, [userData]);
+
+  const isOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false; 
+    return workspace.ownerId === currentUserId;
+  };
 
   useEffect(() => {
     const fetchJoinRequests = async () => {
@@ -77,7 +107,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   };
 
   const handleCopyLink = async () => {
-    if (workspace && workspace.isPublic && inviteLinkEnabled) {
+    if (workspace && inviteLinkEnabled) {
       try {
         const response = await generateLinkWorkspace(workspace.id);
         const inviteLink = "http://localhost:4545/j/" + response.link.joinLink;
@@ -88,8 +118,6 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         console.error('Failed to generate link:', error);
         showAlert('An error occurred while generating the invite link.', 'error');
       }
-    } else if (!workspace.isPublic) {
-      showAlert('Invite link is not available for private workspaces.', 'error');
     } else if (!inviteLinkEnabled) {
       showAlert('Invite link is currently disabled.', 'error');
     }
@@ -157,7 +185,9 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </p>
           </div>
         </div>
+        {isOwner(workspace) && (
         <button onClick={handleOpenModal}><i className='fas fa-bars' /></button>
+        )}
       </div>
 
       {isModalOpen && (
@@ -188,9 +218,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </div>
             <div className="px-4 pb-3 flex flex-col space-y-2">
               <button
-                className={`flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md ${(!workspace.isPublic || !inviteLinkEnabled) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className='flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md'
                 onClick={handleCopyLink}
-                disabled={!workspace.isPublic || !inviteLinkEnabled}
               >
                 <i className="fas fa-link mr-2" />
                 Invite with link

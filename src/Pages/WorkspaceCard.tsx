@@ -115,7 +115,7 @@ const WorkspaceProject = () => {
           return {
             ...prevSelected,
             members: [
-              ...prevSelected.members,
+              ...prevSelected?.members,
               { userId: id, photoUrl: updatedMemberPhoto }
             ]
           };
@@ -776,7 +776,7 @@ const WorkspaceProject = () => {
   const handleAddCardList = async (cardId: any) => {
     try {
       const defaultListName = 'New List';
-      const newCardList = await createCardList(cardId, defaultListName, '', 0);
+      const newCardList = await createCardList(cardId, defaultListName, '', 0, '', '', '');
       const updatedCardData = cardData.map(card => {
         if (card.id === cardId) {
           return { ...card, cardList: [...card.cardList, newCardList] };
@@ -935,7 +935,7 @@ const WorkspaceProject = () => {
     if (isPopupOpen && selectedCardList) {
       const fetchAttachments = async () => {
         try {
-          const attachmentPromises = selectedCardList.attachments.map(async (attachment: any) => {
+          const attachmentPromises = selectedCardList.attachments?.map(async (attachment: any) => {
             const blobUrl = await fetchCardListAttachments(attachment.attachmentId);
             return {
               id: attachment.attachmentId,
@@ -943,7 +943,7 @@ const WorkspaceProject = () => {
               name: attachment.attachment.name
             };
           });
-          const fetchedAttachments = await Promise.all(attachmentPromises);
+          const fetchedAttachments = await Promise?.all(attachmentPromises);
           setAttachments(fetchedAttachments);
         } catch (error) {
           console.error('Error fetching attachments:', error);
