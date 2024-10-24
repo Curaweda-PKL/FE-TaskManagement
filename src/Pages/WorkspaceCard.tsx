@@ -1661,37 +1661,17 @@ const WorkspaceProject = () => {
                   </div>
 
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                    onClick={() => handleOpenSubmitPopup(selectedCardList)}>
-                    <i className="fas fa-file-upload"></i>Complete
-                  </div>
-
-                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
                     onClick={() => handleOpenCopyPopup(selectedCardList)}>
                     <i className="fas fa-copy"></i>Copy
                   </div>
-                  {!isArchived ? (
+                  <>
                     <div
-                      className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                      onClick={handleArchive}
+                      className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black"
+                      onClick={() => handleDeleteCardList(selectedCardList.id)}
                     >
-                      <i className="fas fa-archive"></i>Archive
+                      <i className="fas fa-trash"></i>Delete
                     </div>
-                  ) : (
-                    <>
-                      <div
-                        className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0"
-                        onClick={handleSendToBoard}
-                      >
-                        <i className="fas fa-undo"></i>Send to board
-                      </div>
-                      <div
-                        className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black"
-                        onClick={() => handleDeleteCardList(selectedCardList.id)}
-                      >
-                        <i className="fas fa-trash"></i>Delete
-                      </div>
-                    </>
-                  )}
+                  </>
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
                     <i className="fas fa-share"></i>Share
                   </div>
@@ -1930,6 +1910,7 @@ const WorkspaceProject = () => {
           <CopyPopup
             isCopyPopupOpen={isCopyPopupOpen}
             selectedCardList={selectedCardList}
+            workspaceId={workspaceId}
             close={handleCloseSubmitPopup}
           />
         )
