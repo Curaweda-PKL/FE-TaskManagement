@@ -99,8 +99,8 @@ const WorkspaceReports: React.FC = () => {
       return (
         member.user.toLowerCase().includes(term) ||
         member.rank.toString().toLowerCase().includes(term) ||
-        (member.boards && typeof member.boards === 'object' && 
-          Object.keys(member.boards).some((boardKey) => 
+        (member.boards && typeof member.boards === 'object' &&
+          Object.keys(member.boards).some((boardKey) =>
             boardKey.toLowerCase().includes(term)
           )
         )
