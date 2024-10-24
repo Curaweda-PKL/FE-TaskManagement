@@ -148,9 +148,10 @@ const WorkspaceHighlights: React.FC = () => {
                   <div className='bg-gray-200 p-3 rounded-lg hover:bg-gray-300'>
                     <span className="font-semibold text-gray-600">{highlight.cardList.name}</span>
                     <div className="flex items-center text-xs mt-1">
-                      <i className="fas fa-eye text-xs text-gray-600 mr-2" />
                       <span className="ml-2 bg-yellow-200 text-yellow-800 border-yellow-800 border px-2 py-0.5 rounded-full text-xs">
-                        <i className='fas fa-clock mr-2' />Sep 12 - Sep 13
+                        <i className='fas fa-clock mr-2' />
+                        {highlight.cardList.startDate ? new Date(highlight.cardList.startDate).toLocaleDateString() : 'No Deadline'}
+                        {highlight.cardList.endDate ? ` - ${new Date(highlight.cardList.endDate).toLocaleDateString()}` : ''}
                       </span>
                       <i className="fas fa-message text-xs text-gray-600 ml-4" />
                       <span className="ml-1">{highlight.replies?.length + 1 || 0}</span>
