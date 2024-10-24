@@ -83,34 +83,42 @@ const WorkspaceBoards: React.FC = () => {
     }
   };
 
-  const handleCreateBoard = async (workspaceId: any, name: any, description: any) => {
-    console.log('Creating board with:', { workspaceId, name, description });
+  const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {
-      const response = await createBoard(workspaceId, name, description);
+      const response = await createBoard(workspaceId, name, description, backgroundColor);
       const message = response?.message || 'Board created successfully.';
-      await fetchBoardsData();
+      await fetchData();
       setShowCreateBoard(false);
       setAlert({ type: 'success', message: message });
     } catch (error: any) {
       console.error('Failed to create board:', error);
-      let errorMessage = error?.response?.data?.error || 'Failed to create board. Please try again.';
+      let errorMessage;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else {
+        errorMessage = 'Failed to create board. Please try again.';
+      }
+
       setAlert({ type: 'error', message: errorMessage });
     }
   };
 
-  const handleEditBoard = async (workspaceId: any, boardId: any, name: any, description: any) => {
-    console.log(boardId);
-    console.log(name);
-    console.log(description);
+  const handleEditBoard = async (workspaceId: any, boardId: any, name: string, description: string, backgroundColor: string) => {
     try {
-      const response = await updateBoard(workspaceId, boardId, name, description);
+      const response = await updateBoard(workspaceId, boardId, name, description, backgroundColor);
       const message = response?.message || 'Board updated successfully.';
-      await fetchBoardsData();
+      await fetchData();
       setEditingBoard(null);
       setAlert({ type: 'success', message: message });
     } catch (error: any) {
       console.error('Failed to update board:', error);
-      let errorMessage = error?.response?.data?.error || 'Failed to update board. Please try again.';
+      let errorMessage;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else {
+        errorMessage = 'Failed to update board. Please try again.';
+      }
+
       setAlert({ type: 'error', message: errorMessage });
     }
   };
@@ -172,35 +180,33 @@ const WorkspaceBoards: React.FC = () => {
             Your Boards
           </h2>
           <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
-            {boards
-              .filter((board) => board?.createdBy === user?.id)
-              .map((board) => (
-                <div
-                  key={board.id}
-                  className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
-                >
-                  <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
-                    <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
-                    <h5 className='text-white relative z-10'>{board?.name}</h5>
-                    <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
-                      <i
-                        className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setEditingBoard(board);
-                        }}
-                      />
-                      <i
-                        className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
-                        onClick={(e) => {
-                          e.preventDefault();
-                          openDeleteConfirmation(workspace?.id, board?.id);
-                        }}
-                      />
-                    </div>
-                  </Link>
-                </div>
-              ))}
+            {boards.map((board) => (
+              <div
+                key={board.id}
+                className={`group relative p-1 h-28 w-full rounded-[5px] cursor-pointer overflow-hidden ${board.backgroundColor || 'bg-gray-400'}`}
+              >
+                <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
+                  <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
+                  <h5 className='text-white relative z-10'>{board?.name}</h5>
+                  <div className='absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>
+                    <i
+                      className='fas fa-pencil-alt text-white hover:text-yellow-300 mr-2 cursor-pointer'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setEditingBoard(board);
+                      }}
+                    />
+                    <i
+                      className='fas fa-trash text-white hover:text-red-500 cursor-pointer'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openDeleteConfirmation(workspace?.id, board?.id);
+                      }}
+                    />
+                  </div>
+                </Link>
+              </div>
+            ))}
             {showDeleteConfirmation && (
               <div className="fixed inset-0 z-50 flex items-center justify-center">
                 <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -237,7 +243,7 @@ const WorkspaceBoards: React.FC = () => {
             {sortedBoards.map((board) => (
               <div
                 key={board.id}
-                className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
+                className={`group relative p-1 h-28 w-full rounded-[5px] cursor-pointer overflow-hidden ${board.backgroundColor || 'bg-gray-400'}`}
               >
                 <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
                   <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>

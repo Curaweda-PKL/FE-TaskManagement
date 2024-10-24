@@ -151,12 +151,11 @@ const SidebarWorkspace: React.FC = () => {
     getBoards();
   }, [selectedWorkspace]);
 
-  const handleCreateBoard = async (workspaceId: string, name: string, description: string) => {
+  const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {
-      const response = await createBoard(workspaceId, name, description);
+      const response = await createBoard(workspaceId, name, description, backgroundColor);
       const message = response?.message || 'Board created successfully.';
-      const data = await fetchBoards(selectedWorkspace.id);
-      setBoards(data);
+      await fetchData();
       setShowCreateBoard(false);
       setAlert({ type: 'success', message: message });
     } catch (error: any) {

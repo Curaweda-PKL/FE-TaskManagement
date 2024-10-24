@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/fetchAuth';
-import { fetchWorkspaces, createWorkspace } from '../hooks/fetchWorkspace';
+import { fetchWorkspaces, createWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import CreateWorkspace from './CreateWorkspace';
 import { fetchUserNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../hooks/ApiNotification';
 import config from '../config/baseUrl';
 import axios from 'axios';
 
+
 interface Notification {
   id: string; // atau number, tergantung tipe ID yang Anda gunakan
+  title: string;
+  senderId: string;
   userId: string;
   message: string;
   isRead: boolean;
@@ -18,6 +21,14 @@ interface Notification {
 interface UserData {
   id: string;
   name: string;
+}
+
+interface UserProfileMap {
+  [senderId: string]: string; // Assuming the value is the URL of the profile photo
+}
+
+interface ProfilePhotoMap {
+  [senderId: string]: string; // Maps userId to profile photo URL
 }
 
 function Navbar() {
@@ -172,7 +183,7 @@ function Navbar() {
       <>
         {parts.map((part, index) =>
           part.startsWith('*') && part.endsWith('*') ? (
-            <strong key={index}>{part.slice(1, -1)}</strong>
+            <strong className='font-semibold' key={index}>{part.slice(1, -1)}</strong>
           ) : (
             part
           )
@@ -183,19 +194,41 @@ function Navbar() {
 
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [userData2, setUserData2] = useState<UserData[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfileMap>({});
 
   const fetchNotifications = async () => {
     try {
       const data = await fetchUserNotifications(unreadOnly ? 'yes' : undefined);
       setNotifications(data);
 
-      const userDataPromises = data.map(async (notification: { userId: any; }) => {
-        return await getUserDataById(notification.userId);
+      // Fetch user data only for valid senderIds
+      const userDataPromises = data.map(async (notification: { senderId: string | number; }) => {
+        if (notification.senderId) {
+          return await getUserDataById(notification.senderId);
+        } else {
+          return null;
+        }
       });
 
       const userData2 = await Promise.all(userDataPromises);
       setUserData2(userData2);
 
+      const profilePhotoPromises = data.map(async (notification: { senderId: any; }) => {
+        if (notification.senderId) {
+          return await getProfilePhotoMember(notification.senderId);
+        } else {
+          return null;
+        }
+      });
+
+      const profilePhotos = await Promise.all(profilePhotoPromises);
+
+      const profilePhotoMap: ProfilePhotoMap = {};
+      profilePhotos.forEach((photo, index) => {
+        profilePhotoMap[data[index].senderId] = photo;
+      });
+
+      setUserProfile(profilePhotoMap);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
@@ -203,7 +236,7 @@ function Navbar() {
 
   useEffect(() => {
     fetchNotifications();
-  }, [unreadOnly]); // Memanggil fetchNotifications saat unreadOnly berubah
+  }, [unreadOnly]);
 
   const handleCheckboxChange = () => {
     setUnreadOnly((prev) => !prev); // Toggle status checkbox
@@ -228,6 +261,8 @@ function Navbar() {
       console.error('Error fetching user data by id:', error);
     }
   };
+
+  const hasUnreadNotifications = notifications.some(notification => !notification.isRead);
 
 
 
@@ -320,6 +355,9 @@ function Navbar() {
             <div className="relative inline-block">
               <button onClick={() => handleToggle('notification')} className={`flex items-center text-gray-600 cursor-pointer btn btn-sm ${buttonClass}`}>
                 <i className="fas fa-bell text-gray-600 cursor-pointer" />
+                {hasUnreadNotifications && (
+                  <div className="w-2 h-2 bg-red-500 rounded-full absolute top-1 right-1"></div>
+                )}
               </button>
               {openDropdown === 'notification' && (
                 <div className="fixed right-0 mt-5 bg-white rounded-lg shadow-md p-4 w-w100 h-80 text-black overflow-auto">
@@ -339,17 +377,27 @@ function Navbar() {
                     <button className='btn btn-sm text-xs text-white bg-purple-600 hover:bg-purple-800 border-none flex ml-auto' onClick={handleMarkAllAsRead}>Mark All as Read</button>
                     <div className='p-2'>
                       {notifications.map((notification) => {
-                        const user = userData2.find((user) => user.id === notification.userId);
+                        const user = userData2.find((user) => user && user.id === notification.senderId);
+                        const profilePhoto = userProfile[notification.senderId];
 
                         return (
                           <div key={notification.id} className="flex items-start py-2 border-b gap-2 relative">
                             <div>
-                              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
-                                <i className="fas fa-user text-white text-[12px]" />
-                              </div>
+                              {profilePhoto ? (
+                                <img
+                                  src={profilePhoto}
+                                  alt="User  Profile"
+                                  className="w-6 h-6 rounded-full mt-1.5"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
+                                  <i className="fas fa-user text-white text-[12px]" />
+                                </div>
+                              )}
                             </div>
                             <div>
                               <p className="font-semibold">{user ? user.name : 'Unknown'}</p>
+                              <p className="text-sm text-gray-800 font-semibold">{notification.title}</p>
                               <p className="text-sm text-gray-800">
                                 {renderMessage(notification.message)} {formatDate(notification.createdAt)}
                               </p>

@@ -4,8 +4,8 @@ import { X } from 'phosphor-react';
 interface CreateBoardProps {
   workspaceId: any;
   onClose: () => void;
-  onCreateBoard: (workspaceId: any, name: string, description: any, boardId: any,) => void;
-  initialData?: { id: string; name: string; description: string };
+  onCreateBoard: (workspaceId: any, name: string, description: any, boardId: any, backgroundColor: string) => void;
+  initialData?: { id: string; name: string; description: string; backgroundColor?: string };
   isEditing?: boolean;
 }
 
@@ -18,20 +18,41 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
 }) => {
   const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
+  const [selectedBackground, setSelectedBackground] = useState(initialData?.backgroundColor || '');
+
+  const backgroundOptions = [
+    'bg-red-800',
+    'bg-blue-800',
+    'bg-green-800',
+    'bg-red-500',
+  ];
+
+  // Fungsi untuk mendapatkan background color random
+  const getRandomBackground = () => {
+    const randomIndex = Math.floor(Math.random() * backgroundOptions.length);
+    return backgroundOptions[randomIndex];
+  };
 
   useEffect(() => {
     if (initialData) {
       setName(initialData.name);
       setDescription(initialData.description);
+      if (initialData.backgroundColor) {
+        setSelectedBackground(initialData.backgroundColor);
+      }
     }
   }, [initialData]);
 
   const handleSubmit = () => {
+    // Jika user tidak memilih background, pilih random
+    const finalBackground = selectedBackground || getRandomBackground();
+    
     if (isEditing && initialData) {
-      onCreateBoard(workspaceId, initialData.id, name, description);
+      onCreateBoard(workspaceId, initialData.id, name, description, finalBackground);
     } else {
-      onCreateBoard(workspaceId, name, null, null); 
+      onCreateBoard(workspaceId, name, description, finalBackground);
     }
+    onClose();
   };
 
   return (
@@ -47,7 +68,21 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
         </div>
         <div className="p-4 overflow-y-auto flex-grow">
           <div className="mb-4">
-            <div className="bg-gray-200 h-32 rounded-lg mb-2"></div>
+            <div className={`h-32 rounded-lg mb-2 ${selectedBackground || 'bg-gray-100'}`}></div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Background</label>
+            <div className="flex gap-2">
+              {backgroundOptions.map((bg, index) => (
+                <button
+                  key={index}
+                  className={`w-12 h-12 rounded-lg ${bg} hover:opacity-80 transition-opacity ${
+                    selectedBackground === bg ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                  }`}
+                  onClick={() => setSelectedBackground(bg)}
+                />
+              ))}
+            </div>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Board Title*</label>
