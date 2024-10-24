@@ -18,9 +18,7 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
 }) => {
   const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  const [selectedBackground, setSelectedBackground] = useState(
-    initialData?.backgroundColor || 'bg-gradient-to-r from-red-500 to-red-800'
-  );
+  const [selectedBackground, setSelectedBackground] = useState(initialData?.backgroundColor || '');
 
   const backgroundOptions = [
     'bg-red-800',
@@ -28,6 +26,12 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
     'bg-green-800',
     'bg-red-500',
   ];
+
+  // Fungsi untuk mendapatkan background color random
+  const getRandomBackground = () => {
+    const randomIndex = Math.floor(Math.random() * backgroundOptions.length);
+    return backgroundOptions[randomIndex];
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -40,11 +44,15 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
   }, [initialData]);
 
   const handleSubmit = () => {
+    // Jika user tidak memilih background, pilih random
+    const finalBackground = selectedBackground || getRandomBackground();
+    
     if (isEditing && initialData) {
-      onCreateBoard(workspaceId, initialData.id, name, description, selectedBackground);
+      onCreateBoard(workspaceId, initialData.id, name, description, finalBackground);
     } else {
-      onCreateBoard(workspaceId, name, description, selectedBackground);
+      onCreateBoard(workspaceId, name, description, finalBackground);
     }
+    onClose();
   };
 
   return (
@@ -60,7 +68,7 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
         </div>
         <div className="p-4 overflow-y-auto flex-grow">
           <div className="mb-4">
-            <div className={`h-32 rounded-lg mb-2 ${selectedBackground}`}></div>
+            <div className={`h-32 rounded-lg mb-2 ${selectedBackground || 'bg-gray-100'}`}></div>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Background</label>

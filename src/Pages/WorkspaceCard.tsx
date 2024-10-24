@@ -175,6 +175,7 @@ const WorkspaceProject = () => {
   const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
   const [cardlistCustomFields, setCardlistCustomFields] = useState<CardlistCustomField[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [currentBgColor, setCurrentBgColor] = useState<string>('bg-white');
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -431,6 +432,14 @@ const WorkspaceProject = () => {
         setBoards(boardData);
         const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
         setBoardName(board ? board.name : 'Project');
+
+        const currentBoard = boardData.find((b: { id: string; name: string; backgroundColor: string }) => b.id === boardId);
+        
+        // Set board name
+        setBoardName(currentBoard ? currentBoard.name : 'Project');
+        
+        // Set backgroundColor dari board yang aktif
+        setCurrentBgColor(currentBoard?.backgroundColor || 'bg-white');
 
         if (boardId) {
           // const socket = io(config);
@@ -1133,7 +1142,7 @@ const WorkspaceProject = () => {
         </div>
       </header>
       <main className="h-[89%] flex-1 overflow-x-auto">
-        <div className={`flex px-4 py-4 ${boards.length > 0 ? boards[0].backgroundColor : 'bg-white'} h-full`}>
+      <div className={`flex px-4 py-4 ${currentBgColor} h-full`}>
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (
@@ -1652,37 +1661,17 @@ const WorkspaceProject = () => {
                   </div>
 
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                    onClick={() => handleOpenSubmitPopup(selectedCardList)}>
-                    <i className="fas fa-file-upload"></i>Complete
-                  </div>
-
-                  <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
                     onClick={() => handleOpenCopyPopup(selectedCardList)}>
                     <i className="fas fa-copy"></i>Copy
                   </div>
-                  {!isArchived ? (
+                  <>
                     <div
-                      className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
-                      onClick={handleArchive}
+                      className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black"
+                      onClick={() => handleDeleteCardList(selectedCardList.id)}
                     >
-                      <i className="fas fa-archive"></i>Archive
+                      <i className="fas fa-trash"></i>Delete
                     </div>
-                  ) : (
-                    <>
-                      <div
-                        className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black pr-0"
-                        onClick={handleSendToBoard}
-                      >
-                        <i className="fas fa-undo"></i>Send to board
-                      </div>
-                      <div
-                        className="btn hover:bg-red-700 min-h-6 h-2 bg-red-500 rounded border-none justify-start text-black"
-                        onClick={() => handleDeleteCardList(selectedCardList.id)}
-                      >
-                        <i className="fas fa-trash"></i>Delete
-                      </div>
-                    </>
-                  )}
+                  </>
                   <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
                     <i className="fas fa-share"></i>Share
                   </div>
@@ -1921,6 +1910,7 @@ const WorkspaceProject = () => {
           <CopyPopup
             isCopyPopupOpen={isCopyPopupOpen}
             selectedCardList={selectedCardList}
+            workspaceId={workspaceId}
             close={handleCloseSubmitPopup}
           />
         )
