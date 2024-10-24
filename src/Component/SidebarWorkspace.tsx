@@ -4,7 +4,7 @@ import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, deleteBoard, createBoard } from '../hooks/fetchBoard';
 import useAuth from '../hooks/fetchAuth';
 import DeleteConfirmation from './DeleteConfirmation';
-import CreateBoard  from './CreateBoard';
+import CreateBoard from './CreateBoard';
 
 const SidebarWorkspace: React.FC = () => {
   const location = useLocation();
@@ -60,11 +60,11 @@ const SidebarWorkspace: React.FC = () => {
     console.log("Current User ID:", currentUserId);
     console.log("Selected Workspace:", selectedWorkspace);
     console.log("Workspace Owner ID:", selectedWorkspace?.ownerId);
-    
-    const ownerStatus = selectedWorkspace && 
-                       currentUserId && 
-                       selectedWorkspace.ownerId === currentUserId;
-    
+
+    const ownerStatus = selectedWorkspace &&
+      currentUserId &&
+      selectedWorkspace.ownerId === currentUserId;
+
     console.log("Is Owner:", ownerStatus);
     return ownerStatus;
   };
@@ -269,7 +269,7 @@ const SidebarWorkspace: React.FC = () => {
                       </Link>
 
                       {isPopupVisible && activeBoardId === board.id && isOnBoardPage && (
-                        <div 
+                        <div
                           className="fixed bg-white shadow-lg rounded-md p-2"
                           style={{
                             transform: 'translateX(1rem)',
