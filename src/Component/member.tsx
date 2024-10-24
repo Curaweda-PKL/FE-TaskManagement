@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../hooks/fetchAuth";
 import { outCardList, getMemberCardList } from "../hooks/fetchCardList";
+import { memberWorkspace, getProfilePhotoMember } from "../hooks/fetchWorkspace";
 
 interface MemberPopupProps {
   selectedCardList: any;

@@ -234,9 +234,9 @@ const SidebarWorkspace: React.FC = () => {
               </Link>
             </div>
 
-            <div className="px-4">
+            <div className="px-4 pb-6">
               <div className='flex justify-between items-center text-sm font-semibold text-gray-600 mb-2'>
-                <h2 className="">Your Boards</h2>
+                <h2 className="">Boards</h2>
                 <i className="fa fa-plus cursor-pointer" onClick={() => openCreateBoard(selectedWorkspace?.id)}></i>
               </div>
               {boards.length > 0 ? (
@@ -251,7 +251,7 @@ const SidebarWorkspace: React.FC = () => {
                         className={`text-gray-600 p-2 flex items-center w-full ${hoverClass} ${isActive(boardUrl) ? activeClass : ''
                           }`}
                       >
-                        <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
+                        <div className={`w-4 h-4 rounded-sm mr-2 ${board.backgroundColor || 'bg-gray-400'}`}></div>
                         <span>{board.name}</span>
                         <button
                           onClick={(e) => {
