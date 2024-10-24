@@ -238,7 +238,7 @@ const WorkspaceReports: React.FC = () => {
                           <h5 key={boardIndex} onClick={() => handleBoardClick(boardKey, index)} className='underline cursor-pointer text-start'>{boardKey},</h5>
                         ))
                       ) : (
-                        <span>No tasks available</span>
+                        <span>No tasks available</span> // Display a message if there are no boards
                       )}
                     </div>
                   </td>
