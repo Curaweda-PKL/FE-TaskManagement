@@ -157,9 +157,9 @@ const Workspace: React.FC = () => {
   //   }
   // };
 
-  const handleCreateBoard = async (workspaceId: string, name: string, description: string) => {
+  const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {
-      const response = await createBoard(workspaceId, name, description);
+      const response = await createBoard(workspaceId, name, description, backgroundColor);
       const message = response?.message || 'Board created successfully.';
       await fetchData();
       setShowCreateBoard(false);
@@ -177,9 +177,9 @@ const Workspace: React.FC = () => {
     }
   };
 
-  const handleEditBoard = async (workspaceId: any, boardId: any, name: string, description: string) => {
+  const handleEditBoard = async (workspaceId: any, boardId: any, name: string, description: string, backgroundColor: string) => {
     try {
-      const response = await updateBoard(workspaceId, boardId, name, description);
+      const response = await updateBoard(workspaceId, boardId, name, description, backgroundColor);
       const message = response?.message || 'Board updated successfully.';
       await fetchData();
       setEditingBoard(null);
@@ -288,7 +288,7 @@ const Workspace: React.FC = () => {
               {workspace.boards && workspace.boards.map((board: any) => (
                 <div
                   key={board.id}
-                  className='group relative p-1 h-28 w-full bg-gradient-to-b from-[#00A3FF] to-[#9CD5D9] rounded-[5px] cursor-pointer overflow-hidden'
+                  className={`group relative p-1 h-28 w-full rounded-[5px] cursor-pointer overflow-hidden ${board.backgroundColor || 'bg-gray-400'}`}
                 >
                   <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
                     <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>

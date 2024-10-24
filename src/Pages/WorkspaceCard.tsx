@@ -1133,7 +1133,7 @@ const WorkspaceProject = () => {
         </div>
       </header>
       <main className="h-[89%] flex-1 overflow-x-auto">
-        <div className="flex px-4 py-4 bg-white h-full">
+        <div className={`flex px-4 py-4 ${boards.length > 0 ? boards[0].backgroundColor : 'bg-white'} h-full`}>
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (
