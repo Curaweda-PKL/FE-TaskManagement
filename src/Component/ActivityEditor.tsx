@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
-import { createActivity, updateActivity, getActivitiesByCardListId, fetchCardList, deleteActivity } from '../hooks/fetchCardList';
+import { createActivity, updateActivity, getActivitiesByCardListId, deleteActivity, createComment, updateComment, getCommentByCardListId, deleteComment } from '../hooks/fetchCardList';
 import { getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import useAuth from '../hooks/fetchAuth';
 
@@ -11,13 +11,14 @@ interface ActivityEditorProps {
   cardListId: string;
 }
 
-interface SavedActivity {
+interface SavedItem {
   id: string;
   content: string;
   timestamp: string;
   userId: string;
   name?: string;
   photo?: string;
+  type: 'activity' | 'comment';
 }
 
 const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initialActivity, onSave, cardListId }) => {
@@ -29,56 +30,12 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
   const [linkText, setLinkText] = useState('');
   const [showHeadingDropdown, setShowHeadingDropdown] = useState(false);
   const [showListDropdown, setShowListDropdown] = useState(false);
-  const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
-  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingItemType, setEditingItemType] = useState<'activity' | 'comment' | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { getUserDataById } = useAuth(() => {}, () => {});
+  const { getUserDataById } = useAuth(() => { }, () => { });
   const [userData, setUserData] = useState<{ [key: string]: { name: string; email: string } }>({});
-  const [activities, setactivities] = useState(selectedCardList?.members);
-
-  useEffect(() => {
-    setActivity(initialActivity);
-    setPrevActivity(initialActivity);
-  }, [initialActivity]);
-
-  useEffect(() => {
-    fetchActivities();
-  }, [cardListId]);
-
-  useEffect(() => {
-    activities?.forEach((member: { userId: any }) => {
-      const id = member.userId;
-      getUserDataById(id)
-        .then((data: any) => {
-          setUserData((prevUserData) => ({ ...prevUserData, [id]: data }));
-        })
-        .catch((error: any) => {
-          console.error(error);
-        });
-    });
-  }, [activities]);
-
-  const fetchActivities = async () => {
-    try {
-      const activities = await getActivitiesByCardListId(cardListId);
-      const activitiesWithPhotos = await Promise.all(
-        activities.map(async (act: any) => {
-          const photo = await getProfilePhotoMember(act.userId);
-          return {
-            id: act.id,
-            content: act.activity,
-            timestamp: new Date(act.createdAt).toLocaleString(),
-            name: name,
-            userId: act.userId,
-            photo: photo
-          };
-        })
-      );
-      setSavedActivities(activitiesWithPhotos);
-    } catch (error) {
-      console.error('Failed to fetch activities:', error);
-    }
-  };
 
   const headingOptions = [
     { label: 'Normal text', value: 'normal' },
@@ -91,6 +48,73 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
     { label: 'Bullet List', value: 'bullet' },
     { label: 'Number List', value: 'number' },
   ];
+
+  useEffect(() => {
+    setActivity(initialActivity);
+    setPrevActivity(initialActivity);
+  }, [initialActivity]);
+
+  useEffect(() => {
+    fetchAllItems();
+  }, [cardListId]);
+
+  useEffect(() => {
+    selectedCardList?.members?.forEach((member: { userId: any }) => {
+      const id = member.userId;
+      getUserDataById(id)
+        .then((data: any) => {
+          setUserData((prevUserData) => ({ ...prevUserData, [id]: data }));
+        })
+        .catch((error: any) => {
+          console.error(error);
+        });
+    });
+  }, [selectedCardList]);
+
+  const fetchAllItems = async () => {
+    try {
+      const [activities, comments] = await Promise.all([
+        getActivitiesByCardListId(cardListId),
+        getCommentByCardListId(cardListId)
+      ]);
+
+      const processedActivities = await Promise.all(
+        activities.map(async (act: any) => {
+          const photo = await getProfilePhotoMember(act.userId);
+          return {
+            id: act.id,
+            content: act.activity,
+            timestamp: new Date(act.createdAt).toLocaleString(),
+            name: userData[act.userId]?.name || 'Unknown',
+            userId: act.userId,
+            photo: photo,
+            type: 'activity' as const
+          };
+        })
+      );
+
+      const processedComments = await Promise.all(
+        comments.map(async (comment: any) => {
+          const photo = await getProfilePhotoMember(comment.userId);
+          return {
+            id: comment.id,
+            content: comment.comment,
+            timestamp: new Date(comment.createdAt).toLocaleString(),
+            name: userData[comment.userId]?.name || 'Unknown',
+            userId: comment.userId,
+            photo: photo,
+            type: 'comment' as const
+          };
+        })
+      );
+      const allItems = [...processedActivities, ...processedComments]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      setSavedItems(allItems);
+    } catch (error) {
+      console.error('Failed to fetch items:', error);
+    }
+  };
 
   const getSelectedText = () => {
     const textarea = textareaRef.current;
@@ -200,40 +224,50 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
   const handleCancel = () => {
     setIsEditing(false);
     setActivity(prevActivity);
-    setEditingActivityId(null);
+    setEditingItemId(null);
+    setEditingItemType(null);
   };
 
   const handleSave = async () => {
     try {
-      if (editingActivityId) {
-        await updateActivity(editingActivityId, activity);
+      if (editingItemId && editingItemType) {
+        if (editingItemType === 'comment') {
+          await updateComment(editingItemId, activity);
+        } else {
+          await updateActivity(editingItemId, activity);
+        }
       } else {
-        await createActivity(cardListId, activity);
+        await createComment(cardListId, activity);
       }
+
       onSave(activity);
-      setPrevActivity(activity);
       setIsEditing(false);
       setActivity('');
-      setEditingActivityId(null);
-      await fetchActivities();
+      setEditingItemId(null);
+      setEditingItemType(null);
+      await fetchAllItems();
     } catch (error) {
-      console.error('Failed to save activity:', error);
+      console.error('Failed to save:', error);
     }
   };
 
-  const handleEdit = (savedActivity: SavedActivity) => {
+  const handleEdit = (savedItem: SavedItem) => {
     setIsEditing(true);
-    setActivity(savedActivity.content);
-    setPrevActivity(savedActivity.content);
-    setEditingActivityId(savedActivity.id);
+    setActivity(savedItem.content);
+    setEditingItemId(savedItem.id);
+    setEditingItemType(savedItem.type);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, type: 'activity' | 'comment') => {
     try {
-      await deleteActivity(id);
-      await fetchActivities();
+      if (type === 'comment') {
+        await deleteComment(id);
+      } else {
+        await deleteActivity(id);
+      }
+      await fetchAllItems();
     } catch (error) {
-      console.error('Failed to delete activity:', error);
+      console.error('Failed to delete:', error);
     }
   };
 
@@ -396,12 +430,12 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
       )}
 
       <div className="mt-2 p-2">
-        {savedActivities?.map((savedActivity) => (
+        {savedItems?.map((savedActivity: any) => (
           <div key={savedActivity?.id} className='text-gray-800 mb-2 flex items-start'>
             <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
               {savedActivity.photo ? (
-                <img 
-                  src={savedActivity.photo} 
+                <img
+                  src={savedActivity.photo}
                   alt={`${savedActivity.name}'s profile`}
                   className="w-full h-full object-cover"
                 />
@@ -412,14 +446,12 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
               )}
             </div>
             <div className="flex-grow">
-              {userData[savedActivity.userId] && (
               <div className="flex items-center">
-                <span className="font-medium text-[14px] pr-3">{userData[savedActivity?.userId].name}</span>
+                <span className="font-medium text-[14px] pr-3">{userData[savedActivity?.userId]?.name}</span>
                 <span className="text-[14px]">{savedActivity.content}</span>
               </div>
-              )}
               <div className='flex flex-wrap text-[13px] gap-1 mt-1'>
-              <span className="text-gray-500">{savedActivity.timestamp}</span>
+                <span className="text-gray-500">{savedActivity.timestamp}</span>
                 <button className="text-gray-500 hover:underline" onClick={() => handleEdit(savedActivity)}>
                   Edit
                 </button>

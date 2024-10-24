@@ -369,3 +369,81 @@ export const deleteActivity = async (id: any) => {
     throw error;
   }
 }
+
+export const createComment = async (cardListId: string, comment: string) => {
+  try {
+    const response = await axios.post(
+      `${config}/cardlist/comment/createComment`,
+      { cardListId, comment },
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create activity:', error);
+    throw error;
+  }
+};
+
+export const updateComment = async (id: string, comment: string) => {
+  try {
+    const response = await axios.put(
+      `${config}/cardlist/comment/update-comment`,
+      { id, comment },
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update activity:', error);
+    throw error;
+  }
+};
+
+export const getCommentByCardListId = async (cardListId: string) => {
+  try {
+    const response = await axios.get(
+      `${config}/cardlist/comment/take-comment/${cardListId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get activities:', error);
+    throw error;
+  }
+};
+
+export const deleteComment = async (id: any) => {
+  try {
+    const response = await axios.delete(
+      `${config}/cardlist/comment/delete-comment/${id}`,
+      {
+        headers: {
+          'Authorization': `${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        data: { id }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete board:', error);
+    throw error;
+  }
+}
