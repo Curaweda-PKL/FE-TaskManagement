@@ -175,6 +175,7 @@ const WorkspaceProject = () => {
   const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
   const [cardlistCustomFields, setCardlistCustomFields] = useState<CardlistCustomField[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [currentBgColor, setCurrentBgColor] = useState<string>('bg-white');
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -431,6 +432,14 @@ const WorkspaceProject = () => {
         setBoards(boardData);
         const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
         setBoardName(board ? board.name : 'Project');
+
+        const currentBoard = boardData.find((b: { id: string; name: string; backgroundColor: string }) => b.id === boardId);
+        
+        // Set board name
+        setBoardName(currentBoard ? currentBoard.name : 'Project');
+        
+        // Set backgroundColor dari board yang aktif
+        setCurrentBgColor(currentBoard?.backgroundColor || 'bg-white');
 
         if (boardId) {
           // const socket = io(config);
@@ -1133,7 +1142,7 @@ const WorkspaceProject = () => {
         </div>
       </header>
       <main className="h-[89%] flex-1 overflow-x-auto">
-        <div className="flex px-4 py-4 bg-white h-full">
+      <div className={`flex px-4 py-4 ${currentBgColor} h-full`}>
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (

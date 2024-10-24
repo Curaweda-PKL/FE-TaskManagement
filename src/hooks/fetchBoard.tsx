@@ -16,11 +16,12 @@ export const fetchBoards = async (workspaceId: any) => {
     throw error;
   }
 };
-export const updateBoard = async (workspaceId: any, boardId: any, name: any, description: any) => {
+
+export const updateBoard = async (workspaceId: any, boardId: any, name: any, description: any, backgroundColor: any) => {
   try {
     const response = await axios.put(
       config + "/board/update",
-      { workspaceId, boardId, name, description },
+      { workspaceId, boardId, name, description, backgroundColor },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
@@ -35,11 +36,12 @@ export const updateBoard = async (workspaceId: any, boardId: any, name: any, des
     throw error;
   }
 };
-export const createBoard = async (workspaceId: string, name: string, description: string) => {
+
+export const createBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
   try {
     const response = await axios.post(
       config + "/board/create",
-      { workspaceId, name, description },
+      { workspaceId, name, description, backgroundColor },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
