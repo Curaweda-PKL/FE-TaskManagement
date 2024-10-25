@@ -169,21 +169,6 @@ const SidebarWorkspace: React.FC = () => {
       }
 
       setShowCreateBoard(false);
-      setAlert({ 
-        type: 'success', 
-        message: response?.message || 'Board created successfully.' 
-      });
-      
-      // Navigate to the newly created board if response contains the board ID
-      if (response?.board?.id) {
-        navigate(`/workspace/${workspaceId}/board/${response.board.id}`);
-      }
-
-    } catch (error: any) {
-      console.error('Failed to create board:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to create board. Please try again.';
-      setAlert({ type: 'error', message: errorMessage });
-    }
   };
 
   return (
