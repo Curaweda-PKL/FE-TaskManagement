@@ -154,19 +154,27 @@ const SidebarWorkspace: React.FC = () => {
   const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {
       const response = await createBoard(workspaceId, name, description, backgroundColor);
-      const message = response?.message || 'Board created successfully.';
-      await fetchData();
-      setShowCreateBoard(false);
-      setAlert({ type: 'success', message: message });
-    } catch (error: any) {
-      console.error('Failed to create board:', error);
-      let errorMessage;
-      if (error.response && error.response.data && error.response.data.error) {
-        errorMessage = error.response.data.error;
-      } else {
-        errorMessage = 'Failed to create board. Please try again.';
+      
+      // Fetch updated boards list immediately after creation
+      if (selectedWorkspace) {
+        const updatedBoards = await fetchBoards(selectedWorkspace.id);
+        setBoards(updatedBoards);
       }
 
+      setShowCreateBoard(false);
+      setAlert({ 
+        type: 'success', 
+        message: response?.message || 'Board created successfully.' 
+      });
+      
+      // Navigate to the newly created board if response contains the board ID
+      if (response?.board?.id) {
+        navigate(`/workspace/${workspaceId}/board/${response.board.id}`);
+      }
+
+    } catch (error: any) {
+      console.error('Failed to create board:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to create board. Please try again.';
       setAlert({ type: 'error', message: errorMessage });
     }
   };
@@ -329,3 +337,7 @@ const SidebarWorkspace: React.FC = () => {
 };
 
 export default SidebarWorkspace;
+
+function fetchData() {
+  throw new Error('Function not implemented.');
+}
