@@ -644,8 +644,6 @@ const WorkspaceProject = () => {
             cardResponse.map(async (card: { id: string }) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
-
-                // Hanya tambahkan card.id jika belum ada di cardIdsSocket
                 setCardIdsSocket(prevIds => {
                   if (!prevIds.includes(card.id)) {
                     return [...prevIds, card.id];
@@ -671,13 +669,13 @@ const WorkspaceProject = () => {
                   return list;
                 }));
 
-                return { ...card, cardList: updatedCardList }; // Return card dengan cardList yang diperbarui
+                return { ...card, cardList: updatedCardList };
               }
               return { ...card, cardList: [] };
             })
           );
 
-          setCardData(updatedCardData); // Update cardData dengan data terbaru
+          setCardData(updatedCardData);
         }
       }
     } catch (error) {
@@ -686,7 +684,7 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
-    fetchData2(); // Panggil fetchData2 ketika boardId berubah
+    fetchData2();
   }, [boardId]);
 
   const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
@@ -783,6 +781,7 @@ const WorkspaceProject = () => {
         }
         return card;
       });
+      await fetchData();
 
       setCardData(updatedCardData);
       setSelectedCardList(newCardList);

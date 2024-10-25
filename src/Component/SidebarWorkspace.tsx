@@ -154,11 +154,18 @@ const SidebarWorkspace: React.FC = () => {
   const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {
       const response = await createBoard(workspaceId, name, description, backgroundColor);
-      
-      // Fetch updated boards list immediately after creation
-      if (selectedWorkspace) {
-        const updatedBoards = await fetchBoards(selectedWorkspace.id);
-        setBoards(updatedBoards);
+      const message = response?.message || 'Board created successfully.';
+      const data = await fetchBoards(selectedWorkspace.id);
+      setBoards(data);
+      setShowCreateBoard(false);
+      setAlert({ type: 'success', message: message });
+    } catch (error: any) {
+      console.error('Failed to create board:', error);
+      let errorMessage;
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else {
+        errorMessage = 'Failed to create board. Please try again.';
       }
 
       setShowCreateBoard(false);
@@ -337,7 +344,3 @@ const SidebarWorkspace: React.FC = () => {
 };
 
 export default SidebarWorkspace;
-
-function fetchData() {
-  throw new Error('Function not implemented.');
-}
