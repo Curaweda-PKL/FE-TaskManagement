@@ -1141,8 +1141,8 @@ const WorkspaceProject = () => {
           </button>
         </div>
       </header>
-      <main className="h-[89%] flex-1 overflow-x-auto">
-      <div className={`flex px-4 py-4 ${currentBgColor} h-full`}>
+      <main className="h-[89%] w-full flex-1 overflow-x-auto">
+      <div className={`flex px-4 py-4 ${currentBgColor} min-w-full w-max h-full`}>
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (
