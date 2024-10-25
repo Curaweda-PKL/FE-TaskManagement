@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import Sticker from '../assets/Media/sticker.svg';
 import { getHighlightWorkspace, postHighlightCommentReply } from '../hooks/ApiHighlight';
-import { useParams } from 'react-router-dom';
+import { getProfilePhotoMember } from '../hooks/fetchWorkspace'
+import { Link, useParams } from 'react-router-dom';
+import axios from 'axios';
+import config from '../config/baseUrl';
 
 
 const WorkspaceHighlights: React.FC = () => {
   const [highlightUser, setHighlightUser] = useState<any>(null);
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [content, setContent] = useState<string>('');
+  const [profilePhotos, setProfilePhotos] = useState<{ [key: string]: string }>({});
+
 
   const handleSave = async (highlight: any) => {
     await postHighlightCommentReply(highlight.id, content);
@@ -18,8 +22,9 @@ const WorkspaceHighlights: React.FC = () => {
 
   const fetchHighlightUser = async () => {
     if (workspaceId) {
-      const user = await getHighlightWorkspace(workspaceId); // Menggunakan workspaceId
+      const user = await getHighlightWorkspace(workspaceId);
       setHighlightUser(user);
+      await fetchProfilePhotos(user);
     }
   };
   useEffect(() => {
@@ -53,6 +58,64 @@ const WorkspaceHighlights: React.FC = () => {
     localStorage.setItem('highlightsDismissed', 'true');
     setIsDismissed(true);
   };
+
+  const fetchProfilePhotos = async (highlights: any[]) => {
+    const photos: { [key: string]: string } = {};
+
+    // Fetch photos for highlight authors
+    for (const highlight of highlights) {
+      if (highlight.author.id) {
+        const photo = await getProfilePhotoMember(highlight.author.id);
+        photos[highlight.author.id] = photo;
+      }
+    }
+
+    // Fetch photos for reply users
+    for (const highlight of highlights) {
+      if (highlight.replies) {
+        for (const reply of highlight.replies) {
+          if (reply.user.id) {
+            const photo = await getProfilePhotoMember(reply.user.id);
+            photos[reply.user.id] = photo;
+          }
+        }
+      }
+    }
+
+    setProfilePhotos(photos);
+  };
+
+  const [mePhoto, setMePhoto] = useState('https://via.placeholder.com/40')
+
+  useEffect(() => {
+    const getProfilePhoto = async (): Promise<string> => {
+      try {
+        const response = await axios.get(
+          `${config}/user/get-PhotoProfile`,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+            responseType: 'blob'
+          }
+        );
+
+        const blobUrl = URL.createObjectURL(response.data);
+        setMePhoto(blobUrl);
+        return blobUrl;
+      } catch (error: any) {
+        console.error('Failed to fetch profile photo:', error);
+        if (error.response && error.response.data && error.response.data.error) {
+          throw new Error(error.response.data.error);
+        } else {
+          throw new Error('Failed to fetch profile photo. Please try again.');
+        }
+      }
+    };
+
+    getProfilePhoto();
+  }, []);
+
   return (
     <div>
       <div className="max-w-md mt-8 font-sans text-black">
@@ -81,17 +144,20 @@ const WorkspaceHighlights: React.FC = () => {
           {(highlightUser || []).map((highlight: any, index: number) => (
             <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="bg-orange-400 p-5">
-                <div className='bg-gray-200 p-3 rounded-lg'>
-                  <span className="font-semibold text-gray-600">{highlight.cardList.name}</span>
-                  <div className="flex items-center text-xs mt-1">
-                    <i className="fas fa-eye text-xs text-gray-600 mr-2" />
-                    <span className="ml-2 bg-yellow-200 text-yellow-800 border-yellow-800 border px-2 py-0.5 rounded-full text-xs">
-                      <i className='fas fa-clock mr-2' />Sep 12 - Sep 13
-                    </span>
-                    <i className="fas fa-message text-xs text-gray-600 ml-4" />
-                    <span className="ml-1">{highlight.replies?.length || 0}</span>
+                <Link to={`/workspace/${workspaceId}/board/${highlight.board.id}`}>
+                  <div className='bg-gray-200 p-3 rounded-lg hover:bg-gray-300'>
+                    <span className="font-semibold text-gray-600">{highlight.cardList.name}</span>
+                    <div className="flex items-center text-xs mt-1">
+                      <span className="bg-yellow-200 text-yellow-800 border-yellow-800 border px-2 py-0.5 rounded-full text-xs">
+                        <i className='fas fa-clock mr-2' />
+                        {highlight.cardList.startDate ? new Date(highlight.cardList.startDate).toLocaleDateString() : 'No Deadline'}
+                        {highlight.cardList.endDate ? ` - ${new Date(highlight.cardList.endDate).toLocaleDateString()}` : ''}
+                      </span>
+                      <i className="fas fa-message text-xs text-gray-600 ml-4" />
+                      <span className="ml-1">{highlight.replies?.length + 1 || 0}</span>
+                    </div>
                   </div>
-                </div>
+                </Link>
                 <p className="text-md mt-3 text-white">
                   {highlight.workspace.name} <span className='ml-2 mr-2'>|</span>{highlight.board.name} : {highlight.card.name}
                 </p>
@@ -100,7 +166,12 @@ const WorkspaceHighlights: React.FC = () => {
               <div className="p-4 border-black border rounded-b-lg">
                 {/* Main comment */}
                 <div className="flex items-start">
-                  <img src="https://via.placeholder.com/40" alt="User" className="w-10 h-10 rounded-full" />
+                  <img
+                    src={profilePhotos[highlight.author.id] || "https://via.placeholder.com/40"}
+
+                    alt="User "
+                    className="w-10 h-10 rounded-full"
+                  />
                   <div className="ml-3 flex-1">
                     <p className="font-semibold">{highlight.author.name}</p>
                     <p className="text-xs text-gray-500">{formatDate(highlight.createdAt)}</p>
@@ -116,7 +187,11 @@ const WorkspaceHighlights: React.FC = () => {
                       .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                       .map((reply: any) => (
                         <div key={reply.id} className="flex items-start pl-4">
-                          <img src="https://via.placeholder.com/40" alt="User " className="w-8 h-8 rounded-full" />
+                          <img
+                            src={profilePhotos[reply.user.id]}
+                            alt="User  "
+                            className="w-8 h-8 rounded-full"
+                          />
                           <div className="ml-3 flex-1">
                             <p className="font-semibold text-sm">{reply.user.name}</p>
                             <p className="text-xs text-gray-500">{formatDate(reply.createdAt)}</p>
@@ -127,7 +202,6 @@ const WorkspaceHighlights: React.FC = () => {
                   </div>
                 )}
 
-                {/* Reply button */}
                 <button
                   onClick={() => toggleReply(index)}
                   className="mt-3 flex w-[99%] p-2 items-center justify-center text-sm text-gray-600 bg-gray-200 hover:text-gray-800"
@@ -136,10 +210,9 @@ const WorkspaceHighlights: React.FC = () => {
                   Reply
                 </button>
 
-                {/* Reply Input Section */}
                 {replyStates[index] && (
                   <div className="mt-3 flex items-start gap-3 border-t pt-3">
-                    <img src="https://via.placeholder.com/40" alt="User" className="w-10 h-10 rounded-full" />
+                    <img src={mePhoto} alt="User" className="w-10 h-10 rounded-full" />
                     <div className="flex-1">
                       <div className="relative w-full">
                         <textarea

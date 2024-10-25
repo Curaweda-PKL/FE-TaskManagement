@@ -33,7 +33,7 @@ const Sidebar: React.FC = () => {
       try {
         if (userData) {
           setCurrentUserId(userData.id);
-          console.log("Current User ID:", userData.id); // Untuk debugging
+          console.log("Current User ID:", userData.id);
         }
       } catch (error) {
         console.error("Error setting currentUserId:", error);

@@ -9,13 +9,13 @@ import axios from 'axios';
 
 
 interface Notification {
-  id: string; // atau number, tergantung tipe ID yang Anda gunakan
+  id: string;
   title: string;
   senderId: string;
   userId: string;
   message: string;
   isRead: boolean;
-  createdAt: string; // Format tanggal bisa disesuaikan
+  createdAt: string;
 }
 
 interface UserData {
@@ -24,11 +24,11 @@ interface UserData {
 }
 
 interface UserProfileMap {
-  [senderId: string]: string; // Assuming the value is the URL of the profile photo
+  [senderId: string]: string;
 }
 
 interface ProfilePhotoMap {
-  [senderId: string]: string; // Maps userId to profile photo URL
+  [senderId: string]: string;
 }
 
 function Navbar() {
@@ -52,7 +52,7 @@ function Navbar() {
   useEffect(() => {
     const loadNotifications = async () => {
       try {
-        const data = await fetchUserNotifications(); // Tidak mengirimkan unreadOnly
+        const data = await fetchUserNotifications();
         setNotifications(data);
       } catch (err) {
         console.log(err);
@@ -69,17 +69,17 @@ function Navbar() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false, // Ganti ke true jika ingin format 12 jam
+      hour12: false,
     };
     const date = new Date(dateString);
-    return date.toLocaleString(undefined, options); // Gunakan locale default
+    return date.toLocaleString(undefined, options);
   };
 
   useEffect(() => {
     fetchWorkspacesData();
     fetchUserProfilePhoto();
 
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (even: any) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowSearchResults(false);
       }
@@ -332,10 +332,10 @@ function Navbar() {
             />
             <i className='ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'></i>
 
-            {showSearchResults && searchQuery && (
+            {showSearchResults && (
               <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {filteredWorkspaces.length > 0 ? (
-                  filteredWorkspaces.map(workspace => (
+                {(filteredWorkspaces.length > 0 || searchQuery === "") ? (
+                  (searchQuery === "" ? workspaces : filteredWorkspaces).map(workspace => (
                     <div
                       key={workspace.id}
                       onClick={() => handleWorkspaceClick(workspace.id)}

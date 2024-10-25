@@ -9,6 +9,7 @@ function Signup() {
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [verificationError, setVerificationError] = useState('');
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false); // New state for loading message
 
   const {
     name, setName, email, setEmail, password, setPassword, 
@@ -32,9 +33,11 @@ function Signup() {
     const success = await handleRegister();
     console.log('Registration success:', success);
     if (success) {
+      setVerificationSent(true); // Show loading card
       const codeSent = await getCodeVerify();
       if (codeSent) {
-        setShowVerification(true);
+        setVerificationSent(false); // Hide loading card
+        setShowVerification(true);  // Show verification code input
       }
     }
   };
@@ -92,6 +95,20 @@ function Signup() {
     );
   }
 
+  if (verificationSent) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white px-6 py-10 rounded-xl shadow-xl w-80 text-center">
+          <h2 className="text-2xl text-black font-semibold mb-4">Sending Verification Code</h2>
+          <p className="text-gray-600 text-sm sm:text-base">
+            We have sent you a code, please check your email.
+          </p>
+          <span className="loading loading-spinner loading-lg mt-4"></span>
+        </div>
+      </div>
+    );
+  }
+
   if (showVerification) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -126,7 +143,6 @@ function Signup() {
           {verificationError && (
             <p className="text-red-700 mt-2 text-center">{verificationError}</p>
           )}
-          {error && <p className="text-red-700 mt-2 text-center">{error}</p>}
           <div className="text-center mt-4">
             <p className="text-gray-600">
               Didn't receive the code?{' '}

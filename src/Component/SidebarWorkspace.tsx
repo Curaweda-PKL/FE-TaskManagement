@@ -4,7 +4,7 @@ import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, deleteBoard, createBoard } from '../hooks/fetchBoard';
 import useAuth from '../hooks/fetchAuth';
 import DeleteConfirmation from './DeleteConfirmation';
-import CreateBoard  from './CreateBoard';
+import CreateBoard from './CreateBoard';
 
 const SidebarWorkspace: React.FC = () => {
   const location = useLocation();
@@ -60,11 +60,11 @@ const SidebarWorkspace: React.FC = () => {
     console.log("Current User ID:", currentUserId);
     console.log("Selected Workspace:", selectedWorkspace);
     console.log("Workspace Owner ID:", selectedWorkspace?.ownerId);
-    
-    const ownerStatus = selectedWorkspace && 
-                       currentUserId && 
-                       selectedWorkspace.ownerId === currentUserId;
-    
+
+    const ownerStatus = selectedWorkspace &&
+      currentUserId &&
+      selectedWorkspace.ownerId === currentUserId;
+
     console.log("Is Owner:", ownerStatus);
     return ownerStatus;
   };
@@ -155,7 +155,8 @@ const SidebarWorkspace: React.FC = () => {
     try {
       const response = await createBoard(workspaceId, name, description, backgroundColor);
       const message = response?.message || 'Board created successfully.';
-      await fetchData();
+      const data = await fetchBoards(selectedWorkspace.id);
+      setBoards(data);
       setShowCreateBoard(false);
       setAlert({ type: 'success', message: message });
     } catch (error: any) {
@@ -167,6 +168,20 @@ const SidebarWorkspace: React.FC = () => {
         errorMessage = 'Failed to create board. Please try again.';
       }
 
+      setShowCreateBoard(false);
+      setAlert({ 
+        type: 'success', 
+        message: response?.message || 'Board created successfully.' 
+      });
+      
+      // Navigate to the newly created board if response contains the board ID
+      if (response?.board?.id) {
+        navigate(`/workspace/${workspaceId}/board/${response.board.id}`);
+      }
+
+    } catch (error: any) {
+      console.error('Failed to create board:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to create board. Please try again.';
       setAlert({ type: 'error', message: errorMessage });
     }
   };
@@ -269,7 +284,7 @@ const SidebarWorkspace: React.FC = () => {
                       </Link>
 
                       {isPopupVisible && activeBoardId === board.id && isOnBoardPage && (
-                        <div 
+                        <div
                           className="fixed bg-white shadow-lg rounded-md p-2"
                           style={{
                             transform: 'translateX(1rem)',

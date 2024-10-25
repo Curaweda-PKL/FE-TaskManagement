@@ -644,8 +644,6 @@ const WorkspaceProject = () => {
             cardResponse.map(async (card: { id: string }) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
-
-                // Hanya tambahkan card.id jika belum ada di cardIdsSocket
                 setCardIdsSocket(prevIds => {
                   if (!prevIds.includes(card.id)) {
                     return [...prevIds, card.id];
@@ -671,13 +669,13 @@ const WorkspaceProject = () => {
                   return list;
                 }));
 
-                return { ...card, cardList: updatedCardList }; // Return card dengan cardList yang diperbarui
+                return { ...card, cardList: updatedCardList };
               }
               return { ...card, cardList: [] };
             })
           );
 
-          setCardData(updatedCardData); // Update cardData dengan data terbaru
+          setCardData(updatedCardData);
         }
       }
     } catch (error) {
@@ -686,7 +684,7 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
-    fetchData2(); // Panggil fetchData2 ketika boardId berubah
+    fetchData2();
   }, [boardId]);
 
   const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
@@ -783,6 +781,7 @@ const WorkspaceProject = () => {
         }
         return card;
       });
+      await fetchData();
 
       setCardData(updatedCardData);
       setSelectedCardList(newCardList);
@@ -1141,8 +1140,8 @@ const WorkspaceProject = () => {
           </button>
         </div>
       </header>
-      <main className="h-[89%] flex-1 overflow-x-auto">
-      <div className={`flex px-4 py-4 ${currentBgColor} h-full`}>
+      <main className="h-[89%] w-full flex-1 overflow-x-auto">
+      <div className={`flex px-4 py-4 ${currentBgColor} min-w-full w-max h-full`}>
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (
