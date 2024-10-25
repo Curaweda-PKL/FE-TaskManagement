@@ -244,8 +244,6 @@ const CustomFieldSettings: React.FC<CustomFieldSettingsProps> = ({ isOpen, onClo
                 >
                   <option value="">Select field type</option>
                   <option value="DROPDOWN">Dropdown</option>
-                  <option value="NUMBER">Number</option>
-                  <option value="CHECKBOX">Checkbox</option>
                 </select>
               </div>
 
@@ -295,7 +293,7 @@ const CustomFieldSettings: React.FC<CustomFieldSettingsProps> = ({ isOpen, onClo
                     type="text"
                     value={opt}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                    placeholder="Enter option"
+                    placeholder="Add Item..."
                     className="w-full bg-gray-300 px-4 py-2 border rounded-md"
                   />
                   <button 

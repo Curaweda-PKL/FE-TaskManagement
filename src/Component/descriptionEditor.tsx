@@ -150,8 +150,8 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
   };
 
   return (
-    <div className="w-full mb-4">
-      <h2 className="text-black mb-3 font-semibold text-lg">Description</h2>
+    <div className="w-full mb-1 text-gray-800">
+      <h2 className="text-black font-semibold text-[18px]">Description</h2>
 
       {!isEditing ? (
         <div 

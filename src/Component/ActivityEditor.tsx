@@ -302,9 +302,13 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
   };
 
   return (
-    <div className="w-full mb-4">
-      <h2 className="text-black mb-3 font-semibold text-lg">Activity</h2>
-
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-black font-semibold text-lg">Activity</h2>
+        <button className="bg-gray-300 teks-sm text-gray-800 px-3 rounded">
+          Show Detail
+        </button>
+      </div>
       {!isEditing ? (
         <div
           className="bg-gray-300 text-gray-600 py-1 px-2 rounded min-h-[35px] cursor-pointer break-words overflow-hidden"
@@ -313,7 +317,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
           <span className="text-gray-600">Write an Activity...</span>
         </div>
       ) : (
-        <div className="border rounded">
+        <div className="border rounded text-gray-800">
           <div className="flex items-center gap-2 p-2 border-b bg-gray-100">
             <div className="relative">
               <button
@@ -388,12 +392,6 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
               <Link2 size={16} />
             </button>
 
-            <button
-              className="p-1 hover:bg-gray-200 rounded"
-              onClick={() => applyTextStyle('image')}
-            >
-              <Image size={16} />
-            </button>
 
             {showLinkDialog && (
               <div className="absolute bg-white border p-4 rounded shadow-md">
