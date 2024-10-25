@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
 import { createActivity, updateActivity, getActivitiesByCardListId, deleteActivity, createComment, updateComment, getCommentByCardListId, deleteComment } from '../hooks/fetchCardList';
+import config from '../config/baseUrl';
 import { getProfilePhotoMember } from '../hooks/fetchWorkspace';
-import useAuth from '../hooks/fetchAuth';
+import axios from 'axios';
 
 interface ActivityEditorProps {
   selectedCardList: any;
@@ -34,8 +35,6 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemType, setEditingItemType] = useState<'activity' | 'comment' | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { getUserDataById } = useAuth(() => { }, () => { });
-  const [userData, setUserData] = useState<{ [key: string]: { name: string; email: string } }>({});
 
   const headingOptions = [
     { label: 'Normal text', value: 'normal' },
@@ -58,18 +57,30 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
     fetchAllItems();
   }, [cardListId]);
 
-  useEffect(() => {
-    selectedCardList?.members?.forEach((member: { userId: any }) => {
-      const id = member.userId;
-      getUserDataById(id)
-        .then((data: any) => {
-          setUserData((prevUserData) => ({ ...prevUserData, [id]: data }));
-        })
-        .catch((error: any) => {
-          console.error(error);
-        });
-    });
-  }, [selectedCardList]);
+  // useEffect(() => {
+  //   selectedCardList?.members?.forEach((member: { userId: any }) => {
+  //     const id = member.userId;
+  //     getUserDataById(id)
+  //       .then((data: any) => {
+  //         setUserData((prevUserData) => ({ ...prevUserData, [id]: data }));
+  //       })
+  //       .catch((error: any) => {
+  //         console.error(error);
+  //       });
+  //   });
+  // }, [selectedCardList]);
+
+  const getUserDataById = async (id: string | number): Promise<any> => {
+    try {
+      const response = await axios.get(`${config}/user/user-data/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching user data by id:', error);
+      return null;
+    }
+  };
 
   const fetchAllItems = async () => {
     try {
@@ -81,14 +92,16 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
       const processedActivities = await Promise.all(
         activities.map(async (act: any) => {
           const photo = await getProfilePhotoMember(act.userId);
+          const userData = await getUserDataById(act.userId); // Fetch user data
           return {
             id: act.id,
             content: act.activity,
-            timestamp: new Date(act.createdAt).toLocaleString(),
-            name: userData[act.userId]?.name || 'Unknown',
+            timestamp: new Date(act.date).toLocaleString(),
             userId: act.userId,
             photo: photo,
-            type: 'activity' as const
+            name: userData ? userData.name : '', // Add name field
+            type: 'activity' as const,
+            replies: [] // No replies for activities
           };
         })
       );
@@ -96,17 +109,34 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
       const processedComments = await Promise.all(
         comments.map(async (comment: any) => {
           const photo = await getProfilePhotoMember(comment.userId);
+          const userData = await getUserDataById(comment.userId); // Fetch user data
+          const replies = comment.replies || []; // Assuming replies are included in the comment object
           return {
             id: comment.id,
-            content: comment.comment,
+            content: comment.content,
             timestamp: new Date(comment.createdAt).toLocaleString(),
-            name: userData[comment.userId]?.name || 'Unknown',
             userId: comment.userId,
             photo: photo,
-            type: 'comment' as const
+            name: userData ? userData.name : '', // Add name field
+            type: 'comment' as const,
+            replies: await Promise.all(
+              replies.map(async (reply: any) => {
+                const replyPhoto = await getProfilePhotoMember(reply.userId);
+                const replyUserData = await getUserDataById(reply.userId); // Fetch user data for reply
+                return {
+                  id: reply.id,
+                  content: reply.content,
+                  timestamp: new Date(reply.createdAt).toLocaleString(),
+                  userId: reply.userId,
+                  photo: replyPhoto,
+                  name: replyUserData ? replyUserData.name : ''
+                };
+              })
+            )
           };
         })
       );
+
       const allItems = [...processedActivities, ...processedComments]
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -429,7 +459,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
         </div>
       )}
 
-      <div className="mt-2 p-2">
+      <div className="flex flex-col mt-3 gap-2">
         {savedItems?.map((savedActivity: any) => (
           <div key={savedActivity?.id} className='text-gray-800 mb-2 flex items-start'>
             <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
@@ -445,21 +475,71 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
                 </span>
               )}
             </div>
-            <div className="flex-grow">
-              <div className="flex items-center">
-                <span className="font-medium text-[14px] pr-3">{userData[savedActivity?.userId]?.name}</span>
-                <span className="text-[14px]">{savedActivity.content}</span>
+            <div className="flex-grow mt-[-5px]">
+              <div className={`flex ${savedActivity.type === 'comment' ? 'flex-col' : ''}`}>
+                <span className="font-medium text-[14px] pr-1 ">{savedActivity.name}</span>
+                <span className={`text-[14px] ${savedActivity.type === 'comment' ? 'bg-gray-300 p-1 rounded-md' : 'text-gray-600 italic'}`}>
+                  {savedActivity.content}
+                </span>
               </div>
-              <div className='flex flex-wrap text-[13px] gap-1 mt-1'>
-                <span className="text-gray-500">{savedActivity.timestamp}</span>
-                <button className="text-gray-500 hover:underline" onClick={() => handleEdit(savedActivity)}>
-                  Edit
-                </button>
-                <span>•</span>
-                <button className="text-gray-500 hover:underline" onClick={() => handleDelete(savedActivity.id)}>
-                  Delete
-                </button>
+              <div className='flex flex-wrap text-[12px] gap-1 mt-1 justify-between'>
+                <span className={`text-gray-500 ${savedActivity.type === 'comment' ? '' : '-mt-1'}`}>{savedActivity.timestamp}</span>
+                <div className='flex gap-1'>
+                  {savedActivity.type === 'comment' && (
+                    <>
+                      <button className="text-gray-500 hover:underline" onClick={() => handleEdit(savedActivity)}>
+                        Edit
+                      </button>
+                      <span>•</span>
+                      <button className="text-gray-500 hover:underline" onClick={() => handleDelete(savedActivity.id)}>
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
+              {/* Menampilkan balasan di bawah komentar */}
+              {savedActivity.type === 'comment' && savedActivity.replies?.length > 0 && (
+                <div className="ml-4 mt-2">
+                  {savedActivity.replies.map((reply: any) => (
+                    <div key={reply.id} className='text-gray-800 mb-2 flex items-start'>
+                      <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
+                        {reply.photo ? (
+                          <img
+                            src={reply.photo}
+                            alt={`${reply.name}'s profile`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-500 font-bold">
+                            {reply.name?.charAt(0)?.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-grow mt-[-5px]">
+                        <div className={`flex flex-col`}>
+                          <span className="font-medium text-[14px] pr-1 ">{reply.name}</span>
+                          <span className={`text-[14px] bg-gray-300 p-1 rounded-md`}>
+                            {reply.content}
+                          </span>
+                        </div>
+                        <div className='flex flex-wrap text-[12px] gap-1 mt-1 justify-between'>
+                          <span className={`text-gray-500`}>{reply.timestamp}</span>
+                          <div className='flex gap-1'>
+                            <button className="text-gray-500 hover:underline" onClick={() => handleEdit(reply)}>
+                              Edit
+                            </button>
+                            <span>•</span>
+                            <button className="text-gray-500 hover:underline" onClick={() => handleDelete(reply.id)}>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
