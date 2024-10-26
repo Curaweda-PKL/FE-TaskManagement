@@ -288,13 +288,9 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
     setEditingItemType(savedItem.type);
   };
 
-  const handleDelete = async (id: string, type: 'activity' | 'comment') => {
+  const handleDelete = async (id: string) => {
     try {
-      if (type === 'comment') {
-        await deleteComment(id);
-      } else {
-        await deleteActivity(id);
-      }
+      await deleteComment(id);
       await fetchAllItems();
     } catch (error) {
       console.error('Failed to delete:', error);
@@ -498,7 +494,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
               </div>
               {/* Menampilkan balasan di bawah komentar */}
               {savedActivity.type === 'comment' && savedActivity.replies?.length > 0 && (
-                <div className="ml-4 mt-2">
+                <div className="ml-4 mt-2 pl-4 border-l-2 border-gray-200">
                   {savedActivity.replies.map((reply: any) => (
                     <div key={reply.id} className='text-gray-800 mb-2 flex items-start'>
                       <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
@@ -523,15 +519,6 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
                         </div>
                         <div className='flex flex-wrap text-[12px] gap-1 mt-1 justify-between'>
                           <span className={`text-gray-500`}>{reply.timestamp}</span>
-                          <div className='flex gap-1'>
-                            <button className="text-gray-500 hover:underline" onClick={() => handleEdit(reply)}>
-                              Edit
-                            </button>
-                            <span>•</span>
-                            <button className="text-gray-500 hover:underline" onClick={() => handleDelete(reply.id)}>
-                              Delete
-                            </button>
-                          </div>
                         </div>
                       </div>
                     </div>
