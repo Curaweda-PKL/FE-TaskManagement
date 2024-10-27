@@ -24,6 +24,7 @@ import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
+import WorkspaceCardList from './WorkspaceCardList';
 
 interface Attachment {
   name: ReactNode;
@@ -793,7 +794,7 @@ const WorkspaceProject = () => {
 
   // const { id } = useParams();
   // const navigate = useNavigate();
-  
+
   // // Tambahkan useEffect baru untuk handle initial load
   // useEffect(() => {
   //   // Jika ada ID di URL tapi popup belum terbuka
@@ -814,11 +815,11 @@ const WorkspaceProject = () => {
   //         navigate('/');
   //       }
   //     };
-  
+
   //     fetchCardList();
   //   }
   // }, [id]); // Dependency hanya pada id
-  
+
   // // useEffect untuk handle perubahan state popup
   // useEffect(() => {
   //   if (isPopupOpen && selectedCardList) {
@@ -1369,7 +1370,7 @@ const WorkspaceProject = () => {
         />
       )}
 
-      {isPopupOpen && selectedCardList && (
+      {/* {isPopupOpen && selectedCardList && (
         <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
             <div className="sticky top-0 bg-white z-10 p-6">
@@ -1753,9 +1754,55 @@ const WorkspaceProject = () => {
             </div>
           </div>
         </div>
+      )} */}
+
+      {isPopupOpen && selectedCardList && (
+        <>
+          <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+              <div className="sticky top-0 bg-white z-10 p-6">
+                <WorkspaceCardList
+                  editingListName={editingListName}
+                  inputRef={inputRef}
+                  selectedCardList={selectedCardList}
+                  setSelectedCardList={setSelectedCardList}
+                  handleUpdateListName={handleUpdateListName}
+                  setEditingListName={setEditingListName}
+                  handleClosePopup={handleClosePopup}
+                  labelColors={labelColors}
+                  getContrastColor={getContrastColor}
+                  inReviewPhoto={inReviewPhoto}
+                  approvedPhoto={approvedPhoto}
+                  cardlistCustomFields={cardlistCustomFields}
+                  handleRemoveCustomField={handleRemoveCustomField}
+                  handleSelectChange={handleSelectChange}
+                  attachments={attachments}
+                  handleAttachImage={handleAttachImage}
+                  handleDownloadAttachment={handleDownloadAttachment}
+                  handleDeleteAttachmentClick={handleDeleteAttachmentClick}
+                  isDeleting={isDeleting}
+                  deleteError={deleteError}
+                  checklistData={checklistData}
+                  calculateChecklistPercentage={calculateChecklistPercentage}
+                  handleOpenChecklistPopup={handleOpenChecklistPopup}
+                  setExistingChecklistData={setExistingChecklistData}
+                  handleToggleIsDone={handleToggleIsDone}
+                  handleDeleteChecklist={handleDeleteChecklist}
+                  handleJoinClick={handleJoinClick}
+                  handleOpenMemberPopup={handleOpenMemberPopup}
+                  handleOpenLabelsPopup={handleOpenLabelsPopup}
+                  handleOpenDatesPopup={handleOpenDatesPopup}
+                  handleOpenAttachPopup={handleOpenAttachPopup}
+                  handleOpenCopyPopup={handleOpenCopyPopup}
+                  handleDeleteCardList={handleDeleteCardList}
+                  setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
+                />
+              </div>
+            </div>
+          </div>
+        </>
       )}
-
-
+      
       <div className='text-black'>
         <CustomFieldSettings
           isOpen={isCustomFieldModalOpen}
