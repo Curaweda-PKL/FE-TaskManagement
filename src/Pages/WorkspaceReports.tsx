@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getWorkspaceRanks } from '../hooks/fetchWorkspace';
-import { X } from 'lucide-react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { useMemo } from 'react';
-
 
 interface CardList {
   name: string;
@@ -37,14 +35,11 @@ const WorkspaceReports: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
   const [selectedMemberIndex, setSelectedMemberIndex] = useState<number | null>(null);
-  const [, setIsPopupOpen] = useState(false);
-
-
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [dateRangeType, setDateRangeType] = useState<'week' | 'month'>('week'); // initialize with 'week'
-
+  const [dateRangeType, setDateRangeType] = useState<'week' | 'month'>('week');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const startDate = useMemo(() => {
     return dateRangeType === 'week'
@@ -57,15 +52,6 @@ const WorkspaceReports: React.FC = () => {
       ? endOfWeek(currentDate, { weekStartsOn: 1 })
       : endOfMonth(currentDate);
   }, [dateRangeType, currentDate]);
-
-  useEffect(() => {
-    fetchMembers(startDate, endDate);
-  }, [dateRangeType, startDate, endDate]);
-
-  const handleDateRangeChange = () => {
-    setDateRangeType(dateRangeType === 'week' ? 'month' : 'week');
-  };
-  const formattedDateRange = `${format(startDate, 'd')} - ${format(endDate, 'd')} ${format(endDate, 'MMMM yyyy').toUpperCase()}`;
 
   const fetchMembers = useCallback(async (start: Date, end: Date) => {
     setIsLoading(true);
@@ -81,6 +67,16 @@ const WorkspaceReports: React.FC = () => {
     }
   }, [workspaceId]);
 
+  useEffect(() => {
+    fetchMembers(startDate, endDate);
+  }, [dateRangeType, startDate, endDate, fetchMembers]);
+
+  const handleDateRangeChange = () => {
+    setDateRangeType(dateRangeType === 'week' ? 'month' : 'week');
+  };
+
+  const formattedDateRange = `${format(startDate, 'd')} - ${format(endDate, 'd')} ${format(endDate, 'MMMM yyyy').toUpperCase()}`;
+
   const handleNavigation = (direction: 'next' | 'prev') => {
     setCurrentDate((prevDate) => {
       if (dateRangeType === 'month') {
@@ -90,8 +86,6 @@ const WorkspaceReports: React.FC = () => {
       }
     });
   };
-
-  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredMembers = members.filter((member) => {
     const searchTerms = searchQuery.toLowerCase().split(' ');
@@ -108,7 +102,6 @@ const WorkspaceReports: React.FC = () => {
     });
   });
 
-
   const handleBoardClick = (boardKey: string, memberIndex: number) => {
     setSelectedBoard(boardKey);
     setSelectedMemberIndex(memberIndex);
@@ -122,7 +115,7 @@ const WorkspaceReports: React.FC = () => {
   };
 
   const renderBoardContent = () => {
-    if (selectedBoard === null || selectedMemberIndex === null) return null;
+    if (!isPopupOpen || selectedBoard === null || selectedMemberIndex === null) return null;
 
     const member = members[selectedMemberIndex];
     const board = member.boards[selectedBoard];
@@ -165,103 +158,99 @@ const WorkspaceReports: React.FC = () => {
     );
   };
 
-
-
   return (
     <div className='bg-white py-4 px-5 min-h-screen text-black'>
-      <h1 className='text-xl font-bold mb-5'>Reports</h1>
-      <div className='container mx-auto md:px-4 px-0'>
-        {/* <h2 className='text-2xl font-bold text-gray-600'>YOUR PERFORMANCE THIS WEEK, <span className='text-yellow-400'>AVERAGE</span></h2> */}
-        {/* <p className='text-gray-700 mt-2'>Complete task to fill the performance bar!</p>
-        <div className='flex items-center mt-4'>
-          <div className='w-2/4 bg-gray-300 h-2 rounded-md'>
-            <div className='bg-blue-500 h-2 rounded-md' style={{ width: '40%' }}></div>
-          </div>
-          <span className='ml-4'>2/5</span>
-        </div>
-        <p className='text-gray-500 mb-11'>Bar resetting in : 4d 12h</p> */}
-
-        <div className='mb-4 flex sm:items-center text-center w-full min-w-1 mt-10 gap-5 sm:flex-row justify-between max850:flex-col-reverse'>
-          <div className='relative justify-start max850:w-full'>
-            <input
-              type='text'
-              placeholder='Search...'
-              className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl px-3 py-2 pl-10 text-sm w-full'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <i className='fas fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500' />
-          </div>
-          <div className='flex items-center max850:w-full'>
-            <div className="flex items-center space-x-4">
-              <button onClick={() => handleNavigation('prev')} className="" disabled={isLoading}>
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <h2 className="font-bold sm:text-lg text-md">
-                {formattedDateRange}
-              </h2>
-              <button onClick={() => handleNavigation('next')} className="" disabled={isLoading}>
-                <ChevronRight className="w-6 h-6" />
-              </button>
+      {members && members.length > 0 ? (
+        <div>
+          <h1 className='text-xl font-bold mb-5'>Reports</h1>
+          <div className='container mx-auto md:px-4 px-0'>
+            <div className='mb-4 flex sm:items-center text-center w-full min-w-1 mt-10 gap-5 sm:flex-row justify-between max850:flex-col-reverse'>
+              <div className='relative justify-start max850:w-full'>
+                <input
+                  type='text'
+                  placeholder='Search...'
+                  className='bg-gray-200 text-gray-500 border-gray-400 rounded-xl px-3 py-2 pl-10 text-sm w-full'
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <i className='fas fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500' />
+              </div>
+              <div className='flex items-center max850:w-full'>
+                <div className="flex items-center space-x-4">
+                  <button onClick={() => handleNavigation('prev')} className="" disabled={isLoading}>
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <h2 className="font-bold sm:text-lg text-md">
+                    {formattedDateRange}
+                  </h2>
+                  <button onClick={() => handleNavigation('next')} className="" disabled={isLoading}>
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
+                <button
+                  className={`btn bg-purple-500 btn-sm sm:btn-md hover:bg-purple-800 border-none text-white font-bold ${dateRangeType === 'month' ? 'active' : ''}`}
+                  onClick={handleDateRangeChange}
+                >
+                  {dateRangeType === 'month' ? 'MONTH' : 'WEEK'}
+                </button>
+              </div>
             </div>
-            <h2
-              className={`btn bg-purple-500 btn-sm sm:btn-md hover:bg-purple-800 border-none text-white font-bold ${dateRangeType === 'month' ? 'active' : ''
-                }`}
-              onClick={handleDateRangeChange}
-            >
-              {dateRangeType === 'month' ? 'MONTH' : 'WEEK'}
-            </h2>
+
+            <div className='w-full overflow-auto'>
+              <table className='min-w-full bg-white border border-gray-300 text-center'>
+                <thead>
+                  <tr>
+                    <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>RANK</th>
+                    <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>USERS</th>
+                    <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>TASK</th>
+                    <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>SCORE</th>
+                    <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>AVERAGE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMembers.map((member, index) => (
+                    <tr key={index}>
+                      <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
+                      <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
+                      <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
+                        <div className='text-start'>Boards:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {member.boards && typeof member.boards === 'object' ? (
+                            Object.keys(member.boards).map((boardKey, boardIndex) => (
+                              <h5 key={boardIndex} onClick={() => handleBoardClick(boardKey, index)} className='underline cursor-pointer text-start'>
+                                {boardKey},
+                              </h5>
+                            ))
+                          ) : (
+                            <span>No tasks available</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.totalScore}</td>
+                      <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
+                        {member.boards && Object.keys(member.boards).length > 0
+                          ? ((member.totalScore +
+                              Object.values(member.boards).reduce((acc, board) =>
+                                acc + Object.values(board.cards).reduce((cardAcc, card) =>
+                                  cardAcc + card.cardLists.length, 0), 0)) / 2
+                            ).toFixed(2)
+                          : '0.00'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {renderBoardContent()}
           </div>
         </div>
-
-        <div className='w-full overflow-auto'>
-          <table className='min-w-full bg-white border border-gray-300 text-center'>
-            <thead>
-              <tr>
-                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>RANK</th>
-                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>USERS</th>
-                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>TASK</th>
-                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>SCORE</th>
-                <th className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm font-bold text-gray-900'>AVERAGE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMembers.map((member, index) => (
-                <tr key={index}>
-                  <td className='px-1 sm:py-3 py-1 w-20 border border-black text-xs sm:text-sm'>{member.rank}</td>
-                  <td className='px-1 sm:py-3 py-1 w-15 border border-black text-xs sm:text-sm'>{member.user}</td>
-                  <td className='px-1 sm:py-3 py-1 w-72 border border-black text-xs sm:text-sm'>
-                    <div className='text-start'>Boards:</div>
-                    <div className="flex flex-wrap gap-2">
-                      {member.boards && typeof member.boards === 'object' ? (
-                        Object.keys(member.boards).map((boardKey, boardIndex) => (
-                          <h5 key={boardIndex} onClick={() => handleBoardClick(boardKey, index)} className='underline cursor-pointer text-start'>{boardKey},</h5>
-                        ))
-                      ) : (
-                        <span>No tasks available</span> // Display a message if there are no boards
-                      )}
-                    </div>
-                  </td>
-                  <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>{member.totalScore}</td>
-                  <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
-                    {member.boards && Object.keys(member.boards).length > 0 ?
-                      (
-                        (member.totalScore +
-                          Object.values(member.boards).reduce((acc, board) =>
-                            acc + Object.values(board.cards).reduce((cardAcc, card) =>
-                              cardAcc + card.cardLists.length, 0),
-                            0)
-                        ) / 2
-                      ).toFixed(2)
-                      : '0.00'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-96">
+          <i className='fas fa-sharp fa-light fa-table text-5xl'></i>
+          <h2 className="text-lg font-semibold text-gray-700">No Reports Available</h2>
+          <p className="text-gray-500">There are no reports for this period. Please check again later.</p>
         </div>
-        {renderBoardContent()}
-      </div>
+      )}
     </div>
   );
 };
