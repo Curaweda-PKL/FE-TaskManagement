@@ -17,6 +17,7 @@ import JoinWorkspace from './Component/joinWorkspace';
 import useAuth from './hooks/fetchAuth';
 import LayoutWorkspace from './Component/LayoutWorkspace';
 import Profile from './Pages/Profile';
+import WorkspaceCardList from './Pages/WorkspaceCardList';
 
 
 function App() {
