@@ -782,6 +782,52 @@ const WorkspaceProject = () => {
     }
   };
 
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     // Mendapatkan path saat ini
+  //     const currentPath = window.location.pathname;
+  //     const newUrl = `${currentPath}/cardList/${selectedCardList.id}`;
+  //     window.history.pushState({}, '', newUrl);
+  //   }
+  // }, [isPopupOpen, selectedCardList]);
+
+  // const { id } = useParams();
+  // const navigate = useNavigate();
+  
+  // // Tambahkan useEffect baru untuk handle initial load
+  // useEffect(() => {
+  //   // Jika ada ID di URL tapi popup belum terbuka
+  //   if (id && !isPopupOpen) {
+  //     // Fetch data cardList berdasarkan ID
+  //     const fetchCardList = async () => {
+  //       try {
+  //         // Ganti ini sesuai dengan fungsi fetch data Anda
+  //         const cardList = await fetchCardListById(id);
+  //         if (cardList) {
+  //           handleOpenPopup(cardList);
+  //         } else {
+  //           // Jika data tidak ditemukan, kembali ke homepage
+  //           navigate('/');
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching card list:', error);
+  //         navigate('/');
+  //       }
+  //     };
+  
+  //     fetchCardList();
+  //   }
+  // }, [id]); // Dependency hanya pada id
+  
+  // // useEffect untuk handle perubahan state popup
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     navigate(`/cardList/${selectedCardList.id}`, { replace: true }); // Tambahkan replace: true
+  //   } else if (!isPopupOpen) {
+  //     navigate('/', { replace: true }); // Tambahkan replace: true
+  //   }
+  // }, [isPopupOpen, selectedCardList, navigate]);
+
 
   const cancelDeleteCardList = () => {
     setDeleteCardlist(false);

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
+import { Bold, Italic, Link2, Image, List, ChevronDown, Type, X } from 'lucide-react';
 import { createActivity, updateActivity, getActivitiesByCardListId, deleteActivity, createComment, updateComment, getCommentByCardListId, deleteComment } from '../hooks/fetchCardList';
 import config from '../config/baseUrl';
 import { getProfilePhotoMember } from '../hooks/fetchWorkspace';
@@ -22,6 +22,15 @@ interface SavedItem {
   type: 'activity' | 'comment';
 }
 
+interface activityItems {
+  id: string;
+  content: string;
+  timestamp: string;
+  userId: string;
+  name?: string;
+  photo?: string;
+}
+
 const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initialActivity, onSave, cardListId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [activity, setActivity] = useState(initialActivity);
@@ -32,9 +41,20 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
   const [showHeadingDropdown, setShowHeadingDropdown] = useState(false);
   const [showListDropdown, setShowListDropdown] = useState(false);
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [activityItems, setActivityItems] = useState<activityItems[]>([]);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemType, setEditingItemType] = useState<'activity' | 'comment' | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const [showDetailPopup, setShowDetailPopup] = useState(false); // State untuk mengontrol popup
+
+  const handleShowDetail = () => {
+    setShowDetailPopup(true); // Menampilkan popup
+  };
+
+  const handleClosePopup = () => {
+    setShowDetailPopup(false); // Menyembunyikan popup
+  };
 
   const headingOptions = [
     { label: 'Normal text', value: 'normal' },
@@ -81,6 +101,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
       return null;
     }
   };
+
 
   const fetchAllItems = async () => {
     try {
@@ -137,6 +158,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
         })
       );
 
+      setActivityItems(processedActivities)
       const allItems = [...processedActivities, ...processedComments]
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -301,10 +323,63 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
     <div className="w-full">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-black font-semibold text-lg">Activity</h2>
-        <button className="bg-gray-300 teks-sm text-gray-800 px-3 rounded">
+        <button
+          className="bg-gray-300 teks-sm text-gray-800 px-3 rounded btn btn-sm border-none hover:bg-gray-500"
+          onClick={handleShowDetail} // Menambahkan onClick untuk tombol
+        >
           Show Detail
         </button>
       </div>
+      {showDetailPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg w-11/12 max-w-md flex flex-col max-h-[90vh]">
+          {/* Header - Fixed at top */}
+          <div className="p-4 border-b flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-black">Detail Activities</h3>
+            <button
+              onClick={handleClosePopup}
+              className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
+          </div>
+  
+          {/* Content - Scrollable */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex flex-col gap-2">
+              {activityItems.map((activity) => (
+                <div key={activity.id} className="text-gray-800 flex items-start">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
+                    {activity.photo ? (
+                      <img
+                        src={activity.photo}
+                        alt={`${activity.name}'s profile`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-gray-500 font-bold">
+                        {activity.name?.charAt(0)?.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-sm">{activity.name}</span>
+                      <span className="text-sm text-gray-600 italic">
+                        {activity.content}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap text-xs gap-1 mt-1 justify-between">
+                      <span className="text-gray-500">{activity.timestamp}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
       {!isEditing ? (
         <div
           className="bg-gray-300 text-gray-600 py-1 px-2 rounded min-h-[35px] cursor-pointer break-words overflow-hidden"
