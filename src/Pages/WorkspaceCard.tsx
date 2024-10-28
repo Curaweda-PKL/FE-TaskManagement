@@ -991,13 +991,15 @@ const WorkspaceProject = () => {
     const selectedValue = e.target.value;
     try {
       const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, selectedValue);
-      console.log("Custom field updated successfully:", response);
+      // console.log("Custom field updated successfully:", response);
       const updatedFields = cardlistCustomFields.map((field) =>
         field.customField.id === customFieldId
           ? { ...field, selectedValue }
           : field
       );
       setCardlistCustomFields(updatedFields);
+      console.log("updatedFields", updatedFields);
+      console.log("response", response);
     } catch (error) {
       console.error("Failed to update custom field value:", error);
     }

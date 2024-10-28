@@ -4,6 +4,7 @@ import { getWorkspaceRanks } from '../hooks/fetchWorkspace';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { useMemo } from 'react';
+import { getTaskBar } from '../hooks/ApiReport';
 
 interface CardList {
   name: string;
@@ -31,7 +32,7 @@ interface Member {
 }
 
 const WorkspaceReports: React.FC = () => {
-  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { workspaceId } = useParams<{ workspaceId: any }>();
   const [members, setMembers] = useState<Member[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
   const [selectedMemberIndex, setSelectedMemberIndex] = useState<number | null>(null);
@@ -40,6 +41,41 @@ const WorkspaceReports: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dateRangeType, setDateRangeType] = useState<'week' | 'month'>('week');
   const [searchQuery, setSearchQuery] = useState('');
+  const [taskBarData, setTaskBarData] = useState<any | null>(null)
+
+  useEffect(() => {
+    const handlegetTaskBarData = async () => {
+      setTaskBarData(await getTaskBar(workspaceId))
+
+    }
+    handlegetTaskBarData()
+  }, []);
+
+  const data = taskBarData
+  const statusCounts = data?.statusCounts || [];
+  const allTaskCount = data?.allTaskCount || 0;
+
+  // Calculate completed tasks (DONE or APPROVED status)
+  const completedTasks = statusCounts.reduce((total: any, item: { status: string; count: any; }) => {
+    if (item?.status === 'DONE' || item?.status === 'APPROVED') {
+      return total + (item.count || 0);
+    }
+    return total;
+  }, 0);
+
+  // Calculate completion percentage, handle division by zero
+  const completionPercentage = allTaskCount === 0 ? 0 : (completedTasks / allTaskCount) * 100;
+
+  // Determine performance level
+  const getPerformanceLevel = () => {
+    if (allTaskCount === 0) return { text: 'NO TASKS YET', color: 'text-gray-500' };
+    if (completionPercentage >= 80) return { text: 'EXCELLENT', color: 'text-green-500' };
+    if (completionPercentage >= 60) return { text: 'GOOD', color: 'text-blue-500' };
+    if (completionPercentage >= 40) return { text: 'AVERAGE', color: 'text-yellow-500' };
+    return { text: 'NEEDS IMPROVEMENT', color: 'text-red-500' };
+  };
+
+  const performance = getPerformanceLevel();
 
   const startDate = useMemo(() => {
     return dateRangeType === 'week'
@@ -200,6 +236,38 @@ const WorkspaceReports: React.FC = () => {
 
     return (
       <div className='container mx-auto md:px-4 px-0'>
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <div>
+              <h2 className="text-gray-700 text-lg font-medium">
+                YOUR PERFORMANCE THIS WEEK, <span className={performance.color}>{performance.text}</span>
+              </h2>
+              <p className="text-gray-600 text-sm">
+                {allTaskCount === 0
+                  ? "No tasks assigned yet. Tasks will appear here when assigned."
+                  : "Complete task to fill the performance bar!"}
+              </p>
+            </div>
+          </div>
+          <div className="relative pt-1">
+            <div className="flex mb-2 items-center justify-between">
+            </div>
+            <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
+              <div
+                className={`${allTaskCount === 0 ? 'bg-gray-400' : 'bg-blue-500'}`}
+                style={{ width: `${completionPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+          <div className='flex justify-between'>
+            <div className="text-sm text-gray-600">
+              Bar resetting in: {data?.resettingIn || 'N/A'}
+            </div>
+            <div className="text-gray-600 right-0 relative">
+              {completedTasks}/{allTaskCount}
+            </div>
+          </div>
+        </div>
         <div className='mb-4 flex sm:items-center text-center w-full min-w-1 mt-10 gap-5 sm:flex-row justify-between max850:flex-col-reverse'>
           <div className='relative justify-start max850:w-full'>
             <input
@@ -247,10 +315,10 @@ const WorkspaceReports: React.FC = () => {
                   <td className='px-1 sm:py-3 py-1 border border-black text-xs sm:text-sm'>
                     {member.boards && Object.keys(member.boards).length > 0
                       ? ((member.totalScore +
-                          Object.values(member.boards).reduce((acc, board) =>
-                            acc + Object.values(board.cards).reduce((cardAcc, card) =>
-                              cardAcc + card.cardLists.length, 0), 0)) / 2
-                        ).toFixed(2)
+                        Object.values(member.boards).reduce((acc, board) =>
+                          acc + Object.values(board.cards).reduce((cardAcc, card) =>
+                            cardAcc + card.cardLists.length, 0), 0)) / 2
+                      ).toFixed(2)
                       : '0.00'}
                   </td>
                 </tr>
