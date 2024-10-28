@@ -91,7 +91,10 @@ const Sidebar: React.FC = () => {
                 onClick={() => handleWorkspaceClick(index)}
               >
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <div className="w-5 h-5 bg-red-500 rounded-sm mr-2"></div>
+                  <div 
+                    className="w-5 h-5 rounded-sm mr-2"
+                    style={{ backgroundColor: workspace.color || '#EF4444' }}>
+                  </div>
                   <span className="text-black font-medium overflow-hidden text-ellipsis whitespace-nowrap">{workspace.name}</span>
                 </div>
                 <i className={`fas fa-chevron-down text-gray-600 transform transition-transform ${expandedWorkspaceIndex === index ? 'rotate-180' : ''}`}></i>

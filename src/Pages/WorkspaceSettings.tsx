@@ -14,6 +14,7 @@ const WorkspaceSettings: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceDescription, setWorkspaceDescription] = useState('');
+  const [workspaceColor, setWorkspaceColor] = useState('#ffffff');
   const navigate = useNavigate();
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
@@ -85,7 +86,7 @@ const WorkspaceSettings: React.FC = () => {
   const handleUpdateWorkspace = async () => {
     const isPublic = visibility === 'Public';
     try {
-      await updateWorkspace(workspaceId, workspaceName, workspaceDescription, workspace.ownerId, isPublic);
+      await updateWorkspace(workspaceId, workspaceName, workspaceDescription, workspaceColor, workspace.ownerId, isPublic);
       setAlert({ type: 'success', message: 'Workspace updated successfully.' });
       const workspaces = await fetchWorkspaces(workspaceId);
       const updatedWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
@@ -102,7 +103,7 @@ const WorkspaceSettings: React.FC = () => {
     console.log(`Updating visibility to: ${newVisibility}, isPublic: ${isPublic}`);
 
     try {
-      await updateWorkspace(workspaceId, workspace.name, workspace.description, workspace.ownerId, isPublic);
+      await updateWorkspace(workspaceId, workspace.name, workspace.description, workspace.ownerId, workspace.color, isPublic);
       setVisibility(newVisibility);
       setWorkspace((prev: any) => ({
         ...prev,
@@ -218,6 +219,7 @@ const WorkspaceSettings: React.FC = () => {
               workspaceDescription={workspaceDescription}
               setWorkspaceName={setWorkspaceName}
               setWorkspaceDescription={setWorkspaceDescription}
+              setWorkspaceColor={setWorkspaceColor}
               onClose={() => setIsEditModalOpen(false)}
               onCreate={handleUpdateWorkspace}
               isEditMode={true}

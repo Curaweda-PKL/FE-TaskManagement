@@ -46,7 +46,7 @@ function Navbar() {
   const navbarRef = useRef(null);
   const searchRef = useRef(null);
   const { userData, isLoggedIn, handleLogout, getProfilePhoto } = useAuth(() => { }, () => navigate('/'));
-
+  const [workspaceColor, setWorkspaceColor] = useState('#ffffff');
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -130,9 +130,9 @@ function Navbar() {
     setOpenDropdown(null);
   };
 
-  const handleCreateWorkspace = async (name: string, description: string) => {
+  const handleCreateWorkspace = async (name: string, description: string, color: string) => {
     try {
-      await createWorkspace(name, description, userData?.id);
+      await createWorkspace(name, description, userData?.id, color);
       await fetchWorkspacesData();
       closeCreateWorkspace();
     } catch (error) {
@@ -605,16 +605,18 @@ function Navbar() {
       </div>
 
       {showCreateWorkspace && (
-        <CreateWorkspace
-          workspaceName={workspaceName}
-          workspaceDescription={workspaceDescription}
-          setWorkspaceName={setWorkspaceName}
-          setWorkspaceDescription={setWorkspaceDescription}
-          onClose={closeCreateWorkspace}
-          onCreate={handleCreateWorkspace}
-          isEditMode={false}
-        />
-      )}
+      <CreateWorkspace
+        workspaceName={workspaceName}
+        workspaceDescription={workspaceDescription}
+        workspaceColor={workspaceColor} // Add this prop
+        setWorkspaceName={setWorkspaceName}
+        setWorkspaceDescription={setWorkspaceDescription}
+        setWorkspaceColor={setWorkspaceColor} // Add this prop
+        onClose={closeCreateWorkspace}
+        onCreate={handleCreateWorkspace}
+        isEditMode={false}
+      />
+    )}
     </nav>
   );
 }
