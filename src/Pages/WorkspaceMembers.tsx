@@ -4,6 +4,8 @@ import WorkspaceHeader from '../Component/WorkspaceHeader';
 import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import useAuth from '../hooks/fetchAuth';
+import { io } from 'socket.io-client';
+import config from '../config/baseUrl';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -29,6 +31,55 @@ const WorkspaceMembers: React.FC = () => {
   };
 
   const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+
+    const socket = io(config);
+    socket.on(`workspace/${workspaceId}`, async () => {
+      console.log("here", workspaceId);
+      // const membersData = await memberWorkspace(workspaceId);
+      // const membersWithPhotos = await Promise.all(
+      //   membersData.map(async (member: any) => {
+      //     if (member) {
+      //       try {
+      //         const memberPhoto = await getProfilePhotoMember(member.id);
+      //         return { ...member, photoProfile: memberPhoto };
+      //       } catch (error) {
+      //         console.error(`Error fetching photo profile for ${member.name}:`, error);
+      //         return member;
+      //       }
+      //     }
+      //     return member;
+      //   })
+      // );
+      // setMembers(membersWithPhotos);
+
+      // const joinRequestsData = await joinRequestsWorkspace(workspaceId);
+      // setJoinRequests(joinRequestsData);
+
+      // const joinRequestsPhotoProfile = await Promise.all(
+      //   joinRequestsData.map(async (joinRequest: any) => {
+      //     if (joinRequest) {
+      //       try {
+      //         const joinRequestPhoto = await getProfilePhotoMember(joinRequest.userId);
+      //         return { ...joinRequest, photoProfile: joinRequestPhoto };
+      //       } catch (error) {
+      //         console.error(`Error fetching photo profile for ${joinRequest.name}:`, error);
+      //         return joinRequest;
+      //       }
+      //     }
+      //     return joinRequest;
+      //   })
+      // );
+      // setRequests(joinRequestsPhotoProfile);
+      fetchWorkspaceData()
+    });
+    return () => {
+      socket.off(`workspace/${workspaceId}`);
+      socket.disconnect();
+    };
+  }, [workspaceId]);
 
   useEffect(() => {
     const fetchData = async () => {
