@@ -23,11 +23,11 @@ export const fetchWorkspaces = async (_workspaceId: any) => {
   }
 };
 
-export const createWorkspace = async (name: any, description: any, ownerId: any) => {
+export const createWorkspace = async (name: any, description: any, ownerId: any, color:any) => {
   try {
     const response = await axios.post(
       config + "/workspace/create",
-      { name, description, ownerId },
+      { name, description, ownerId, color },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
@@ -43,11 +43,18 @@ export const createWorkspace = async (name: any, description: any, ownerId: any)
   }
 };
 
-export const updateWorkspace = async (workspaceId: any, name: any, description: any, ownerId: any, isPublic: any) => {
+export const updateWorkspace = async (
+  workspaceId: string,
+  name: string,
+  description: string,
+  color: string,
+  ownerId: string,
+  isPublic: boolean
+) => {
   try {
     const response = await axios.put(
-      config + "/workspace/update",
-      { workspaceId, name, description, ownerId, isPublic },
+      `${config}/workspace/update`,
+      { workspaceId, name, description, color, ownerId, isPublic },
       {
         headers: {
           'Authorization': localStorage.getItem('token'),
@@ -55,7 +62,6 @@ export const updateWorkspace = async (workspaceId: any, name: any, description: 
         }
       }
     );
-    window.location.reload
     return response.data;
   } catch (error) {
     console.error('Failed to update workspace:', error);

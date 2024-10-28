@@ -102,7 +102,7 @@ const Workspace: React.FC = () => {
         updatedWorkspaces.forEach((workspaceId) => {
           socket.off(`board/${workspaceId.id}`);
         });
-        socket.disconnect(); // Disconnect socket when component unmounts
+        socket.disconnect();
       };
     } catch (err: any) {
       // handleApiError(err);
@@ -259,7 +259,10 @@ const Workspace: React.FC = () => {
           <div key={workspace.id}>
             <div className='mt-3 flex justify-between max-w-[905px] max1000:flex-col max1000:gap-3'>
               <div className='flex items-center gap-2 max-w-[300px] overflow-hidden'>
-                <div className='min-h-5 max768:min-h-[18px] max768:min-w-[18px] min-w-5 bg-[#AE1616]'></div>
+                <div 
+                  className={`min-h-5 max768:min-h-[18px] max768:min-w-[18px] min-w-5`}
+                  style={{ backgroundColor: workspace.color || '#EF4444' }}>
+                </div>
                 <span className='font-semibold text-[#4A4A4A] text-[15px] overflow-hidden text-ellipsis whitespace-nowrap'>{workspace.name}</span>
               </div>
               <div className={`grid ${isOwner(workspace) ? 'grid-cols-4' : 'grid-cols-3'} max850:grid-cols-2 gap-5 max850:gap-2 justify-self-end`}>
