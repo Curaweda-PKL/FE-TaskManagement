@@ -560,6 +560,14 @@ const WorkspaceProject = () => {
               const cardListData = await fetchCardList(card.id);
               const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
 
+              // Assuming you want to set custom fields for each card list
+              // cardList.forEach(list => {
+              //   if (list.customFields) {
+              //     setCardlistCustomFields(list.customFields); // Set custom fields here
+              //     console.log("list.customFields", list.customFields)
+              //   }
+              // });
+
               const updatedCardList = await Promise.all(cardList.map(async (list) => {
                 if (list.members && list.members.length > 0) {
                   const membersWithPhotos = await Promise.all(
@@ -1802,7 +1810,7 @@ const WorkspaceProject = () => {
           </div>
         </>
       )}
-      
+
       <div className='text-black'>
         <CustomFieldSettings
           isOpen={isCustomFieldModalOpen}

@@ -6,6 +6,7 @@ import CreateWorkspace from './CreateWorkspace';
 import { fetchUserNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../hooks/ApiNotification';
 import config from '../config/baseUrl';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 
 interface Notification {
@@ -61,6 +62,43 @@ function Navbar() {
 
     loadNotifications();
   }, []);
+
+  const [userId, setUserData] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get(`${config}/user/user-data`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setUserData(response.data.id);
+        console.log("userData3", userId)
+      } catch (error: any) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData()
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const socket = io(config);
+    socket.on(`notification/${userId}`, async () => {
+      console.log("here", userId);
+      try {
+        const data = await fetchUserNotifications();
+        setNotifications(data);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+    return () => {
+      socket.off(`notification/${userId}`);
+      socket.disconnect();
+    };
+  }, [userId]);
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -499,63 +537,63 @@ function Navbar() {
           Notifications<i className="fas fa-bell ml-1" />
         </button>
         {openDropdown === 'notification' && (
-           <div className="absolute top-[290px] left-0 bg-gray-50 p-4 m-0 shadow text-black w-full">
+          <div className="absolute top-[290px] left-0 bg-gray-50 p-4 m-0 shadow text-black w-full">
             <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Notifications</h2>
-                    <div className="flex items-center">
-                      <span className="text-sm text-gray-600 mr-2">only show unread</span>
-                      <input
-                        type="checkbox"
-                        checked={unreadOnly}
-                        onChange={handleCheckboxChange}
-                        className="toggle theme-controller col-span-2 col-start-1 row-start-1 border-sky-400 bg-amber-300 [--tglbg:theme(colors.sky.500)] checked:border-blue-800 checked:bg-blue-300 checked:[--tglbg:theme(colors.blue.900)]"
-                      />
-                    </div>
-                  </div>
-           <button className='btn btn-sm text-xs text-white bg-purple-600 hover:bg-purple-800 border-none flex ml-auto' onClick={handleMarkAllAsRead}>Mark All as Read</button>
-           <div className='p-2'>
-             {notifications.map((notification) => {
-               const user = userData2.find((user) => user && user.id === notification.senderId);
-               const profilePhoto = userProfile[notification.senderId];
+              <h2 className="text-lg font-semibold">Notifications</h2>
+              <div className="flex items-center">
+                <span className="text-sm text-gray-600 mr-2">only show unread</span>
+                <input
+                  type="checkbox"
+                  checked={unreadOnly}
+                  onChange={handleCheckboxChange}
+                  className="toggle theme-controller col-span-2 col-start-1 row-start-1 border-sky-400 bg-amber-300 [--tglbg:theme(colors.sky.500)] checked:border-blue-800 checked:bg-blue-300 checked:[--tglbg:theme(colors.blue.900)]"
+                />
+              </div>
+            </div>
+            <button className='btn btn-sm text-xs text-white bg-purple-600 hover:bg-purple-800 border-none flex ml-auto' onClick={handleMarkAllAsRead}>Mark All as Read</button>
+            <div className='p-2'>
+              {notifications.map((notification) => {
+                const user = userData2.find((user) => user && user.id === notification.senderId);
+                const profilePhoto = userProfile[notification.senderId];
 
-               return (
-                 <div key={notification.id} className="flex items-start py-2 border-b gap-2 relative">
-                   <div>
-                     {profilePhoto ? (
-                       <img
-                         src={profilePhoto}
-                         alt="User  Profile"
-                         className="w-6 h-6 rounded-full mt-1.5"
-                       />
-                     ) : (
-                       <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
-                         <i className="fas fa-user text-white text-[12px]" />
-                       </div>
-                     )}
-                   </div>
-                   <div>
-                     <p className="font-semibold">{user ? user.name : 'Unknown'}</p>
-                     <p className="text-sm text-gray-800 font-semibold">{notification.title}</p>
-                     <p className="text-sm text-gray-800">
-                       {renderMessage(notification.message)} {formatDate(notification.createdAt)}
-                     </p>
-                     <p className='text-xs text-gray-600 mt-2 underline cursor-pointer' onClick={async () => {
-                       await markNotificationAsRead(notification.id);
-                       fetchNotifications();
-                     }}>
-                       Mark as Read
-                     </p>
-                   </div>
-                   {!notification.isRead && (
-                     <div className="absolute top-2 right-2">
-                       <div className="w-2 h-2 bg-red-500 rounded-full" />
-                     </div>
-                   )}
-                 </div>
-               );
-             })}
-           </div>
-         </div>
+                return (
+                  <div key={notification.id} className="flex items-start py-2 border-b gap-2 relative">
+                    <div>
+                      {profilePhoto ? (
+                        <img
+                          src={profilePhoto}
+                          alt="User  Profile"
+                          className="w-6 h-6 rounded-full mt-1.5"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
+                          <i className="fas fa-user text-white text-[12px]" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold">{user ? user.name : 'Unknown'}</p>
+                      <p className="text-sm text-gray-800 font-semibold">{notification.title}</p>
+                      <p className="text-sm text-gray-800">
+                        {renderMessage(notification.message)} {formatDate(notification.createdAt)}
+                      </p>
+                      <p className='text-xs text-gray-600 mt-2 underline cursor-pointer' onClick={async () => {
+                        await markNotificationAsRead(notification.id);
+                        fetchNotifications();
+                      }}>
+                        Mark as Read
+                      </p>
+                    </div>
+                    {!notification.isRead && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
         <button
           onClick={() => handleToggle('profile')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
