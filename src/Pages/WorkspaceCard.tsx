@@ -24,6 +24,7 @@ import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
+import WorkspaceCardList from './WorkspaceCardList';
 
 interface Attachment {
   name: ReactNode;
@@ -157,7 +158,7 @@ const WorkspaceProject = () => {
   const [isSubmitPopupOpen, setIsSubmitPopupOpen] = useState(false);
   const [isCopyPopupOpen, setIsCopyPopupOpen] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
-  const [selectedCardList, setSelectedCardList] = useState<any | null>(null);
+  const [selectedCardList, setSelectedCardList] = useState<any | null>([]);
   const [editingCard, setEditingCard] = useState<editingCard | null>(null);
   const [activeCardRect, setActiveCardRect] = useState<ActiveCardRect | null>(null);
   const [isEditCard, setIsEditCard] = useState(false);
@@ -434,10 +435,10 @@ const WorkspaceProject = () => {
         setBoardName(board ? board.name : 'Project');
 
         const currentBoard = boardData.find((b: { id: string; name: string; backgroundColor: string }) => b.id === boardId);
-        
+
         // Set board name
         setBoardName(currentBoard ? currentBoard.name : 'Project');
-        
+
         // Set backgroundColor dari board yang aktif
         setCurrentBgColor(currentBoard?.backgroundColor || 'bg-white');
 
@@ -543,6 +544,8 @@ const WorkspaceProject = () => {
     cardIdsSocketRef.current = cardIdsSocket;
   }, [cardIdsSocket]);
 
+  const selectedCardListRef = useRef(null);
+
   useEffect(() => {
     if (!boardId) return; // Hentikan jika boardId belum diatur
 
@@ -550,45 +553,7 @@ const WorkspaceProject = () => {
 
     // Listener untuk event socket
     socket.on(`board/${boardId}`, async () => {
-      console.log('Board event detected for:', boardId);
-      console.log('Latest cardData2:', cardData2Ref.current); // Log the latest value of cardData2
       try {
-        // const updatedCardData = await Promise.all(
-        //   cardIdsSocketRef.current.map(async (cardId) => {
-        //     try {
-        //       const cardListData = await fetchCardList(cardId);
-        //       const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
-
-        //       const updatedCardList = await Promise.all(cardList.map(async (list) => {
-        //         if (list.members && list.members.length > 0) {
-        //           try {
-        //             const membersWithPhotos = await Promise.all(
-        //               list.members.map(async (member: { userId: string }) => {
-        //                 try {
-        //                   const photoUrl = await getProfilePhotoMember(member.userId);
-        //                   return { ...member, photoUrl };
-        //                 } catch (error) {
-        //                   console.error(`Error fetching photo for user ${member.userId}:`, error);
-        //                   return { ...member, photoUrl: null };
-        //                 }
-        //               })
-        //             );
-        //             return { ...list, members: membersWithPhotos };
-        //           } catch (error) {
-        //             console.error('Error updating card list:', error);
-        //             return list;
-        //           }
-        //         }
-        //         return list;
-        //       }));
-
-        //       return { cardList: updatedCardList };
-        //     } catch (error) {
-        //       console.error('Error fetching card list:', error);
-        //       return { cardList: [] };
-        //     }
-        //   })
-        // );
         const updatedCardData = await Promise.all(
           cardData2Ref.current.map(async (card: { id: string }) => {
             if (card && card.id) {
@@ -616,18 +581,71 @@ const WorkspaceProject = () => {
             return { ...card, cardList: [] };
           })
         );
+
         setCardData(updatedCardData);
+
+        if (selectedCardList && selectedCardList.id) {
+          const allCardlistData = Object.values(updatedCardData).flatMap((entry) => entry.cardList || []);
+
+          const updatedSelectedData = allCardlistData.find((item) => item.id === selectedCardList.id);
+
+
+          setSelectedCardList({ ...updatedSelectedData })
+
+
+        } else {
+          console.log("selectedCardList.id belum di-set atau selectedCardList kosong.");
+        }
+
+        // Get all card list data
+        // const allCardlistData = updatedCardData.flatMap((entry) => entry.cardList || []);
+        // console.log("allCardlistData", allCardlistData);
+
+        // // Update selected card list if it exists in the updated data
+        // if (selectedCardListRef.current && allCardlistData.some((item) => item.id === selectedCardListRef?.current?.id)) {
+        //   const updatedSelectedData = allCardlistData.find(
+        //     (item) => item.id === selectedCardListRef?.current?.id
+        //   );
+
+        //   setSelectedCardList(updatedSelectedData);
+
+        //   console.log("updatedSelectedData", updatedSelectedData);
+        //   console.log("selectedCardList", selectedCardList);
+
+        // }
+
+
+
+        // console.log("masuk 1");
+        // const updatedSelectedData = updatedCardData.find((item) => {
+        //   return item.cardList.some((list) => list.id === selectedCardList.id);
+        // });
+
+        // if (updatedSelectedData) {
+        //   console.log("masuk 2");
+        //   const matchingCardList = updatedSelectedData.cardList.find(
+        //     (list) => list.id === selectedCardList.id
+        //   );
+
+        //   if (matchingCardList) {
+        //     console.log("masuk 3");
+        //     setSelectedCardList(matchingCardList);
+        //     console.log("Card list found and set to selectedCardList");
+        //   }
+        // }
 
       } catch (error) {
         console.error('Error fetching card:', error);
       }
+
+
     });
 
     return () => {
       socket.off(`board/${boardId}`);
       socket.disconnect();
     };
-  }, [boardId]);
+  }, [boardId, selectedCardList]);
 
   const fetchData2 = async () => {
     try {
@@ -644,8 +662,6 @@ const WorkspaceProject = () => {
             cardResponse.map(async (card: { id: string }) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
-
-                // Hanya tambahkan card.id jika belum ada di cardIdsSocket
                 setCardIdsSocket(prevIds => {
                   if (!prevIds.includes(card.id)) {
                     return [...prevIds, card.id];
@@ -671,13 +687,13 @@ const WorkspaceProject = () => {
                   return list;
                 }));
 
-                return { ...card, cardList: updatedCardList }; // Return card dengan cardList yang diperbarui
+                return { ...card, cardList: updatedCardList };
               }
               return { ...card, cardList: [] };
             })
           );
 
-          setCardData(updatedCardData); // Update cardData dengan data terbaru
+          setCardData(updatedCardData);
         }
       }
     } catch (error) {
@@ -686,7 +702,7 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
-    fetchData2(); // Panggil fetchData2 ketika boardId berubah
+    fetchData2();
   }, [boardId]);
 
   const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
@@ -767,6 +783,52 @@ const WorkspaceProject = () => {
     }
   };
 
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     // Mendapatkan path saat ini
+  //     const currentPath = window.location.pathname;
+  //     const newUrl = `${currentPath}/cardList/${selectedCardList.id}`;
+  //     window.history.pushState({}, '', newUrl);
+  //   }
+  // }, [isPopupOpen, selectedCardList]);
+
+  // const { id } = useParams();
+  // const navigate = useNavigate();
+
+  // // Tambahkan useEffect baru untuk handle initial load
+  // useEffect(() => {
+  //   // Jika ada ID di URL tapi popup belum terbuka
+  //   if (id && !isPopupOpen) {
+  //     // Fetch data cardList berdasarkan ID
+  //     const fetchCardList = async () => {
+  //       try {
+  //         // Ganti ini sesuai dengan fungsi fetch data Anda
+  //         const cardList = await fetchCardListById(id);
+  //         if (cardList) {
+  //           handleOpenPopup(cardList);
+  //         } else {
+  //           // Jika data tidak ditemukan, kembali ke homepage
+  //           navigate('/');
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching card list:', error);
+  //         navigate('/');
+  //       }
+  //     };
+
+  //     fetchCardList();
+  //   }
+  // }, [id]); // Dependency hanya pada id
+
+  // // useEffect untuk handle perubahan state popup
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     navigate(`/cardList/${selectedCardList.id}`, { replace: true }); // Tambahkan replace: true
+  //   } else if (!isPopupOpen) {
+  //     navigate('/', { replace: true }); // Tambahkan replace: true
+  //   }
+  // }, [isPopupOpen, selectedCardList, navigate]);
+
 
   const cancelDeleteCardList = () => {
     setDeleteCardlist(false);
@@ -783,6 +845,7 @@ const WorkspaceProject = () => {
         }
         return card;
       });
+      await fetchData();
 
       setCardData(updatedCardData);
       setSelectedCardList(newCardList);
@@ -854,6 +917,8 @@ const WorkspaceProject = () => {
 
   const handleOpenPopup = async (cardList: any) => {
     setSelectedCardList(cardList);
+    console.log(cardList);
+    console.log(selectedCardList);
     setIsPopupOpen(true);
     setCardlistCustomFields(cardList.customFields)
     setAttachments(cardList.attachmentDetails || []);
@@ -933,6 +998,7 @@ const WorkspaceProject = () => {
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
+      console.log("her", selectedCardList)
       const fetchAttachments = async () => {
         try {
           const attachmentPromises = selectedCardList.attachments?.map(async (attachment: any) => {
@@ -1141,8 +1207,8 @@ const WorkspaceProject = () => {
           </button>
         </div>
       </header>
-      <main className="h-[89%] flex-1 overflow-x-auto">
-      <div className={`flex px-4 py-4 ${currentBgColor} h-full`}>
+      <main className="h-[89%] w-full flex-1 overflow-x-auto">
+        <div className={`flex px-4 py-4 ${currentBgColor} min-w-full w-max h-full`}>
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (
@@ -1157,7 +1223,7 @@ const WorkspaceProject = () => {
 
                 <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
                 <ul className="space-y-2">
-                  {card.cardList?.map((cardList: any, index: any) => (
+                  {card.cardList && card.cardList?.map((cardList: any, index: any) => (
                     <li
                       key={index}
                       className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group"
@@ -1304,11 +1370,11 @@ const WorkspaceProject = () => {
         />
       )}
 
-      {isPopupOpen && selectedCardList && (
-        <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-4">
+      {/* {isPopupOpen && selectedCardList && (
+        <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
-            <div className="sticky top-0 bg-white z-10 p-6 border-b">
-              <div className="flex justify-between items-center mb-4">
+            <div className="sticky top-0 bg-white z-10 p-6">
+              <div className="flex justify-between items-center mb-2">
                 {editingListName ? (
                   <input
                     ref={inputRef}
@@ -1321,7 +1387,7 @@ const WorkspaceProject = () => {
                   />
                 ) : (
                   <h2
-                    className="text-xl font-semibold text-gray-800 cursor-pointer"
+                    className="text-[22px] font-semibold text-gray-800 cursor-pointer"
                     onClick={() => setEditingListName(true)}
                   >
                     {selectedCardList.name}
@@ -1332,18 +1398,38 @@ const WorkspaceProject = () => {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="cardlist flex gap-5 max768:flex-col">
+              <div className="cardlist flex gap-4 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
                   <div className='flex items-center'>
-                    <div className="flex items-center flex-wrap gap-4">
+                    <div className="flex items-center flex-wrap gap-[7px]">
                       {labelColors?.map((color, index) => (
-                        <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-3 h-6 w-24 rounded mb-2`}>
+                        <div key={index} style={{ backgroundColor: color.color, color: getContrastColor(color.color) }} className={`memberColor flex justify-center items-center font-medium text-sm p-1 h-6 w-[101px] rounded`}>
                           {color.name}
                         </div>
                       ))}
                     </div>
-                    <div className='ml-5'>
-                      <label htmlFor="score-select" className="block text-black text-sm font-medium mb-1">
+                  </div>
+
+                  <div className="mt-1 flex items-start justify-between">
+                    <div>
+                      <h2 className="text-black mb-1 font-semibold text-[18px]">Members</h2>
+                      <div className="flex flex-wrap">
+                        {selectedCardList.members && selectedCardList.members.length > 0 ? (
+                          selectedCardList.members.map((member: any) => (
+                            <div key={member.userId} className="flex flex-col items-center">
+                              <img
+                                src={member.photoUrl || '/path/to/default/avatar.png'}
+                                alt={`Profile of ${member.userId}`}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            </div>
+                          ))
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="score-select" className="block text-black text-sm font-medium">
                         Score
                       </label>
                       <select
@@ -1376,26 +1462,7 @@ const WorkspaceProject = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4">
-                    <h2 className="text-black mb-3 font-semibold text-lg">Members</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedCardList.members && selectedCardList.members.length > 0 ? (
-                        selectedCardList.members.map((member: any) => (
-                          <div key={member.userId} className="flex flex-col items-center">
-                            <img
-                              src={member.photoUrl || '/path/to/default/avatar.png'}
-                              alt={`Profile of ${member.userId}`}
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">No members assigned to this card</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
+                  <div>
                     <DescriptionEditor
                       initialDescription={selectedCardList.description}
                       onSave={(description: any) => {
@@ -1403,8 +1470,9 @@ const WorkspaceProject = () => {
                         handleUpdateListName(selectedCardList.id, selectedCardList.name, description, selectedCardList.score);
                       }} cardListId={''} />
                   </div>
+
                   <div>
-                    <h2 className="text-black mb-3 font-semibold text-lg">Details</h2>
+                    <h2 className="text-black mb-1 font-semibold text-[18px]">Details</h2>
                     <div className='flex flex-col gap-3'>
                       {selectedCardList.inReviewById && !selectedCardList.approvedById && (
                         <div className='text-black text-sm'>
@@ -1474,11 +1542,12 @@ const WorkspaceProject = () => {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap">
                     {cardlistCustomFields.map((field) => (
-                      <div key={field.id} className="mb-2 rounded-md w-36 p-1">
+                      <div key={field.id} className="mb-2 rounded-md w-36">
+                        <label className="text-black font-semibold text-[18px]">Custom Field</label>
                         <div className="flex items-center justify-between">
-                          <label className="text-gray-700 text-sm font-semibold">
+                          <label className="block text-black text-sm font-medium">
                             {field.customField.name}
                           </label>
                           <button
@@ -1513,12 +1582,12 @@ const WorkspaceProject = () => {
                   </div>
 
                   <div>
-                    <div className="flex-wrap gap-2">
-                      <h2 className="text-black mb-3 font-semibold text-lg">Attachment</h2>
+                    <div className="flex-wrap">
                       {attachments.map((attachment, index) => (
                         <>
+                          <h2 className="text-black font-semibold text-lg">Attachment</h2>
                           <div className='flex items-center text-black'>
-                            <div className='flex bg-gray-200 my-5 p-0 w-28 h-16 items-center justify-center'
+                            <div className='flex bg-gray-200 p-0 w-28 h-16 items-center justify-center'
                               onClick={() => handleAttachImage(attachment)}>
                               <img
                                 key={index}
@@ -1545,24 +1614,21 @@ const WorkspaceProject = () => {
                         </>
                       ))}
                       {deleteError && <p className="text-red-500 text-sm mt-1">{deleteError}</p>}
-                      {attachments.length === 0 && (
-                        <p className="text-gray-500">No attachment</p>
-                      )}
                     </div>
                   </div>
-                  <div className="activity flex flex-col justify-between mb-3 text-gray-800">
+                  <div className="activity flex flex-col justify-between mt-2 text-gray-800">
                     {checklistData?.map((data, index) => {
                       const completionPercentage = calculateChecklistPercentage(data.items);
 
                       return (
-                        <div key={index} className="checklist-item mb-4">
-                          <div className='flex justify-between items-center mb-2'>
+                        <div key={index} className="checklist-item">
+                          <div className='flex justify-between items-center'>
                             <div className='flex items-center'>
                               <i className='fa-regular fa-square-check mr-3 text-lg'></i>
                               <h1 className='text-md items-center'>{data.name}</h1>
                             </div>
                             <div className='flex gap-1 items-center'>
-                              <span className="text-sm text-gray-600 mr-2">{completionPercentage}%</span>
+                              <span className="text-sm text-gray-800 mr-2">{completionPercentage}%</span>
                               <i
                                 className="fa-regular fa-pen-to-square hover:text-blue-500 cursor-pointer"
                                 onClick={() => handleOpenChecklistPopup(selectedCardList, true, () => setExistingChecklistData(data))}
@@ -1574,12 +1640,15 @@ const WorkspaceProject = () => {
                             </div>
                           </div>
 
-                          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 flex items-center">
                             <div
-                              className="bg-blue-600 h-2.5 rounded-full"
-                              style={{ width: `${completionPercentage}%` }}
+                              className="bg-blue-600 h-1 rounded-full"
+                              style={{
+                                width: `${completionPercentage}%`,
+                              }}
                             ></div>
                           </div>
+
 
                           <div className='flex justify-between text-[10px] mb-2'>
                             <p>Start Date: {data.startDate}</p>
@@ -1685,9 +1754,55 @@ const WorkspaceProject = () => {
             </div>
           </div>
         </div>
+      )} */}
+
+      {isPopupOpen && selectedCardList && (
+        <>
+          <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+              <div className="sticky top-0 bg-white z-10 p-6">
+                <WorkspaceCardList
+                  editingListName={editingListName}
+                  inputRef={inputRef}
+                  selectedCardList={selectedCardList}
+                  setSelectedCardList={setSelectedCardList}
+                  handleUpdateListName={handleUpdateListName}
+                  setEditingListName={setEditingListName}
+                  handleClosePopup={handleClosePopup}
+                  labelColors={labelColors}
+                  getContrastColor={getContrastColor}
+                  inReviewPhoto={inReviewPhoto}
+                  approvedPhoto={approvedPhoto}
+                  cardlistCustomFields={cardlistCustomFields}
+                  handleRemoveCustomField={handleRemoveCustomField}
+                  handleSelectChange={handleSelectChange}
+                  attachments={attachments}
+                  handleAttachImage={handleAttachImage}
+                  handleDownloadAttachment={handleDownloadAttachment}
+                  handleDeleteAttachmentClick={handleDeleteAttachmentClick}
+                  isDeleting={isDeleting}
+                  deleteError={deleteError}
+                  checklistData={checklistData}
+                  calculateChecklistPercentage={calculateChecklistPercentage}
+                  handleOpenChecklistPopup={handleOpenChecklistPopup}
+                  setExistingChecklistData={setExistingChecklistData}
+                  handleToggleIsDone={handleToggleIsDone}
+                  handleDeleteChecklist={handleDeleteChecklist}
+                  handleJoinClick={handleJoinClick}
+                  handleOpenMemberPopup={handleOpenMemberPopup}
+                  handleOpenLabelsPopup={handleOpenLabelsPopup}
+                  handleOpenDatesPopup={handleOpenDatesPopup}
+                  handleOpenAttachPopup={handleOpenAttachPopup}
+                  handleOpenCopyPopup={handleOpenCopyPopup}
+                  handleDeleteCardList={handleDeleteCardList}
+                  setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
+                />
+              </div>
+            </div>
+          </div>
+        </>
       )}
-
-
+      
       <div className='text-black'>
         <CustomFieldSettings
           isOpen={isCustomFieldModalOpen}

@@ -154,13 +154,11 @@ const WorkspaceMembers: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  // Filter function for members
   const filteredMembers = members.filter(member =>
     member?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Filter function for requests
   const filteredRequests = requests.filter(request =>
     request?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     request?.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -207,6 +205,7 @@ const WorkspaceMembers: React.FC = () => {
                     Workspace members can view and join all Workspace visible boards and create new boards in the Workspace.
                   </p>
                 </div>
+                {currentUserId === workspace?.ownerId && (
                 <div className="bg-white p-0 lg:p-4 border-t-[1.5px] border-b-[1.5px] text-black border-gray-200 mb-8">
                   <h3 className="text-lg font-semibold">Invite members to join you</h3>
                   <div className='flex flex-col lg:flex-row justify-between'>
@@ -238,6 +237,7 @@ const WorkspaceMembers: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                )}
                 <div className="mb-8">
                   <input
                     type="text"

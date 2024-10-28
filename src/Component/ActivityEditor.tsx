@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bold, Italic, Link2, Image, List, ChevronDown, Type } from 'lucide-react';
+import { Bold, Italic, Link2, Image, List, ChevronDown, Type, X } from 'lucide-react';
 import { createActivity, updateActivity, getActivitiesByCardListId, deleteActivity, createComment, updateComment, getCommentByCardListId, deleteComment } from '../hooks/fetchCardList';
+import config from '../config/baseUrl';
 import { getProfilePhotoMember } from '../hooks/fetchWorkspace';
-import useAuth from '../hooks/fetchAuth';
+import axios from 'axios';
 
 interface ActivityEditorProps {
   selectedCardList: any;
@@ -21,6 +22,15 @@ interface SavedItem {
   type: 'activity' | 'comment';
 }
 
+interface activityItems {
+  id: string;
+  content: string;
+  timestamp: string;
+  userId: string;
+  name?: string;
+  photo?: string;
+}
+
 const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initialActivity, onSave, cardListId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [activity, setActivity] = useState(initialActivity);
@@ -31,11 +41,20 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
   const [showHeadingDropdown, setShowHeadingDropdown] = useState(false);
   const [showListDropdown, setShowListDropdown] = useState(false);
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [activityItems, setActivityItems] = useState<activityItems[]>([]);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemType, setEditingItemType] = useState<'activity' | 'comment' | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { getUserDataById } = useAuth(() => { }, () => { });
-  const [userData, setUserData] = useState<{ [key: string]: { name: string; email: string } }>({});
+
+  const [showDetailPopup, setShowDetailPopup] = useState(false); // State untuk mengontrol popup
+
+  const handleShowDetail = () => {
+    setShowDetailPopup(true); // Menampilkan popup
+  };
+
+  const handleClosePopup = () => {
+    setShowDetailPopup(false); // Menyembunyikan popup
+  };
 
   const headingOptions = [
     { label: 'Normal text', value: 'normal' },
@@ -58,18 +77,31 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
     fetchAllItems();
   }, [cardListId]);
 
-  useEffect(() => {
-    selectedCardList?.members?.forEach((member: { userId: any }) => {
-      const id = member.userId;
-      getUserDataById(id)
-        .then((data: any) => {
-          setUserData((prevUserData) => ({ ...prevUserData, [id]: data }));
-        })
-        .catch((error: any) => {
-          console.error(error);
-        });
-    });
-  }, [selectedCardList]);
+  // useEffect(() => {
+  //   selectedCardList?.members?.forEach((member: { userId: any }) => {
+  //     const id = member.userId;
+  //     getUserDataById(id)
+  //       .then((data: any) => {
+  //         setUserData((prevUserData) => ({ ...prevUserData, [id]: data }));
+  //       })
+  //       .catch((error: any) => {
+  //         console.error(error);
+  //       });
+  //   });
+  // }, [selectedCardList]);
+
+  const getUserDataById = async (id: string | number): Promise<any> => {
+    try {
+      const response = await axios.get(`${config}/user/user-data/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching user data by id:', error);
+      return null;
+    }
+  };
+
 
   const fetchAllItems = async () => {
     try {
@@ -81,14 +113,16 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
       const processedActivities = await Promise.all(
         activities.map(async (act: any) => {
           const photo = await getProfilePhotoMember(act.userId);
+          const userData = await getUserDataById(act.userId); // Fetch user data
           return {
             id: act.id,
             content: act.activity,
-            timestamp: new Date(act.createdAt).toLocaleString(),
-            name: userData[act.userId]?.name || 'Unknown',
+            timestamp: new Date(act.date).toLocaleString(),
             userId: act.userId,
             photo: photo,
-            type: 'activity' as const
+            name: userData ? userData.name : '', // Add name field
+            type: 'activity' as const,
+            replies: [] // No replies for activities
           };
         })
       );
@@ -96,17 +130,35 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
       const processedComments = await Promise.all(
         comments.map(async (comment: any) => {
           const photo = await getProfilePhotoMember(comment.userId);
+          const userData = await getUserDataById(comment.userId); // Fetch user data
+          const replies = comment.replies || []; // Assuming replies are included in the comment object
           return {
             id: comment.id,
-            content: comment.comment,
+            content: comment.content,
             timestamp: new Date(comment.createdAt).toLocaleString(),
-            name: userData[comment.userId]?.name || 'Unknown',
             userId: comment.userId,
             photo: photo,
-            type: 'comment' as const
+            name: userData ? userData.name : '', // Add name field
+            type: 'comment' as const,
+            replies: await Promise.all(
+              replies.map(async (reply: any) => {
+                const replyPhoto = await getProfilePhotoMember(reply.userId);
+                const replyUserData = await getUserDataById(reply.userId); // Fetch user data for reply
+                return {
+                  id: reply.id,
+                  content: reply.content,
+                  timestamp: new Date(reply.createdAt).toLocaleString(),
+                  userId: reply.userId,
+                  photo: replyPhoto,
+                  name: replyUserData ? replyUserData.name : ''
+                };
+              })
+            )
           };
         })
       );
+
+      setActivityItems(processedActivities)
       const allItems = [...processedActivities, ...processedComments]
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -258,13 +310,9 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
     setEditingItemType(savedItem.type);
   };
 
-  const handleDelete = async (id: string, type: 'activity' | 'comment') => {
+  const handleDelete = async (id: string) => {
     try {
-      if (type === 'comment') {
-        await deleteComment(id);
-      } else {
-        await deleteActivity(id);
-      }
+      await deleteComment(id);
       await fetchAllItems();
     } catch (error) {
       console.error('Failed to delete:', error);
@@ -272,9 +320,66 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
   };
 
   return (
-    <div className="w-full mb-4">
-      <h2 className="text-black mb-3 font-semibold text-lg">Activity</h2>
-
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-black font-semibold text-lg">Activity</h2>
+        <button
+          className="bg-gray-300 teks-sm text-gray-800 px-3 rounded btn btn-sm border-none hover:bg-gray-500"
+          onClick={handleShowDetail} // Menambahkan onClick untuk tombol
+        >
+          Show Detail
+        </button>
+      </div>
+      {showDetailPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg w-11/12 max-w-md flex flex-col max-h-[90vh]">
+          {/* Header - Fixed at top */}
+          <div className="p-4 border-b flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-black">Detail Activities</h3>
+            <button
+              onClick={handleClosePopup}
+              className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
+          </div>
+  
+          {/* Content - Scrollable */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex flex-col gap-2">
+              {activityItems.map((activity) => (
+                <div key={activity.id} className="text-gray-800 flex items-start">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
+                    {activity.photo ? (
+                      <img
+                        src={activity.photo}
+                        alt={`${activity.name}'s profile`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-gray-500 font-bold">
+                        {activity.name?.charAt(0)?.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-sm">{activity.name}</span>
+                      <span className="text-sm text-gray-600 italic">
+                        {activity.content}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap text-xs gap-1 mt-1 justify-between">
+                      <span className="text-gray-500">{activity.timestamp}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
       {!isEditing ? (
         <div
           className="bg-gray-300 text-gray-600 py-1 px-2 rounded min-h-[35px] cursor-pointer break-words overflow-hidden"
@@ -283,7 +388,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
           <span className="text-gray-600">Write an Activity...</span>
         </div>
       ) : (
-        <div className="border rounded">
+        <div className="border rounded text-gray-800">
           <div className="flex items-center gap-2 p-2 border-b bg-gray-100">
             <div className="relative">
               <button
@@ -358,12 +463,6 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
               <Link2 size={16} />
             </button>
 
-            <button
-              className="p-1 hover:bg-gray-200 rounded"
-              onClick={() => applyTextStyle('image')}
-            >
-              <Image size={16} />
-            </button>
 
             {showLinkDialog && (
               <div className="absolute bg-white border p-4 rounded shadow-md">
@@ -429,7 +528,7 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
         </div>
       )}
 
-      <div className="mt-2 p-2">
+      <div className="flex flex-col mt-3 gap-2">
         {savedItems?.map((savedActivity: any) => (
           <div key={savedActivity?.id} className='text-gray-800 mb-2 flex items-start'>
             <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
@@ -445,21 +544,62 @@ const ActivityEditor: React.FC<ActivityEditorProps> = ({ selectedCardList, initi
                 </span>
               )}
             </div>
-            <div className="flex-grow">
-              <div className="flex items-center">
-                <span className="font-medium text-[14px] pr-3">{userData[savedActivity?.userId]?.name}</span>
-                <span className="text-[14px]">{savedActivity.content}</span>
+            <div className="flex-grow mt-[-5px]">
+              <div className={`flex ${savedActivity.type === 'comment' ? 'flex-col' : ''}`}>
+                <span className="font-medium text-[14px] pr-1 ">{savedActivity.name}</span>
+                <span className={`text-[14px] ${savedActivity.type === 'comment' ? 'bg-gray-300 p-1 rounded-md' : 'text-gray-600 italic'}`}>
+                  {savedActivity.content}
+                </span>
               </div>
-              <div className='flex flex-wrap text-[13px] gap-1 mt-1'>
-                <span className="text-gray-500">{savedActivity.timestamp}</span>
-                <button className="text-gray-500 hover:underline" onClick={() => handleEdit(savedActivity)}>
-                  Edit
-                </button>
-                <span>•</span>
-                <button className="text-gray-500 hover:underline" onClick={() => handleDelete(savedActivity.id)}>
-                  Delete
-                </button>
+              <div className='flex flex-wrap text-[12px] gap-1 mt-1 justify-between'>
+                <span className={`text-gray-500 ${savedActivity.type === 'comment' ? '' : '-mt-1'}`}>{savedActivity.timestamp}</span>
+                <div className='flex gap-1'>
+                  {savedActivity.type === 'comment' && (
+                    <>
+                      <button className="text-gray-500 hover:underline" onClick={() => handleEdit(savedActivity)}>
+                        Edit
+                      </button>
+                      <span>•</span>
+                      <button className="text-gray-500 hover:underline" onClick={() => handleDelete(savedActivity.id)}>
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
+              {/* Menampilkan balasan di bawah komentar */}
+              {savedActivity.type === 'comment' && savedActivity.replies?.length > 0 && (
+                <div className="ml-4 mt-2 pl-4 border-l-2 border-gray-200">
+                  {savedActivity.replies.map((reply: any) => (
+                    <div key={reply.id} className='text-gray-800 mb-2 flex items-start'>
+                      <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
+                        {reply.photo ? (
+                          <img
+                            src={reply.photo}
+                            alt={`${reply.name}'s profile`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-500 font-bold">
+                            {reply.name?.charAt(0)?.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-grow mt-[-5px]">
+                        <div className={`flex flex-col`}>
+                          <span className="font-medium text-[14px] pr-1 ">{reply.name}</span>
+                          <span className={`text-[14px] bg-gray-300 p-1 rounded-md`}>
+                            {reply.content}
+                          </span>
+                        </div>
+                        <div className='flex flex-wrap text-[12px] gap-1 mt-1 justify-between'>
+                          <span className={`text-gray-500`}>{reply.timestamp}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
