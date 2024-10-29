@@ -1173,21 +1173,29 @@ const WorkspaceProject = () => {
     }
   }
   const handleToggleIsDone = async (checklistData: any, itemIndex: number, isChecked: boolean, idChecklist: string) => {
+    // Find the original item's index in the unsorted array
+    const sortedItems = [...checklistData.items].sort((a, b) => 
+        String(a.name).localeCompare(String(b.name))
+    );
+    const item = sortedItems[itemIndex];
+    const originalIndex = checklistData.items.findIndex((originalItem: any) => 
+        originalItem.name === item.name
+    );
+
     const updatedItems = [...checklistData.items];
-    updatedItems[itemIndex].isDone = isChecked;
-
+    updatedItems[originalIndex].isDone = isChecked;
+    
     const data = {
-      idChecklist: idChecklist,
-      checklistData: {
-        name: checklistData.name,
-        startDate: checklistData.startDate,
-        endDate: checklistData.endDate,
-        items: updatedItems,
-      },
+        idChecklist: idChecklist,
+        checklistData: {
+            name: checklistData.name,
+            startDate: checklistData.startDate,
+            endDate: checklistData.endDate,
+            items: updatedItems,
+        },
     };
-
     await updateChecklist(data);
-    handleTakeCardlistChecklist()
+    handleTakeCardlistChecklist();
   };
 
 
@@ -1251,7 +1259,7 @@ const WorkspaceProject = () => {
         </div>
       </header>
       <main className="h-[89%] w-full flex-1 overflow-x-auto">
-        <div className={`flex px-4 py-4 ${currentBgColor} min-w-full w-max h-full`}>
+        <div className={`flex px-4 py-4 ${currentBgColor} min-w-full w-max h-max min-h-full`}>
           {cardData.length === 0 ? (
             <p className="mr-6">No cards available</p>
           ) : (

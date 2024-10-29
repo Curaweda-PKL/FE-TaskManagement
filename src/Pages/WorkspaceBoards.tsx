@@ -161,7 +161,6 @@ const WorkspaceBoards: React.FC = () => {
       } else {
         errorMessage = 'Failed to create board. Please try again.';
       }
-
       setAlert({ type: 'error', message: errorMessage });
     }
   };
