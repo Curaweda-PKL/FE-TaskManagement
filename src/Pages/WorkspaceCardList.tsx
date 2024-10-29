@@ -37,10 +37,12 @@ interface WorkspaceCardListProps {
     handleOpenCopyPopup?: any;
     handleDeleteCardList?: any;
     setIsCustomFieldModalOpen?: any;
+    isCopied?: any;
+    handleShareClick?: any;
 }
 
 
-const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen }) => {
+const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen, isCopied, handleShareClick }) => {
     const MAX_VISIBLE_MEMBERS = 2;
     return (
         <>
@@ -486,8 +488,8 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         onClick={() => handleOpenCopyPopup(selectedCardList)}>
                         <i className="fas fa-copy"></i>Copy
                     </div>
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                        <i className="fas fa-share"></i>Share
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"  onClick={handleShareClick}>
+                        <i className="fas fa-share"></i>{isCopied ? 'Copied!' : 'Share'}
                     </div>
                     <>
                         <div
