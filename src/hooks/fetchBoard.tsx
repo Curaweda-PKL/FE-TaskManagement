@@ -1,5 +1,8 @@
 import axios from 'axios';
 import config from '../config/baseUrl';
+// import { useParams, useNavigate } from 'react-router-dom';
+// const navigate = useNavigate();
+
 
 export const fetchBoards = async (workspaceId: any) => {
   try {
@@ -13,6 +16,7 @@ export const fetchBoards = async (workspaceId: any) => {
     return response.data;
   } catch (error) {
     console.error('Failed to fetch boards:', error);
+    // window.location.reload();
     throw error;
   }
 };
