@@ -4,7 +4,6 @@ import {
   createCustomField,
   createCustomFieldOption,
   deleteCustomField,
-  deleteCustomFieldOption
 } from '../hooks/fetchCustomFields';
 
 interface CustomField {
@@ -114,7 +113,7 @@ const CustomFieldSettings: React.FC<CustomFieldSettingsProps> = ({ isOpen, onClo
       const validOptions = newField.options.filter(opt => opt !== '');
       
       for (const option of validOptions) {
-        await createCustomFieldOption( currentFieldId, option, '#000000');
+        await createCustomFieldOption(currentFieldId, option, '#000000');
       }
 
       await loadCustomFields();
@@ -178,7 +177,7 @@ const CustomFieldSettings: React.FC<CustomFieldSettingsProps> = ({ isOpen, onClo
                   <div>
                     <h4 className="font-medium">{field.name}</h4>
                     <p className="text-sm text-gray-600">Type: {field.type}</p>
-                    {field.type === 'DROPDOWN' && field.options && (
+                    {(field.type === 'DROPDOWN') && field.options && (
                       <p className="text-sm text-gray-600">
                         Options: {field.options.map(opt => opt.value).join(', ')}
                       </p>
@@ -244,24 +243,46 @@ const CustomFieldSettings: React.FC<CustomFieldSettingsProps> = ({ isOpen, onClo
                 >
                   <option value="">Select field type</option>
                   <option value="DROPDOWN">Dropdown</option>
+                  <option value="TEXT">Text</option>
+                  <option value="NUMBER">Number</option>
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2">
-                <button 
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 border rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleCreateField}
-                  disabled={loading}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
-                >
-                  Create
-                </button>
-              </div>
+              {(newField.type === 'DROPDOWN') && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium mb-1">Options</label>
+                  {newField.options.map((opt, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={opt}
+                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                        placeholder={`Option ${index + 1}`}
+                        className="w-full bg-gray-300 px-4 py-2 border rounded-md"
+                      />
+                      <button
+                        onClick={() => handleRemoveOption(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleAddOption}
+                    className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-2"
+                  >
+                    Add Option
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={handleCreateField}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full"
+              >
+                Create Field
+              </button>
             </div>
           </div>
         </div>
@@ -286,47 +307,40 @@ const CustomFieldSettings: React.FC<CustomFieldSettingsProps> = ({ isOpen, onClo
               </button>
             </div>
 
-            <div className="space-y-4 p-4">
-              {newField.options.map((opt, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={opt}
-                    onChange={(e) => handleOptionChange(index, e.target.value)}
-                    placeholder="Add Item..."
-                    className="w-full bg-gray-300 px-4 py-2 border rounded-md"
-                  />
-                  <button 
-                    onClick={() => handleRemoveOption(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-              ))}
-
-              <button 
-                onClick={handleAddOption}
-                className="text-purple-600 hover:underline"
-              >
-                + Add Option
-              </button>
-
-              <div className="flex justify-end gap-2">
-                <button 
-                  onClick={() => setIsOptionsModalOpen(false)}
-                  className="px-4 py-2 border rounded-md hover:bg-gray-50"
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Options</label>
+                {newField.options.map((opt, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => handleOptionChange(index, e.target.value)}
+                      placeholder={`Option ${index + 1}`}
+                      className="w-full bg-gray-300 px-4 py-2 border rounded-md"
+                    />
+                    <button
+                      onClick={() => handleRemoveOption(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={handleAddOption}
+                  className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-2"
                 >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleCreateOptions}
-                  disabled={loading}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
-                >
-                  Create Options
+                  Add Option
                 </button>
               </div>
+
+              <button
+                onClick={handleCreateOptions}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-700 transition duration-300 w-full"
+              >
+                Save Options
+              </button>
             </div>
           </div>
         </div>

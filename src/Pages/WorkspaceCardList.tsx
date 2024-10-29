@@ -17,6 +17,7 @@ interface WorkspaceCardListProps {
     cardlistCustomFields?: any;
     handleRemoveCustomField?: any;
     handleSelectChange?: any;
+    handleInputChange?: any;
     attachments?: any;
     handleAttachImage?: any;
     handleDownloadAttachment?: any;
@@ -40,7 +41,7 @@ interface WorkspaceCardListProps {
 }
 
 
-const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleSelectChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen }) => {
+const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleSelectChange, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen }) => {
     return (
         <>
             <div className="flex justify-between items-center mb-2">
@@ -143,7 +144,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                     <div>
                         <h2 className="text-black mb-1 font-semibold text-[18px]">Details</h2>
                         <div className='flex flex-col gap-3'>
-                            {selectedCardList.inReviewById && !selectedCardList.approvedById && (
+                            {selectedCardList.inReviewById && (
                                 <div className='text-black text-sm'>
                                     <div>In Review By</div>
                                     <div className='flex gap-2 items-center'>
@@ -212,9 +213,9 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         </div>
                     </div>
                     <div className="flex flex-wrap">
+                        <label className="text-black font-semibold text-[18px] mb-2 w-full">Custom Field</label>
                         {cardlistCustomFields.map((field: any) => (
-                            <div key={field.id} className="mb-2 rounded-md w-36">
-                                <label className="text-black font-semibold text-[18px]">Custom Field</label>
+                            <div key={field.id} className="mb-4 mr-2 rounded-md w-32">
                                 <div className="flex items-center justify-between">
                                     <label className="block text-black text-sm font-medium">
                                         {field.customField.name}
@@ -228,6 +229,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         <i className="fas fa-trash text-[12px]"></i>
                                     </button>
                                 </div>
+
                                 {field.customField.type === 'DROPDOWN' && (
                                     <select
                                         className="p-1 bg-gray-300 rounded w-full text-gray-800 mt-1"
@@ -246,16 +248,47 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         ))}
                                     </select>
                                 )}
+
+                                {field.customField.type === 'TEXT' && (
+                                    <input
+                                        type="text"
+                                        className="p-1 bg-gray-300 rounded w-full text-gray-800 placeholder-black mt-1"
+                                        placeholder={field.value || `Enter ${field.customField.name}`}
+                                        value={field.selectedValue || ""}
+                                        onFocus={(e) => e.target.select()}
+                                        onChange={(e) =>
+                                            handleInputChange(e, field.customField.id, selectedCardList.id)
+                                        }
+                                    />
+                                )}
+
+                                {field.customField.type === 'NUMBER' && (
+                                    <input
+                                        type="number"
+                                        className="p-1 bg-gray-300 rounded w-full text-gray-800 placeholder-black mt-1"
+                                        placeholder={field.value || `Enter ${field.customField.name}`}
+                                        value={field.selectedValue || ""}
+                                        onFocus={(e) => e.target.select()}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (!isNaN(value) || value === '') {
+                                                handleInputChange(e, field.customField.id, selectedCardList.id);
+                                            }
+                                        }}
+                                    />
+                                )}
                             </div>
                         ))}
                     </div>
 
+
                     <div>
                         <div className="flex-wrap">
+                            <h2 className="text-black font-semibold text-lg">Attachment</h2>
                             {attachments.map((attachment: any, index: number) => (
                                 <>
-                                    <h2 className="text-black font-semibold text-lg">Attachment</h2>
-                                    <div className='flex items-center text-black'>
+
+                                    <div className='flex items-center mb-1 text-black'>
                                         <div className='flex bg-gray-200 p-0 w-28 h-16 items-center justify-center'
                                             onClick={() => handleAttachImage(attachment)}>
                                             <img
@@ -410,14 +443,21 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         <i className="fas fa-clock"></i>Dates
                     </div>
 
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4"
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
                         onClick={() => handleOpenAttachPopup(selectedCardList)}>
                         <i className="fas fa-paperclip"></i>Attachment
+                    </div>
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black  mb-4"
+                        onClick={() => setIsCustomFieldModalOpen(true)}>
+                        Custom Field
                     </div>
 
                     <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
                         onClick={() => handleOpenCopyPopup(selectedCardList)}>
                         <i className="fas fa-copy"></i>Copy
+                    </div>
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
+                        <i className="fas fa-share"></i>Share
                     </div>
                     <>
                         <div
@@ -427,14 +467,6 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                             <i className="fas fa-trash"></i>Delete
                         </div>
                     </>
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                        <i className="fas fa-share"></i>Share
-                    </div>
-
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black"
-                        onClick={() => setIsCustomFieldModalOpen(true)}>
-                        Custom Field
-                    </div>
                 </div>
             </div>
         </>

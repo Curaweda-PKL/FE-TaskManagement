@@ -137,6 +137,7 @@ const WorkspaceProject = () => {
 
 
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
+  const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<any[]>([]);
   const [visibleMembers, setVisibleMembers] = useState<any[]>([]);
   const [remainingCount, setRemainingCount] = useState<number>(0);
@@ -970,7 +971,7 @@ const WorkspaceProject = () => {
   };
 
   const handleCustomFieldClick = async (customField: any) => {
-    if (customField.type === 'DROPDOWN') {
+    if (customField.type) {
       try {
         await addCardlistCustomField(selectedCardList.id, customField.id);
       } catch (error) {
@@ -1005,6 +1006,21 @@ const WorkspaceProject = () => {
     }
   };
 
+  const handleInputChange = async (e: any, customFieldId: any, cardListId: any) => {
+    const newValue = e.target.value;
+    try {
+        const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
+        console.log("Custom field updated successfully:", response);
+        const updatedFields = cardlistCustomFields.map((field) =>
+            field.customField.id === customFieldId
+                ? { ...field, selectedValue: newValue }
+                : field
+        );
+        setCardlistCustomFields(updatedFields);
+    } catch (error) {
+        console.error("Failed to update custom field value:", error);
+    }
+};
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
@@ -1185,6 +1201,23 @@ const WorkspaceProject = () => {
 
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
+
+  useEffect(() => {
+    setLoading(true);
+
+    setTimeout(() => {
+      fetchData()
+      setLoading(false);
+    }, 1000);
+  }, [workspaceId, boardId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <span className="text-xl font-medium text-gray-700">Loading...</span>
+      </div>
+    );
+  }
 
 
   return (
@@ -1786,6 +1819,7 @@ const WorkspaceProject = () => {
                   cardlistCustomFields={cardlistCustomFields}
                   handleRemoveCustomField={handleRemoveCustomField}
                   handleSelectChange={handleSelectChange}
+                  handleInputChange={handleInputChange}
                   attachments={attachments}
                   handleAttachImage={handleAttachImage}
                   handleDownloadAttachment={handleDownloadAttachment}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import useAuth from '../hooks/fetchAuth';
 import { fetchWorkspaces, joinWorkspace, requestJoinWorkspace } from '../hooks/fetchWorkspace';
@@ -28,6 +28,7 @@ const Workspace: React.FC = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [joinWorkspaceId, setJoinWorkspaceId] = useState<string>('');
   const [isPrivateWorkspace, setIsPrivateWorkspace] = useState(false);
+  const navigate = useNavigate();
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
   const openModal = () => setIsModalOpen(true);
@@ -49,7 +50,7 @@ const Workspace: React.FC = () => {
       try {
         if (userData) {
           setCurrentUserId(userData.id);
-          console.log("Current User ID:", userData.id); // Untuk debugging
+          console.log("Current User ID:", userData.id);
         }
       } catch (error) {
         console.error("Error setting currentUserId:", error);
@@ -59,7 +60,7 @@ const Workspace: React.FC = () => {
   }, [userData]);
 
   const isOwner = (workspace: any) => {
-    if (!workspace || !currentUserId) return false; 
+    if (!workspace || !currentUserId) return false;
     return workspace.ownerId === currentUserId;
   };
 
@@ -105,7 +106,7 @@ const Workspace: React.FC = () => {
         socket.disconnect();
       };
     } catch (err: any) {
-      // handleApiError(err);
+      handleApiError(err)
       setError(err.message);
       setLoading(false);
       setAlert({ type: 'error', message: 'Failed to fetch workspace data. Please try again later.' });
@@ -148,14 +149,16 @@ const Workspace: React.FC = () => {
     }
   };
 
-  // const handleApiError = (error: any) => {
-  //   if (error.response?.status === 401) {
-  //     navigate('/signin');
-  //   } else {
-  //     setError(error.message);
-  //     setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
-  //   }
-  // };
+  const handleApiError = (error: any) => {
+    if (error?.response?.status === 401 && error?.response?.status === 500) {
+        localStorage.removeItem("Token");
+        window.location.reload();
+    } else {
+        setError(error?.message);
+        setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
+    }
+};
+
 
   const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {

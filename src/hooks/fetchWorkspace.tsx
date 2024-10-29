@@ -345,3 +345,31 @@ export const getBoardRanks = async (boardId: any, startDate: string, endDate: st
     throw error;
   }
 };
+
+export const updateRoleMember = async (workspaceId: any, memberId: any, role: any) => {
+  try {
+    const response = await axios.put(
+      `${config}/workspace/update-role-member`,
+      {
+        workspaceId,
+        memberId,
+        role
+      },
+      {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update role for member:', error);
+    throw error;
+  }
+};
