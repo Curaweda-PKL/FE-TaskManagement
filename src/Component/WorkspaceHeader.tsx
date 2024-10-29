@@ -3,6 +3,7 @@ import { generateLinkWorkspace, joinRequestsWorkspace, requestWorkspace } from '
 import useAuth from '../hooks/fetchAuth';
 
 interface Workspace {
+  color: string;
   name: string;
   id: string;
   description?: string;
@@ -59,9 +60,13 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     fetchData();
   }, [userData]);
 
-  const isOwner = (workspace: any) => {
-    if (!workspace || !currentUserId) return false; 
-    return workspace.ownerId === currentUserId;
+  const isAdminOrOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false;
+
+    console.log(workspace)
+
+    const currentUser = workspace.members.find(member => member.userId === currentUserId);
+    return currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'OWNER');
   };
 
   useEffect(() => {
@@ -163,7 +168,9 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           </div>
         )}
         <div className="flex sm:items-center md:px-10 px-5 font-sem">
-          <div className="min-w-11 h-11 sm:w-14 sm:h-14 rounded bg-red-700 mr-3"></div>
+          <div 
+            className="min-w-11 h-11 sm:w-14 sm:h-14 rounded mr-3"
+            style={{ backgroundColor: workspace?.color || '#EF4444' }}></div>
           <div>
             <h1 className="text-xl -mt-1 text-gray-600 font-semibold flex items-center">
               {workspace ? workspace.name : 'Loading...'}
@@ -185,7 +192,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </p>
           </div>
         </div>
-        {isOwner(workspace) && (
+        {isAdminOrOwner(workspace) && (
         <button onClick={handleOpenModal}><i className='fas fa-bars' /></button>
         )}
       </div>
@@ -217,6 +224,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               <i className="fas fa-times text-black cursor-pointer" onClick={() => setIsInviteOpen(false)} />
             </div>
             <div className="px-4 pb-3 flex flex-col space-y-2">
+              {inviteLinkEnabled && (
               <button
                 className='flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md'
                 onClick={handleCopyLink}
@@ -224,6 +232,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 <i className="fas fa-link mr-2" />
                 Invite with link
               </button>
+              )}
               <button
                 className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
                 onClick={handleCopyId}

@@ -1,28 +1,41 @@
-import React, { useState } from 'react';
-import { X } from 'phosphor-react';
+import React, { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import createWork from '../assets/Media/createWork.svg';
 import work from '../assets/Media/work.png';
 
 interface CreateWorkspaceProps {
   workspaceName: string;
   workspaceDescription: string;
+  workspaceColor: string;
   setWorkspaceName: (name: string) => void;
   setWorkspaceDescription: (description: string) => void;
+  setWorkspaceColor: (color: string) => void;
   onClose: () => void;
-  onCreate: (name: string, description: string) => Promise<void>;
+  onCreate: (name: string, description: string, color: string) => Promise<void>;
   isEditMode: boolean;
 }
+
+const DEFAULT_COLOR = '#EF4444';
 
 const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
   workspaceName,
   workspaceDescription,
+  workspaceColor,
   setWorkspaceName,
   setWorkspaceDescription,
+  setWorkspaceColor,
   onClose,
   onCreate,
   isEditMode,
 }) => {
   const [error, setError] = useState<string | null>(null);
+
+  // Set warna default saat komponen pertama kali dimount jika tidak ada warna yang dipilih
+  useEffect(() => {
+    if (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') {
+      setWorkspaceColor(DEFAULT_COLOR);
+    }
+  }, []);
 
   const handleSubmit = async () => {
     if (!workspaceName.trim()) {
@@ -31,13 +44,23 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
     }
 
     try {
-      setError(null); // Reset error if submission is successful
-      await onCreate(workspaceName, workspaceDescription);
+      setError(null);
+      // Pastikan warna yang dikirim tidak kosong atau putih
+      const finalColor = (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
+        ? DEFAULT_COLOR 
+        : workspaceColor;
+        
+      await onCreate(workspaceName, workspaceDescription, finalColor);
       onClose();
     } catch (error) {
       console.error('Failed to create or edit workspace:', error);
     }
   };
+
+  // Memastikan input color dan text selalu menampilkan warna yang valid
+  const displayColor = (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
+    ? DEFAULT_COLOR 
+    : workspaceColor;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -54,12 +77,17 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             </label>
             <input
               type="text"
-              className={`w-full px-3 py-2 bg-white border ${
+              className={`w-full px-3 py-2 bg-white text-black border ${
                 error ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Workspace..."
               value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
+              onChange={(e) => {
+                const capitalizeWords = (str: string) =>
+                  str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                setWorkspaceName(capitalizeWords(e.target.value));
+              }}
+
             />
             {error && (
               <p className="text-xs text-red-500 mt-1">{error}</p>
@@ -68,12 +96,12 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
               This is the name of your team or your organization.
             </p>
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Workspace description
             </label>
             <textarea
-              className="w-full px-3 py-2 bg-white border border-gray-300"
+              className="w-full h-24 px-3 py-2 bg-white text-black border border-gray-300"
               rows={4}
               placeholder="Our workspace is..."
               value={workspaceDescription}
@@ -82,6 +110,33 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             <p className="text-xs text-gray-500 mt-1">
               Get your members on board with a few words about your Workspace.
             </p>
+          </div>
+          <div className="mb-5">
+            <label className="block text-gray-700 text-sm font-semibold mb-1">
+              Select color workspace
+            </label>
+            <div className="flex items-center gap-3 w-full">
+              <input
+                type="color"
+                className="h-10 border-gray-300 rounded w-1/2"
+                value={displayColor}
+                onChange={(e) => {
+                  const newColor = e.target.value;
+                  setWorkspaceColor(newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor);
+                }}
+                style={{ backgroundColor: displayColor, border: 'none' }}
+              />
+              <input
+                type="text"
+                className="w-20 rounded px-3 py-2 text-sm bg-white border-gray-300 border text-black"
+                value={displayColor}
+                onChange={(e) => {
+                  const newColor = e.target.value;
+                  setWorkspaceColor(newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor);
+                }}
+                placeholder="#hexcode"
+              />
+            </div>
           </div>
           <button
             onClick={handleSubmit}

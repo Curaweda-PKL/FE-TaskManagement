@@ -16,7 +16,7 @@ interface WorkspaceCardListProps {
     approvedPhoto?: any;
     cardlistCustomFields?: any;
     handleRemoveCustomField?: any;
-    handleSelectChange?: any;
+    handleInputChange?: any;
     attachments?: any;
     handleAttachImage?: any;
     handleDownloadAttachment?: any;
@@ -40,7 +40,8 @@ interface WorkspaceCardListProps {
 }
 
 
-const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleSelectChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen }) => {
+const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen }) => {
+    const MAX_VISIBLE_MEMBERS = 2;
     return (
         <>
             <div className="flex justify-between items-center mb-2">
@@ -49,8 +50,25 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         ref={inputRef}
                         type="text"
                         value={selectedCardList.name}
-                        onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                        onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate, selectedCardList.activity)}
+                        onChange={(e) => {
+                            const capitalizeWords = (str: string) =>
+                                str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                            setSelectedCardList({
+                                ...selectedCardList,
+                                name: capitalizeWords(e.target.value),
+                            });
+                        }}
+                        onBlur={() =>
+                            handleUpdateListName(
+                                selectedCardList.id,
+                                selectedCardList.name,
+                                selectedCardList.description,
+                                selectedCardList.score,
+                                selectedCardList.startDate,
+                                selectedCardList.endDate,
+                                selectedCardList.activity
+                            )
+                        }
                         autoFocus
                         className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
                     />
@@ -66,7 +84,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                 <button onClick={handleClosePopup} className="text-gray-700 hover:text-gray-700">
                     <i className="fas fa-times"></i>
                 </button>
-            </div>
+            </div >
             <div className="cardlist flex gap-4 max768:flex-col">
                 <div className="cardliststart w-full max768:w-full flex-[3]">
                     <div className='flex items-center'>
@@ -82,17 +100,27 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                     <div className="mt-1 flex items-start justify-between">
                         <div>
                             <h2 className="text-black mb-1 font-semibold text-[18px]">Members</h2>
-                            <div className="flex flex-wrap">
+                            <div className="flex flex-wrap items-center">
                                 {selectedCardList.members && selectedCardList.members.length > 0 ? (
-                                    selectedCardList.members.map((member: any) => (
-                                        <div key={member.userId} className="flex flex-col items-center">
-                                            <img
-                                                src={member.photoUrl || '/path/to/default/avatar.png'}
-                                                alt={`Profile of ${member.userId}`}
-                                                className="w-10 h-10 rounded-full object-cover"
-                                            />
-                                        </div>
-                                    ))
+                                    <>
+                                        {selectedCardList.members.slice(0, MAX_VISIBLE_MEMBERS).map((member: any) => (
+                                            <div key={member.userId} className="flex flex-col items-center mr-[-8px]">
+                                                <img
+                                                    src={member.photoUrl || '/path/to/default/avatar.png'}
+                                                    alt={`Profile of ${member.userId}`}
+                                                    className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                                                />
+                                            </div>
+                                        ))}
+
+                                        {selectedCardList.members.length > MAX_VISIBLE_MEMBERS && (
+                                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 ml-2">
+                                                <span className="text-gray-600 font-medium">
+                                                    +{selectedCardList.members.length - MAX_VISIBLE_MEMBERS}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : null}
                             </div>
                         </div>
@@ -143,7 +171,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                     <div>
                         <h2 className="text-black mb-1 font-semibold text-[18px]">Details</h2>
                         <div className='flex flex-col gap-3'>
-                            {selectedCardList.inReviewById && !selectedCardList.approvedById && (
+                            {selectedCardList.inReviewById && (
                                 <div className='text-black text-sm'>
                                     <div>In Review By</div>
                                     <div className='flex gap-2 items-center'>
@@ -212,9 +240,9 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         </div>
                     </div>
                     <div className="flex flex-wrap">
+                        <label className="text-black font-semibold text-[18px] mb-2 w-full">Custom Field</label>
                         {cardlistCustomFields.map((field: any) => (
-                            <div key={field.id} className="mb-2 rounded-md w-36">
-                                <label className="text-black font-semibold text-[18px]">Custom Field</label>
+                            <div key={field.id} className="mb-4 mr-2 rounded-md w-32">
                                 <div className="flex items-center justify-between">
                                     <label className="block text-black text-sm font-medium">
                                         {field.customField.name}
@@ -228,12 +256,13 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         <i className="fas fa-trash text-[12px]"></i>
                                     </button>
                                 </div>
+
                                 {field.customField.type === 'DROPDOWN' && (
                                     <select
                                         className="p-1 bg-gray-300 rounded w-full text-gray-800 mt-1"
-                                        value={field.selectedValue || ""}
+                                        value={field.value || ""}
                                         onChange={(e) =>
-                                            handleSelectChange(e, field.customField.id, selectedCardList.id)
+                                            handleInputChange(selectedCardList.id, field.customField.id, e.target.value)
                                         }
                                     >
                                         <option value="" disabled>
@@ -246,16 +275,49 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         ))}
                                     </select>
                                 )}
+
+                                {field.customField.type === 'TEXT' && (
+                                    <input
+                                        type="text"
+                                        className="p-1 bg-gray-300 rounded w-full text-gray-800 mt-1"
+                                        placeholder="Enter text"
+                                        defaultValue={field.value}
+                                        onFocus={(e) => e.target.select()}
+                                        onBlur={(e) =>
+                                            handleInputChange(selectedCardList.id, field.customField.id, e.target.value)
+                                        }
+                                    />
+                                )}
+
+                                {field.customField.type === 'NUMBER' && (
+                                    <input
+                                        type="number"
+                                        className="p-1 bg-gray-300 rounded w-full text-gray-800 mt-1"
+                                        placeholder="Enter Number"
+                                        defaultValue={field.value}
+                                        onFocus={(e) => e.target.select()}
+                                        onBlur={(e) => {
+                                            const value = e.target.value;
+                                            if (!isNaN(Number(value)) || value === '') {
+                                                handleInputChange(selectedCardList.id, field.customField.id, value);
+                                            }
+                                        }}
+                                    />
+                                )}
                             </div>
                         ))}
                     </div>
 
+
+
+
                     <div>
                         <div className="flex-wrap">
+                            <h2 className="text-black font-semibold text-lg">Attachment</h2>
                             {attachments.map((attachment: any, index: number) => (
                                 <>
-                                    <h2 className="text-black font-semibold text-lg">Attachment</h2>
-                                    <div className='flex items-center text-black'>
+
+                                    <div className='flex items-center mb-1 text-black'>
                                         <div className='flex bg-gray-200 p-0 w-28 h-16 items-center justify-center'
                                             onClick={() => handleAttachImage(attachment)}>
                                             <img
@@ -288,7 +350,9 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                     <div className="activity flex flex-col justify-between mt-2 text-gray-800">
                         {checklistData?.map((data: any, index: number) => {
                             const completionPercentage = calculateChecklistPercentage(data.items);
-
+                            const sortedItems = [...data.items].sort((a, b) =>
+                                String(a.name).localeCompare(String(b.name))
+                            );
                             return (
                                 <div key={index} className="checklist-item">
                                     <div className='flex justify-between items-center'>
@@ -318,14 +382,13 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         ></div>
                                     </div>
 
-
                                     <div className='flex justify-between text-[10px] mb-2'>
                                         <p>Start Date: {data.startDate}</p>
                                         <p>End Date: {data.endDate}</p>
                                     </div>
 
                                     <ul className='mb-3'>
-                                        {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
+                                        {sortedItems.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
                                             <li key={itemIndex} className="flex items-center mb-1">
                                                 <input
                                                     type="checkbox"
@@ -410,14 +473,21 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         <i className="fas fa-clock"></i>Dates
                     </div>
 
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black mb-4"
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
                         onClick={() => handleOpenAttachPopup(selectedCardList)}>
                         <i className="fas fa-paperclip"></i>Attachment
+                    </div>
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black  mb-4"
+                        onClick={() => setIsCustomFieldModalOpen(true)}>
+                        Custom Field
                     </div>
 
                     <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"
                         onClick={() => handleOpenCopyPopup(selectedCardList)}>
                         <i className="fas fa-copy"></i>Copy
+                    </div>
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
+                        <i className="fas fa-share"></i>Share
                     </div>
                     <>
                         <div
@@ -427,14 +497,6 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                             <i className="fas fa-trash"></i>Delete
                         </div>
                     </>
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black">
-                        <i className="fas fa-share"></i>Share
-                    </div>
-
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none jsutify-start text-black"
-                        onClick={() => setIsCustomFieldModalOpen(true)}>
-                        Custom Field
-                    </div>
                 </div>
             </div>
         </>

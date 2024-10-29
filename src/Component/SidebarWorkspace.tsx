@@ -69,6 +69,15 @@ const SidebarWorkspace: React.FC = () => {
     return ownerStatus;
   };
 
+  const isAdminOrOwner = () => {
+    if (!selectedWorkspace || !selectedWorkspace.members || !currentUserId) return false;
+
+    console.log("members", selectedWorkspace.members)
+  
+    const currentMember = selectedWorkspace.members.find((member: any) => member.userId === currentUserId);
+    return currentMember && (currentMember.role === 'ADMIN' || currentMember.role === 'OWNER');
+  };  
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -123,7 +132,10 @@ const SidebarWorkspace: React.FC = () => {
       try {
         const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
-        await fetchBoards(selectedWorkspace.id);
+      if (selectedWorkspace) {
+        const updatedBoards = await fetchBoards(selectedWorkspace.id);
+        setBoards(updatedBoards);
+      }
         setAlert({ type: 'success', message });
       } catch (error: any) {
         console.error('Failed to delete board:', error);
@@ -202,7 +214,10 @@ const SidebarWorkspace: React.FC = () => {
             <div className="mb-4">
               <div className={`flex items-center justify-between border-b w-full p-4`}>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-red-500 mr-2"></div>
+                  <div 
+                    className="w-4 h-4 mr-2"
+                    style={{ backgroundColor: selectedWorkspace?.color || '#EF4444' }}>
+                    </div>
                   <span className="text-black font-medium">{selectedWorkspace ? selectedWorkspace.name : 'Loading...'}</span>
                 </div>
               </div>
@@ -219,7 +234,7 @@ const SidebarWorkspace: React.FC = () => {
                   className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`) ? activeClass : ''}`}>
                   <i className="fas fa-user-friends mr-2"></i><span>Members</span>
                 </Link>
-                {isOwner() && (
+                {isAdminOrOwner() && (
                   <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`}
                     className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`) ? activeClass : ''}`}>
                     <i className="fas fa-cog mr-2"></i><span>Workspace Settings</span>

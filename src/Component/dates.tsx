@@ -55,14 +55,12 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
     }
   }, [dueDate, dueTime]);
 
-  // Set start date to current date if checkbox is checked
   useEffect(() => {
     if (startDateChecked) {
       setStartDate(new Date());
     }
   }, [startDateChecked]);
 
-  // Set end date to current date if checkbox is checked
   useEffect(() => {
     if (endDateChecked) {
       setEndDate(new Date());

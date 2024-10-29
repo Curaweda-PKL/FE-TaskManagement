@@ -37,7 +37,7 @@ const CreateCard: React.FC<CreateCardProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black text-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden w-full max-w-sm max-h-[90vh] flex flex-col">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg font-medium text-gray-900">
@@ -58,7 +58,12 @@ const CreateCard: React.FC<CreateCardProps> = ({
               className="w-full bg-white px-3 py-2 border rounded-md"
               placeholder="Input your title"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const capitalizeWords = (str: string) =>
+                  str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                setName(capitalizeWords(e.target.value));
+              }}
+
             />
             <p className="text-xs text-gray-500 mt-1">* Card title is required</p>
           </div>

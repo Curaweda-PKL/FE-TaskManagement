@@ -6,6 +6,7 @@ import CreateWorkspace from './CreateWorkspace';
 import { fetchUserNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../hooks/ApiNotification';
 import config from '../config/baseUrl';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 
 interface Notification {
@@ -46,7 +47,7 @@ function Navbar() {
   const navbarRef = useRef(null);
   const searchRef = useRef(null);
   const { userData, isLoggedIn, handleLogout, getProfilePhoto } = useAuth(() => { }, () => navigate('/'));
-
+  const [workspaceColor, setWorkspaceColor] = useState('#ffffff');
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -61,6 +62,43 @@ function Navbar() {
 
     loadNotifications();
   }, []);
+
+  const [userId, setUserData] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get(`${config}/user/user-data`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setUserData(response.data.id);
+        console.log("userData3", userId)
+      } catch (error: any) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData()
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const socket = io(config);
+    socket.on(`notification/${userId}`, async () => {
+      console.log("here", userId);
+      try {
+        const data = await fetchUserNotifications();
+        setNotifications(data);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+    return () => {
+      socket.off(`notification/${userId}`);
+      socket.disconnect();
+    };
+  }, [userId]);
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -130,9 +168,9 @@ function Navbar() {
     setOpenDropdown(null);
   };
 
-  const handleCreateWorkspace = async (name: string, description: string) => {
+  const handleCreateWorkspace = async (name: string, description: string, color: string) => {
     try {
-      await createWorkspace(name, description, userData?.id);
+      await createWorkspace(name, description, userData?.id, color);
       await fetchWorkspacesData();
       closeCreateWorkspace();
     } catch (error) {
@@ -195,7 +233,7 @@ function Navbar() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [userData2, setUserData2] = useState<UserData[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfileMap>({});
-
+  
   const fetchNotifications = async () => {
     try {
       const data = await fetchUserNotifications(unreadOnly ? 'yes' : undefined);
@@ -264,8 +302,6 @@ function Navbar() {
 
   const hasUnreadNotifications = notifications.some(notification => !notification.isRead);
 
-
-
   return (
     <nav
       ref={navbarRef}
@@ -290,7 +326,8 @@ function Navbar() {
                     <h3 className="text-sm font-semibold text-gray-500">Your workspaces</h3>
                     {workspaces.map(workspace => (
                       <div key={workspace.id} className={`mt-2 flex items-center justify-start p-2 rounded-md cursor-pointer btn btn-sm ${buttonClass}`} onClick={() => handleWorkspaceClick(workspace.id)}>
-                        <div className="w-4 h-4 bg-red-600 mr-2 rounded"></div>
+                        <div className="w-4 h-4 mr-2 rounded"
+                        style={{ backgroundColor: workspace.color || '#EF4444' }}></div>
                         <a className="text-gray-800 font-semibold">{workspace.name}</a>
                       </div>
                     ))}
@@ -333,7 +370,7 @@ function Navbar() {
             <i className='ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'></i>
 
             {showSearchResults && (
-              <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute mt-3 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                 {(filteredWorkspaces.length > 0 || searchQuery === "") ? (
                   (searchQuery === "" ? workspaces : filteredWorkspaces).map(workspace => (
                     <div
@@ -341,7 +378,10 @@ function Navbar() {
                       onClick={() => handleWorkspaceClick(workspace.id)}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2"
                     >
-                      <div className="w-5 h-5 bg-red-600 rounded"></div>
+                      <div 
+                        className="w-5 h-5 bg-red-600 rounded"
+                        style={{ backgroundColor: workspace.color || '#EF4444' }}
+                      ></div>
                       <span className="text-gray-900 font-semibold">{workspace.name}</span>
                     </div>
                   ))
@@ -499,63 +539,63 @@ function Navbar() {
           Notifications<i className="fas fa-bell ml-1" />
         </button>
         {openDropdown === 'notification' && (
-           <div className="absolute top-[290px] left-0 bg-gray-50 p-4 m-0 shadow text-black w-full">
+          <div className="absolute top-[282px] left-0 bg-gray-50 p-4 m-0 shadow text-red w-full h-[26rem] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Notifications</h2>
-                    <div className="flex items-center">
-                      <span className="text-sm text-gray-600 mr-2">only show unread</span>
-                      <input
-                        type="checkbox"
-                        checked={unreadOnly}
-                        onChange={handleCheckboxChange}
-                        className="toggle theme-controller col-span-2 col-start-1 row-start-1 border-sky-400 bg-amber-300 [--tglbg:theme(colors.sky.500)] checked:border-blue-800 checked:bg-blue-300 checked:[--tglbg:theme(colors.blue.900)]"
-                      />
-                    </div>
-                  </div>
-           <button className='btn btn-sm text-xs text-white bg-purple-600 hover:bg-purple-800 border-none flex ml-auto' onClick={handleMarkAllAsRead}>Mark All as Read</button>
-           <div className='p-2'>
-             {notifications.map((notification) => {
-               const user = userData2.find((user) => user && user.id === notification.senderId);
-               const profilePhoto = userProfile[notification.senderId];
+              <h2 className="text-lg font-semibold">Notifications</h2>
+              <div className="flex items-center">
+                <span className="text-sm text-gray-600 mr-2">only show unread</span>
+                <input
+                  type="checkbox"
+                  checked={unreadOnly}
+                  onChange={handleCheckboxChange}
+                  className="toggle theme-controller col-span-2 col-start-1 row-start-1 border-sky-400 bg-amber-300 [--tglbg:theme(colors.sky.500)] checked:border-blue-800 checked:bg-blue-300 checked:[--tglbg:theme(colors.blue.900)]"
+                />
+              </div>
+            </div>
+            <button className='btn btn-sm text-xs text-white bg-purple-600 hover:bg-purple-800 border-none flex ml-auto' onClick={handleMarkAllAsRead}>Mark All as Read</button>
+            <div className='p-2'>
+              {notifications.map((notification) => {
+                const user = userData2.find((user) => user && user.id === notification.senderId);
+                const profilePhoto = userProfile[notification.senderId];
 
-               return (
-                 <div key={notification.id} className="flex items-start py-2 border-b gap-2 relative">
-                   <div>
-                     {profilePhoto ? (
-                       <img
-                         src={profilePhoto}
-                         alt="User  Profile"
-                         className="w-6 h-6 rounded-full mt-1.5"
-                       />
-                     ) : (
-                       <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
-                         <i className="fas fa-user text-white text-[12px]" />
-                       </div>
-                     )}
-                   </div>
-                   <div>
-                     <p className="font-semibold">{user ? user.name : 'Unknown'}</p>
-                     <p className="text-sm text-gray-800 font-semibold">{notification.title}</p>
-                     <p className="text-sm text-gray-800">
-                       {renderMessage(notification.message)} {formatDate(notification.createdAt)}
-                     </p>
-                     <p className='text-xs text-gray-600 mt-2 underline cursor-pointer' onClick={async () => {
-                       await markNotificationAsRead(notification.id);
-                       fetchNotifications();
-                     }}>
-                       Mark as Read
-                     </p>
-                   </div>
-                   {!notification.isRead && (
-                     <div className="absolute top-2 right-2">
-                       <div className="w-2 h-2 bg-red-500 rounded-full" />
-                     </div>
-                   )}
-                 </div>
-               );
-             })}
-           </div>
-         </div>
+                return (
+                  <div key={notification.id} className="flex items-start py-2 border-b gap-2 relative">
+                    <div>
+                      {profilePhoto ? (
+                        <img
+                          src={profilePhoto}
+                          alt="User  Profile"
+                          className="w-6 h-6 rounded-full mt-1.5"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1.5">
+                          <i className="fas fa-user text-white text-[12px]" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold">{user ? user.name : 'Unknown'}</p>
+                      <p className="text-sm text-gray-800 font-semibold">{notification.title}</p>
+                      <p className="text-sm text-gray-800">
+                        {renderMessage(notification.message)} {formatDate(notification.createdAt)}
+                      </p>
+                      <p className='text-xs text-gray-600 mt-2 underline cursor-pointer' onClick={async () => {
+                        await markNotificationAsRead(notification.id);
+                        fetchNotifications();
+                      }}>
+                        Mark as Read
+                      </p>
+                    </div>
+                    {!notification.isRead && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
         <button
           onClick={() => handleToggle('profile')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-left">
@@ -605,16 +645,18 @@ function Navbar() {
       </div>
 
       {showCreateWorkspace && (
-        <CreateWorkspace
-          workspaceName={workspaceName}
-          workspaceDescription={workspaceDescription}
-          setWorkspaceName={setWorkspaceName}
-          setWorkspaceDescription={setWorkspaceDescription}
-          onClose={closeCreateWorkspace}
-          onCreate={handleCreateWorkspace}
-          isEditMode={false}
-        />
-      )}
+      <CreateWorkspace
+        workspaceName={workspaceName}
+        workspaceDescription={workspaceDescription}
+        workspaceColor={workspaceColor} // Add this prop
+        setWorkspaceName={setWorkspaceName}
+        setWorkspaceDescription={setWorkspaceDescription}
+        setWorkspaceColor={setWorkspaceColor} // Add this prop
+        onClose={closeCreateWorkspace}
+        onCreate={handleCreateWorkspace}
+        isEditMode={false}
+      />
+    )}
     </nav>
   );
 }

@@ -95,10 +95,15 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">Board Title*</label>
             <input
               type="text"
-              className="w-full bg-white px-3 py-2 border rounded-md"
+              className="w-full text-black bg-white px-3 py-2 border rounded-md"
               placeholder="Input your title"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const capitalizeWords = (str: string) =>
+                  str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                setName(capitalizeWords(e.target.value));
+              }}
+
             />
             <p className="text-xs text-gray-500 mt-1">* Board title is required</p>
             {errorMessage && <p className="text-xs text-red-600 mt-1">{errorMessage}</p>}

@@ -42,9 +42,13 @@ const Sidebar: React.FC = () => {
     fetchData();
   }, [userData]);
 
-  const isOwner = (workspace: any) => {
-    if (!workspace || !currentUserId) return false; 
-    return workspace.ownerId === currentUserId;
+  const isAdminOrOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false;
+
+    console.log(workspace)
+
+    const currentUser = workspace.members.find(member => member.userId === currentUserId);
+    return currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'OWNER');
   };
 
   useEffect(() => {
@@ -91,7 +95,10 @@ const Sidebar: React.FC = () => {
                 onClick={() => handleWorkspaceClick(index)}
               >
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <div className="w-5 h-5 bg-red-500 rounded-sm mr-2"></div>
+                  <div 
+                    className="w-5 h-5 rounded-sm mr-2"
+                    style={{ backgroundColor: workspace.color || '#EF4444' }}>
+                  </div>
                   <span className="text-black font-medium overflow-hidden text-ellipsis whitespace-nowrap">{workspace.name}</span>
                 </div>
                 <i className={`fas fa-chevron-down text-gray-600 transform transition-transform ${expandedWorkspaceIndex === index ? 'rotate-180' : ''}`}></i>
@@ -116,7 +123,7 @@ const Sidebar: React.FC = () => {
                       <i className='fas fa-plus mr-2'></i>
                     </div>
                   </Link>
-                  {isOwner(workspace) && (
+                  {isAdminOrOwner(workspace) && (
                   <Link to={`/workspace/${workspace.id}/settings`} className={`group flex gap-2 rounded-lg cursor-pointer p-1 items-center ${hoverClass}`}>
                     <i className='fas fa-gear max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
                     <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Settings</span>

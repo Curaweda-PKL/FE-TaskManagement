@@ -68,7 +68,6 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
         console.error(error);
       }
     } else {
-      // create a new checklist
       const checklistDataWrapper = {
         checklistData: {
           cardListId: selectedCardList.id,
@@ -90,11 +89,11 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
   };
 
   const handleDeleteItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
+    setItems(items.filter((_: any, i: any) => i !== index));
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100 overflow-y-auto">
+    <div className="fixed inset-0 text-black flex items-center justify-center bg-black bg-opacity-50 z-100 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-lg w-fit max-w-[750px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
         <div className="sticky top-0 bg-white z-10 p-6 border-b">
           <div className="justify-center items-center mb-4">
@@ -145,16 +144,10 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                 </button>
               </div>
 
-              <div className="flex justify-between mt-10">
-                <label className="block text-sm font-medium text-black">
-                  Start Date
-                </label>
-                <label className="block text-sm font-medium text-gray-700 ">
-                  End Date
-                </label>
-              </div>
-
-              <div className=" flex-col mt-4 gap-2">
+              <div className=" flex-col mt-5 gap-2">
+              <label className="block text-sm font-medium text-black">
+                Start Date
+              </label>
                 <DayPicker
                   mode="single"
                   selected={startDate}
@@ -162,7 +155,10 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                   footer={startDate ? <p>{format(startDate, 'PP')}</p> : <p>Please pick a day.</p>}
                   className="text-black"
                 />
-
+                
+                <label className="block text-sm font-medium text-gray-700  mt-5">
+                  End Date
+                </label>
                 <DayPicker
                   mode="single"
                   selected={endDate}

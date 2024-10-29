@@ -134,6 +134,26 @@ export const joinCardList = async (cardListId: any, userId: any) => {
   }
 };
 
+export const assignMemberToCardList = async (cardListId: string, memberId: string) => {
+  try {
+    const response = await axios.post(
+      `${config}/cardlist/member/assign-member/${cardListId}`,
+      { memberId },
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to assign member to card list:', error);
+    throw error;
+  }
+};
+
 export const outCardList = async (cardListId: any, userId: any) => {
   try {
     const response = await axios.delete(
