@@ -123,7 +123,10 @@ const SidebarWorkspace: React.FC = () => {
       try {
         const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
-        await fetchBoards(selectedWorkspace.id);
+      if (selectedWorkspace) {
+        const updatedBoards = await fetchBoards(selectedWorkspace.id);
+        setBoards(updatedBoards);
+      }
         setAlert({ type: 'success', message });
       } catch (error: any) {
         console.error('Failed to delete board:', error);

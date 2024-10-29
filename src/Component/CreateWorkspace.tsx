@@ -59,7 +59,7 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             </label>
             <input
               type="text"
-              className={`w-full px-3 py-2 bg-white border ${
+              className={`w-full px-3 py-2 bg-white text-black border ${
                 error ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Workspace..."
@@ -78,7 +78,7 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
               Workspace description
             </label>
             <textarea
-              className="w-full h-24 px-3 py-2 bg-white border border-gray-300"
+              className="w-full h-24 px-3 py-2 bg-white text-black border border-gray-300"
               rows={4}
               placeholder="Our workspace is..."
               value={workspaceDescription}
@@ -95,22 +95,19 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             <div className="flex items-center gap-3 w-full">
               <input
                 type="color"
-                className="h-10 rounded w-1/2"
+                className="h-10 border-gray-300 rounded w-1/2"
                 value={workspaceColor}
                 onChange={(e) => setWorkspaceColor(e.target.value)}
                 style={{ backgroundColor: workspaceColor, border: 'none' }}
               />
               <input
                 type="text"
-                className="w-20 rounded px-3 py-2 text-sm bg-white border-black border text-black"
+                className="w-20 rounded px-3 py-2 text-sm bg-white border-gray-300 border text-black"
                 value={workspaceColor}
                 onChange={(e) => setWorkspaceColor(e.target.value)}
                 placeholder="#hexcode"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Get your members on board with a few words about your Workspace.
-            </p>
           </div>
           <button
             onClick={handleSubmit}
