@@ -233,7 +233,7 @@ function Navbar() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [userData2, setUserData2] = useState<UserData[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfileMap>({});
-
+  
   const fetchNotifications = async () => {
     try {
       const data = await fetchUserNotifications(unreadOnly ? 'yes' : undefined);
