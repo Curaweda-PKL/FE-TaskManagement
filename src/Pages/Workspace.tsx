@@ -31,6 +31,16 @@ const Workspace: React.FC = () => {
   const navigate = useNavigate();
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
+  useEffect(() => {
+    // Cek local storage saat komponen dimuat
+    const onWorkspace = localStorage.getItem('onWorkspace');
+    const onBoardId = localStorage.getItem('onBoardId');
+
+    if (onWorkspace && onBoardId) {
+      navigate(`/workspace/${onWorkspace}/board/${onBoardId}`);
+    }
+  }, [navigate]);
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
@@ -43,6 +53,7 @@ const Workspace: React.FC = () => {
   const onSuccess = () => {
     console.log('Success');
   };
+
   const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
 
   useEffect(() => {
@@ -60,7 +71,7 @@ const Workspace: React.FC = () => {
   }, [userData]);
 
   const isOwner = (workspace: any) => {
-    if (!workspace || !currentUserId) return false; 
+    if (!workspace || !currentUserId) return false;
     return workspace.ownerId === currentUserId;
   };
 
@@ -159,13 +170,13 @@ const Workspace: React.FC = () => {
 
   const handleApiError = (error: any) => {
     if (error?.response?.status === 401 && error?.response?.status === 500) {
-        localStorage.removeItem("Token");
-        window.location.reload();
+      localStorage.removeItem("Token");
+      window.location.reload();
     } else {
-        setError(error?.message);
-        setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
+      setError(error?.message);
+      setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
     }
-};
+  };
 
 
   const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
@@ -270,7 +281,7 @@ const Workspace: React.FC = () => {
           <div key={workspace.id}>
             <div className='mt-3 flex justify-between max-w-[905px] max1000:flex-col max1000:gap-3'>
               <div className='flex items-center gap-2 max-w-[300px] overflow-hidden'>
-                <div 
+                <div
                   className={`min-h-5 max768:min-h-[18px] max768:min-w-[18px] min-w-5`}
                   style={{ backgroundColor: workspace.color || '#EF4444' }}>
                 </div>
@@ -304,7 +315,10 @@ const Workspace: React.FC = () => {
                   key={board.id}
                   className={`group relative p-1 h-28 w-full rounded-[5px] cursor-pointer overflow-hidden ${board.backgroundColor || 'bg-gray-400'}`}
                 >
-                  <Link to={`/workspace/${workspace.id}/board/${board.id}`}>
+                  <Link to={`/workspace/${workspace.id}/board/${board.id}`} onClick={() => {
+                    localStorage.setItem('onWorkspace', workspace.id);
+                    localStorage.setItem('onBoardId', board.id);
+                  }}>
                     <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                     <h5 className='text-white relative z-10'>{board.name}</h5>
                     <div className='absolute right-2 bottom-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>

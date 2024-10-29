@@ -31,11 +31,6 @@ interface Attachment {
   id: string;
   url: string;
 }
-interface Attachment {
-  name: ReactNode;
-  id: string;
-  url: string;
-}
 interface ChecklistData {
   id: string;
   items: any;
@@ -185,6 +180,16 @@ const WorkspaceProject = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [currentBgColor, setCurrentBgColor] = useState<string>('bg-white');
   const MAX_VISIBLE_MEMBERS = 2
+
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleShareClick = () => {
+    const currentOrigin = window.location.origin;
+    const url = `${currentOrigin}/L/workspace/${workspaceId}/board/${boardId}`;
+    navigator.clipboard.writeText(url);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -1256,11 +1261,12 @@ const WorkspaceProject = () => {
 
           <button
             className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center"
-            onClick={() => setIsMemberBoardPopupOpen(true)}
+            onClick={handleShareClick}
           >
-            <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
-            Share
+            <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2"/>
+            {isCopied ? 'Copied!' : 'Share'}
           </button>
+
         </div>
       </header>
 

@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import axios from 'axios';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard } from '../hooks/fetchCard';
-import config from '../config/baseUrl';
-import { getMemberCardList } from '../hooks/fetchCardList'
 import { copyCardList } from '../hooks/ApiCopy';
 
 interface Board {
