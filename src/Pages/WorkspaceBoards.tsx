@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchWorkspaces } from '../hooks/fetchWorkspace';
 import { fetchBoards, createBoard, updateBoard, deleteBoard } from '../hooks/fetchBoard';
+import { getTaskBar } from '../hooks/ApiReport'
 import CreateBoard from '../Component/CreateBoard';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
 import WorkspaceReports from './WorkspaceReports';
@@ -34,6 +35,40 @@ const WorkspaceBoards: React.FC = () => {
     console.log('Success');
   };
   const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
+  const [taskBarData, setTaskBarData] = useState<any | null>(null)
+
+  useEffect(() => {
+    const handlegetTaskBarData = async () => {
+      setTaskBarData(await getTaskBar(workspaceId))
+
+    }
+    handlegetTaskBarData()
+  }, []);
+
+  const data = taskBarData
+  const statusCounts = data?.statusCounts || [];
+  const allTaskCount = data?.allTaskCount || 0;
+
+  // Calculate completed tasks (DONE or APPROVED status)
+  const completedTasks = statusCounts.reduce((total: any, item: { status: string; count: any; }) => {
+    if (item?.status === 'DONE' || item?.status === 'APPROVED') {
+      return total + (item.count || 0);
+    }
+    return total;
+  }, 0);
+
+  const completionPercentage = allTaskCount === 0 ? 0 : (completedTasks / allTaskCount) * 100;
+
+  const getPerformanceLevel = () => {
+    if (allTaskCount === 0) return { text: 'NO TASKS YET', color: 'text-gray-500' };
+    if (completionPercentage >= 80) return { text: 'EXCELLENT', color: 'text-green-500' };
+    if (completionPercentage >= 60) return { text: 'GOOD', color: 'text-blue-500' };
+    if (completionPercentage >= 40) return { text: 'AVERAGE', color: 'text-yellow-500' };
+    return { text: 'NEEDS IMPROVEMENT', color: 'text-red-500' };
+  };
+
+  const performance = getPerformanceLevel();
+
 
   useEffect(() => {
     if (userData) {
@@ -112,10 +147,10 @@ const WorkspaceBoards: React.FC = () => {
     try {
       const response = await createBoard(workspaceId, name, description, backgroundColor);
       const message = response?.message || 'Board created successfully.';
-      
+
       // Memperbarui list board setelah create
       await fetchBoardsData();
-      
+
       setShowCreateBoard(false);
       setAlert({ type: 'success', message: message });
     } catch (error: any) {
@@ -126,10 +161,10 @@ const WorkspaceBoards: React.FC = () => {
       } else {
         errorMessage = 'Failed to create board. Please try again.';
       }
-  
+
       setAlert({ type: 'error', message: errorMessage });
     }
-  };  
+  };
 
   const handleEditBoard = async (workspaceId: any, boardId: any, name: string, description: string, backgroundColor: string) => {
     try {
@@ -208,7 +243,7 @@ const WorkspaceBoards: React.FC = () => {
             Your Boards
           </h2>
           <div className='grid gap-5 grid-cols-4 ml-1 max-w-[900px] mt-5 max1000:grid-cols-3 max850:grid-cols-2'>
-          {userOwnedBoards.map((board) => (
+            {userOwnedBoards.map((board) => (
               <div
                 key={board.id}
                 className={`group relative p-1 h-28 w-full rounded-[5px] cursor-pointer overflow-hidden ${board.backgroundColor || 'bg-gray-400'}`}
@@ -302,34 +337,43 @@ const WorkspaceBoards: React.FC = () => {
         <div className="bg-white p-4 shadow-sm mt-8 rounded-lg w-2/3">
           {workspace && ( // Tambahkan pengecekan workspace
             <Link to={`/workspace/${workspace?.id}/reports`} className="block">
-              <div className="flex justify-between items-center mb-2">
-                <div>
-                  <h2 className="text-gray-700 text-lg font-medium">
-                    YOUR PERFORMANCE THIS WEEK, <span className="text-yellow-500">AVERAGE!</span>
-                  </h2>
-                  <p className="text-gray-600 text-sm">Complete task to fill the performance bar!</p>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <div>
+                    <h2 className="text-gray-700 text-lg font-medium">
+                      YOUR PERFORMANCE THIS WEEK, <span className={performance.color}>{performance.text}</span>
+                    </h2>
+                    <p className="text-gray-600 text-sm">
+                      {allTaskCount === 0
+                        ? "No tasks assigned yet. Tasks will appear here when assigned."
+                        : "Complete task to fill the performance bar!"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="relative pt-1">
-                <div className="flex mb-2 items-center justify-between">
+                <div className="relative pt-1">
+                  <div className="flex mb-2 items-center justify-between">
+                  </div>
+                  <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
+                    <div
+                      className={`${allTaskCount === 0 ? 'bg-gray-400' : 'bg-blue-500'}`}
+                      style={{ width: `${completionPercentage}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                  <div className="w-2/5 bg-blue-500"></div>
-                </div>
-              </div>
-              <div className='flex justify-between'>
-                <div className="text-sm text-gray-600">
-                  Bar resetting in : 4d 12h
-                </div> 
-                <div className="text-gray-600 right-0 relative">
-                  2/5
+                <div className='flex justify-between'>
+                  <div className="text-sm text-gray-600">
+                    Bar resetting in: {data?.resettingIn || 'N/A'}
+                  </div>
+                  <div className="text-gray-600 right-0 relative">
+                    {completedTasks}/{allTaskCount}
+                  </div>
                 </div>
               </div>
             </Link>
           )}
         </div>
       </div>
-      
+
       {showCreateBoard && (
         <CreateBoard
           workspaceId={workspaceId}

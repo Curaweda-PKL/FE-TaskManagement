@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import WorkspaceHeader from '../Component/WorkspaceHeader';
-import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
+import { fetchWorkspaces, memberWorkspace, joinRequestsWorkspace, requestWorkspace, removeMemberWorkspace, updateRoleMember, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import useAuth from '../hooks/fetchAuth';
+import { io } from 'socket.io-client';
+import config from '../config/baseUrl';
 
 const WorkspaceMembers: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -29,6 +31,55 @@ const WorkspaceMembers: React.FC = () => {
   };
 
   const { userData, fetchUserData } = useAuth(onSuccess, onLogout);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+
+    const socket = io(config);
+    socket.on(`workspace/${workspaceId}`, async () => {
+      console.log("here", workspaceId);
+      // const membersData = await memberWorkspace(workspaceId);
+      // const membersWithPhotos = await Promise.all(
+      //   membersData.map(async (member: any) => {
+      //     if (member) {
+      //       try {
+      //         const memberPhoto = await getProfilePhotoMember(member.id);
+      //         return { ...member, photoProfile: memberPhoto };
+      //       } catch (error) {
+      //         console.error(`Error fetching photo profile for ${member.name}:`, error);
+      //         return member;
+      //       }
+      //     }
+      //     return member;
+      //   })
+      // );
+      // setMembers(membersWithPhotos);
+
+      // const joinRequestsData = await joinRequestsWorkspace(workspaceId);
+      // setJoinRequests(joinRequestsData);
+
+      // const joinRequestsPhotoProfile = await Promise.all(
+      //   joinRequestsData.map(async (joinRequest: any) => {
+      //     if (joinRequest) {
+      //       try {
+      //         const joinRequestPhoto = await getProfilePhotoMember(joinRequest.userId);
+      //         return { ...joinRequest, photoProfile: joinRequestPhoto };
+      //       } catch (error) {
+      //         console.error(`Error fetching photo profile for ${joinRequest.name}:`, error);
+      //         return joinRequest;
+      //       }
+      //     }
+      //     return joinRequest;
+      //   })
+      // );
+      // setRequests(joinRequestsPhotoProfile);
+      fetchWorkspaceData()
+    });
+    return () => {
+      socket.off(`workspace/${workspaceId}`);
+      socket.disconnect();
+    };
+  }, [workspaceId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,6 +172,20 @@ const WorkspaceMembers: React.FC = () => {
     }
   };
 
+  const handleRoleChange = async (memberId: any, newRole: any) => {
+    try {
+      await updateRoleMember(workspaceId, memberId, newRole);
+
+      setMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.id === memberId ? { ...member, role: newRole } : member
+        )
+      );
+    } catch (error) {
+      console.error('Failed to update role:', error);
+    }
+  };
+
   const handleRemoveMember = (memberId: string) => {
     setMemberToRemove(memberId);
     setShowDeleteConfirmation(true);
@@ -206,37 +271,37 @@ const WorkspaceMembers: React.FC = () => {
                   </p>
                 </div>
                 {currentUserId === workspace?.ownerId && (
-                <div className="bg-white p-0 lg:p-4 border-t-[1.5px] border-b-[1.5px] text-black border-gray-200 mb-8">
-                  <h3 className="text-lg font-semibold">Invite members to join you</h3>
-                  <div className='flex flex-col lg:flex-row justify-between'>
-                    <p className="text-sm mt-2 w-full lg:w-2/3">
-                      {inviteLinkEnabled
-                        ? "Anyone with an invite link can join this free Workspace. You can disable and create a new invite link for this Workspace at any time. Pending invitations count toward the 10 collaborator limit."
-                        : "Invite link is currently disabled. You can re-enable it to allow new members to join using a link."}
-                    </p>
-                    <div className="items-center mt-4 lg:mt-0 flex space-x-0 lg:space-x-4 lg:flex-col flex-row justify-center">
-                      {inviteLinkEnabled ? (
-                        <>
-                          <button className="bg-gray-200 text-black px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0">
-                            <i className='fas fa-link mr-3' />Invite with link
-                          </button>
-                          <button className="py-2 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
-                            Disable invite link
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button className="flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
-                            <i className='fas fa-link mr-3' />Invite with link
-                          </button>
-                          <button className="bg-gray-200 px-6 py-2 rounded-md  text-black">
-                            Disable invite link
-                          </button>
-                        </>
-                      )}
+                  <div className="bg-white p-0 lg:p-4 border-t-[1.5px] border-b-[1.5px] text-black border-gray-200 mb-8">
+                    <h3 className="text-lg font-semibold">Invite members to join you</h3>
+                    <div className='flex flex-col lg:flex-row justify-between'>
+                      <p className="text-sm mt-2 w-full lg:w-2/3">
+                        {inviteLinkEnabled
+                          ? "Anyone with an invite link can join this free Workspace. You can disable and create a new invite link for this Workspace at any time. Pending invitations count toward the 10 collaborator limit."
+                          : "Invite link is currently disabled. You can re-enable it to allow new members to join using a link."}
+                      </p>
+                      <div className="items-center mt-4 lg:mt-0 flex space-x-0 lg:space-x-4 lg:flex-col flex-row justify-center">
+                        {inviteLinkEnabled ? (
+                          <>
+                            <button className="bg-gray-200 text-black px-4 py-2 rounded-md flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0">
+                              <i className='fas fa-link mr-3' />Invite with link
+                            </button>
+                            <button className="py-2 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
+                              Disable invite link
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button className="flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
+                              <i className='fas fa-link mr-3' />Invite with link
+                            </button>
+                            <button className="bg-gray-200 px-6 py-2 rounded-md  text-black">
+                              Disable invite link
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
                 )}
                 <div className="mb-8">
                   <input
@@ -263,12 +328,22 @@ const WorkspaceMembers: React.FC = () => {
                       </div>
                       <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
                         {currentUserId === workspace?.ownerId && (
-                          <button
-                            className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
-                            onClick={() => handleRemoveMember(member.id)}
-                          >
-                            Remove
-                          </button>
+                          <>
+                            <select
+                              className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
+                              value={member.role}
+                              onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                            > 
+                              <option value="MEMBER">Member</option>
+                              <option value="ADMIN">Admin</option>
+                            </select>
+                            <button
+                              className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
+                              onClick={() => handleRemoveMember(member.id)}
+                            >
+                              Remove
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -339,7 +414,7 @@ const WorkspaceMembers: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

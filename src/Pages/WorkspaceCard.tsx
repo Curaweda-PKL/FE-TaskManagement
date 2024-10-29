@@ -24,6 +24,7 @@ import ActivityEditor from '../Component/ActivityEditor';
 import { takeCardListChecklist, deleteChecklist, updateChecklist } from '../hooks/ApiChecklist';
 import CustomFieldSettings from '../Component/customField';
 import { format } from 'date-fns';
+import WorkspaceCardList from './WorkspaceCardList';
 
 interface Attachment {
   name: ReactNode;
@@ -136,6 +137,7 @@ const WorkspaceProject = () => {
 
 
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
+  const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<any[]>([]);
   const [visibleMembers, setVisibleMembers] = useState<any[]>([]);
   const [remainingCount, setRemainingCount] = useState<number>(0);
@@ -157,7 +159,7 @@ const WorkspaceProject = () => {
   const [isSubmitPopupOpen, setIsSubmitPopupOpen] = useState(false);
   const [isCopyPopupOpen, setIsCopyPopupOpen] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
-  const [selectedCardList, setSelectedCardList] = useState<any | null>(null);
+  const [selectedCardList, setSelectedCardList] = useState<any | null>([]);
   const [editingCard, setEditingCard] = useState<editingCard | null>(null);
   const [activeCardRect, setActiveCardRect] = useState<ActiveCardRect | null>(null);
   const [isEditCard, setIsEditCard] = useState(false);
@@ -543,6 +545,8 @@ const WorkspaceProject = () => {
     cardIdsSocketRef.current = cardIdsSocket;
   }, [cardIdsSocket]);
 
+  const selectedCardListRef = useRef(null);
+
   useEffect(() => {
     if (!boardId) return; // Hentikan jika boardId belum diatur
 
@@ -550,50 +554,20 @@ const WorkspaceProject = () => {
 
     // Listener untuk event socket
     socket.on(`board/${boardId}`, async () => {
-      console.log('Board event detected for:', boardId);
-      console.log('Latest cardData2:', cardData2Ref.current); // Log the latest value of cardData2
       try {
-        // const updatedCardData = await Promise.all(
-        //   cardIdsSocketRef.current.map(async (cardId) => {
-        //     try {
-        //       const cardListData = await fetchCardList(cardId);
-        //       const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
-
-        //       const updatedCardList = await Promise.all(cardList.map(async (list) => {
-        //         if (list.members && list.members.length > 0) {
-        //           try {
-        //             const membersWithPhotos = await Promise.all(
-        //               list.members.map(async (member: { userId: string }) => {
-        //                 try {
-        //                   const photoUrl = await getProfilePhotoMember(member.userId);
-        //                   return { ...member, photoUrl };
-        //                 } catch (error) {
-        //                   console.error(`Error fetching photo for user ${member.userId}:`, error);
-        //                   return { ...member, photoUrl: null };
-        //                 }
-        //               })
-        //             );
-        //             return { ...list, members: membersWithPhotos };
-        //           } catch (error) {
-        //             console.error('Error updating card list:', error);
-        //             return list;
-        //           }
-        //         }
-        //         return list;
-        //       }));
-
-        //       return { cardList: updatedCardList };
-        //     } catch (error) {
-        //       console.error('Error fetching card list:', error);
-        //       return { cardList: [] };
-        //     }
-        //   })
-        // );
         const updatedCardData = await Promise.all(
           cardData2Ref.current.map(async (card: { id: string }) => {
             if (card && card.id) {
               const cardListData = await fetchCardList(card.id);
               const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
+
+              // Assuming you want to set custom fields for each card list
+              // cardList.forEach(list => {
+              //   if (list.customFields) {
+              //     setCardlistCustomFields(list.customFields); // Set custom fields here
+              //     console.log("list.customFields", list.customFields)
+              //   }
+              // });
 
               const updatedCardList = await Promise.all(cardList.map(async (list) => {
                 if (list.members && list.members.length > 0) {
@@ -616,18 +590,71 @@ const WorkspaceProject = () => {
             return { ...card, cardList: [] };
           })
         );
+
         setCardData(updatedCardData);
+
+        if (selectedCardList && selectedCardList.id) {
+          const allCardlistData = Object.values(updatedCardData).flatMap((entry) => entry.cardList || []);
+
+          const updatedSelectedData = allCardlistData.find((item) => item.id === selectedCardList.id);
+
+
+          setSelectedCardList({ ...updatedSelectedData })
+
+
+        } else {
+          console.log("selectedCardList.id belum di-set atau selectedCardList kosong.");
+        }
+
+        // Get all card list data
+        // const allCardlistData = updatedCardData.flatMap((entry) => entry.cardList || []);
+        // console.log("allCardlistData", allCardlistData);
+
+        // // Update selected card list if it exists in the updated data
+        // if (selectedCardListRef.current && allCardlistData.some((item) => item.id === selectedCardListRef?.current?.id)) {
+        //   const updatedSelectedData = allCardlistData.find(
+        //     (item) => item.id === selectedCardListRef?.current?.id
+        //   );
+
+        //   setSelectedCardList(updatedSelectedData);
+
+        //   console.log("updatedSelectedData", updatedSelectedData);
+        //   console.log("selectedCardList", selectedCardList);
+
+        // }
+
+
+
+        // console.log("masuk 1");
+        // const updatedSelectedData = updatedCardData.find((item) => {
+        //   return item.cardList.some((list) => list.id === selectedCardList.id);
+        // });
+
+        // if (updatedSelectedData) {
+        //   console.log("masuk 2");
+        //   const matchingCardList = updatedSelectedData.cardList.find(
+        //     (list) => list.id === selectedCardList.id
+        //   );
+
+        //   if (matchingCardList) {
+        //     console.log("masuk 3");
+        //     setSelectedCardList(matchingCardList);
+        //     console.log("Card list found and set to selectedCardList");
+        //   }
+        // }
 
       } catch (error) {
         console.error('Error fetching card:', error);
       }
+
+
     });
 
     return () => {
       socket.off(`board/${boardId}`);
       socket.disconnect();
     };
-  }, [boardId]);
+  }, [boardId, selectedCardList]);
 
   const fetchData2 = async () => {
     try {
@@ -765,6 +792,52 @@ const WorkspaceProject = () => {
     }
   };
 
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     // Mendapatkan path saat ini
+  //     const currentPath = window.location.pathname;
+  //     const newUrl = `${currentPath}/cardList/${selectedCardList.id}`;
+  //     window.history.pushState({}, '', newUrl);
+  //   }
+  // }, [isPopupOpen, selectedCardList]);
+
+  // const { id } = useParams();
+  // const navigate = useNavigate();
+
+  // // Tambahkan useEffect baru untuk handle initial load
+  // useEffect(() => {
+  //   // Jika ada ID di URL tapi popup belum terbuka
+  //   if (id && !isPopupOpen) {
+  //     // Fetch data cardList berdasarkan ID
+  //     const fetchCardList = async () => {
+  //       try {
+  //         // Ganti ini sesuai dengan fungsi fetch data Anda
+  //         const cardList = await fetchCardListById(id);
+  //         if (cardList) {
+  //           handleOpenPopup(cardList);
+  //         } else {
+  //           // Jika data tidak ditemukan, kembali ke homepage
+  //           navigate('/');
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching card list:', error);
+  //         navigate('/');
+  //       }
+  //     };
+
+  //     fetchCardList();
+  //   }
+  // }, [id]); // Dependency hanya pada id
+
+  // // useEffect untuk handle perubahan state popup
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     navigate(`/cardList/${selectedCardList.id}`, { replace: true }); // Tambahkan replace: true
+  //   } else if (!isPopupOpen) {
+  //     navigate('/', { replace: true }); // Tambahkan replace: true
+  //   }
+  // }, [isPopupOpen, selectedCardList, navigate]);
+
 
   const cancelDeleteCardList = () => {
     setDeleteCardlist(false);
@@ -853,6 +926,8 @@ const WorkspaceProject = () => {
 
   const handleOpenPopup = async (cardList: any) => {
     setSelectedCardList(cardList);
+    console.log(cardList);
+    console.log(selectedCardList);
     setIsPopupOpen(true);
     setCardlistCustomFields(cardList.customFields)
     setAttachments(cardList.attachmentDetails || []);
@@ -896,7 +971,7 @@ const WorkspaceProject = () => {
   };
 
   const handleCustomFieldClick = async (customField: any) => {
-    if (customField.type === 'DROPDOWN') {
+    if (customField.type) {
       try {
         await addCardlistCustomField(selectedCardList.id, customField.id);
       } catch (error) {
@@ -917,21 +992,39 @@ const WorkspaceProject = () => {
     const selectedValue = e.target.value;
     try {
       const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, selectedValue);
-      console.log("Custom field updated successfully:", response);
+      // console.log("Custom field updated successfully:", response);
       const updatedFields = cardlistCustomFields.map((field) =>
         field.customField.id === customFieldId
           ? { ...field, selectedValue }
           : field
       );
       setCardlistCustomFields(updatedFields);
+      console.log("updatedFields", updatedFields);
+      console.log("response", response);
     } catch (error) {
       console.error("Failed to update custom field value:", error);
     }
   };
 
+  const handleInputChange = async (e: any, customFieldId: any, cardListId: any) => {
+    const newValue = e.target.value;
+    try {
+        const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
+        console.log("Custom field updated successfully:", response);
+        const updatedFields = cardlistCustomFields.map((field) =>
+            field.customField.id === customFieldId
+                ? { ...field, selectedValue: newValue }
+                : field
+        );
+        setCardlistCustomFields(updatedFields);
+    } catch (error) {
+        console.error("Failed to update custom field value:", error);
+    }
+};
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
+      console.log("her", selectedCardList)
       const fetchAttachments = async () => {
         try {
           const attachmentPromises = selectedCardList.attachments?.map(async (attachment: any) => {
@@ -1109,6 +1202,23 @@ const WorkspaceProject = () => {
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
 
+  useEffect(() => {
+    setLoading(true);
+
+    setTimeout(() => {
+      fetchData()
+      setLoading(false);
+    }, 1000);
+  }, [workspaceId, boardId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <span className="text-xl font-medium text-gray-700">Loading...</span>
+      </div>
+    );
+  }
+
 
   return (
     <>
@@ -1156,7 +1266,7 @@ const WorkspaceProject = () => {
 
                 <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
                 <ul className="space-y-2">
-                  {card.cardList?.map((cardList: any, index: any) => (
+                  {card.cardList && card.cardList?.map((cardList: any, index: any) => (
                     <li
                       key={index}
                       className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group"
@@ -1303,7 +1413,7 @@ const WorkspaceProject = () => {
         />
       )}
 
-      {isPopupOpen && selectedCardList && (
+      {/* {isPopupOpen && selectedCardList && (
         <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
             <div className="sticky top-0 bg-white z-10 p-6">
@@ -1687,8 +1797,55 @@ const WorkspaceProject = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
+      {isPopupOpen && selectedCardList && (
+        <>
+          <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+              <div className="sticky top-0 bg-white z-10 p-6">
+                <WorkspaceCardList
+                  editingListName={editingListName}
+                  inputRef={inputRef}
+                  selectedCardList={selectedCardList}
+                  setSelectedCardList={setSelectedCardList}
+                  handleUpdateListName={handleUpdateListName}
+                  setEditingListName={setEditingListName}
+                  handleClosePopup={handleClosePopup}
+                  labelColors={labelColors}
+                  getContrastColor={getContrastColor}
+                  inReviewPhoto={inReviewPhoto}
+                  approvedPhoto={approvedPhoto}
+                  cardlistCustomFields={cardlistCustomFields}
+                  handleRemoveCustomField={handleRemoveCustomField}
+                  handleSelectChange={handleSelectChange}
+                  handleInputChange={handleInputChange}
+                  attachments={attachments}
+                  handleAttachImage={handleAttachImage}
+                  handleDownloadAttachment={handleDownloadAttachment}
+                  handleDeleteAttachmentClick={handleDeleteAttachmentClick}
+                  isDeleting={isDeleting}
+                  deleteError={deleteError}
+                  checklistData={checklistData}
+                  calculateChecklistPercentage={calculateChecklistPercentage}
+                  handleOpenChecklistPopup={handleOpenChecklistPopup}
+                  setExistingChecklistData={setExistingChecklistData}
+                  handleToggleIsDone={handleToggleIsDone}
+                  handleDeleteChecklist={handleDeleteChecklist}
+                  handleJoinClick={handleJoinClick}
+                  handleOpenMemberPopup={handleOpenMemberPopup}
+                  handleOpenLabelsPopup={handleOpenLabelsPopup}
+                  handleOpenDatesPopup={handleOpenDatesPopup}
+                  handleOpenAttachPopup={handleOpenAttachPopup}
+                  handleOpenCopyPopup={handleOpenCopyPopup}
+                  handleDeleteCardList={handleDeleteCardList}
+                  setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className='text-black'>
         <CustomFieldSettings

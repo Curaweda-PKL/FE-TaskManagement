@@ -123,7 +123,10 @@ const SidebarWorkspace: React.FC = () => {
       try {
         const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
-        await fetchBoards(selectedWorkspace.id);
+      if (selectedWorkspace) {
+        const updatedBoards = await fetchBoards(selectedWorkspace.id);
+        setBoards(updatedBoards);
+      }
         setAlert({ type: 'success', message });
       } catch (error: any) {
         console.error('Failed to delete board:', error);
@@ -202,7 +205,10 @@ const SidebarWorkspace: React.FC = () => {
             <div className="mb-4">
               <div className={`flex items-center justify-between border-b w-full p-4`}>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-red-500 mr-2"></div>
+                  <div 
+                    className="w-4 h-4 mr-2"
+                    style={{ backgroundColor: selectedWorkspace?.color || '#EF4444' }}>
+                    </div>
                   <span className="text-black font-medium">{selectedWorkspace ? selectedWorkspace.name : 'Loading...'}</span>
                 </div>
               </div>

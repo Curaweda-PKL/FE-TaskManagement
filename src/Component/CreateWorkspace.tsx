@@ -6,18 +6,22 @@ import work from '../assets/Media/work.png';
 interface CreateWorkspaceProps {
   workspaceName: string;
   workspaceDescription: string;
+  workspaceColor: string;
   setWorkspaceName: (name: string) => void;
   setWorkspaceDescription: (description: string) => void;
+  setWorkspaceColor: (color: string) => void;
   onClose: () => void;
-  onCreate: (name: string, description: string) => Promise<void>;
+  onCreate: (name: string, description: string, color: string) => Promise<void>;
   isEditMode: boolean;
 }
 
 const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
   workspaceName,
   workspaceDescription,
+  workspaceColor,
   setWorkspaceName,
   setWorkspaceDescription,
+  setWorkspaceColor,
   onClose,
   onCreate,
   isEditMode,
@@ -31,8 +35,9 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
     }
 
     try {
-      setError(null); // Reset error if submission is successful
-      await onCreate(workspaceName, workspaceDescription);
+      setError(null);
+      // Pass the color to onCreate
+      await onCreate(workspaceName, workspaceDescription, workspaceColor);
       onClose();
     } catch (error) {
       console.error('Failed to create or edit workspace:', error);
@@ -54,7 +59,7 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             </label>
             <input
               type="text"
-              className={`w-full px-3 py-2 bg-white border ${
+              className={`w-full px-3 py-2 bg-white text-black border ${
                 error ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Workspace..."
@@ -68,12 +73,12 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
               This is the name of your team or your organization.
             </p>
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Workspace description
             </label>
             <textarea
-              className="w-full px-3 py-2 bg-white border border-gray-300"
+              className="w-full h-24 px-3 py-2 bg-white text-black border border-gray-300"
               rows={4}
               placeholder="Our workspace is..."
               value={workspaceDescription}
@@ -82,6 +87,27 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             <p className="text-xs text-gray-500 mt-1">
               Get your members on board with a few words about your Workspace.
             </p>
+          </div>
+          <div className="mb-5">
+            <label className="block text-gray-700 text-sm font-semibold mb-1">
+              Select color workspace
+            </label>
+            <div className="flex items-center gap-3 w-full">
+              <input
+                type="color"
+                className="h-10 border-gray-300 rounded w-1/2"
+                value={workspaceColor}
+                onChange={(e) => setWorkspaceColor(e.target.value)}
+                style={{ backgroundColor: workspaceColor, border: 'none' }}
+              />
+              <input
+                type="text"
+                className="w-20 rounded px-3 py-2 text-sm bg-white border-gray-300 border text-black"
+                value={workspaceColor}
+                onChange={(e) => setWorkspaceColor(e.target.value)}
+                placeholder="#hexcode"
+              />
+            </div>
           </div>
           <button
             onClick={handleSubmit}
