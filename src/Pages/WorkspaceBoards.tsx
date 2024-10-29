@@ -308,7 +308,10 @@ const WorkspaceBoards: React.FC = () => {
                 key={board.id}
                 className={`group relative p-1 h-28 w-full rounded-[5px] cursor-pointer overflow-hidden ${board.backgroundColor || 'bg-gray-400'}`}
               >
-                <Link to={`/workspace/${workspace?.id}/board/${board?.id}`}>
+                <Link to={`/workspace/${workspace?.id}/board/${board?.id}`} onClick={() => {
+                  localStorage.setItem('onWorkspace', workspace.id);
+                  localStorage.setItem('onBoardId', board.id);
+                }}>
                   <div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-200'></div>
                   <h5 className='text-white relative z-10'>{board.name}</h5>
                   <div className='absolute right-2 gap-3 bottom-2 flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10'>

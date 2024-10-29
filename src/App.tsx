@@ -18,6 +18,7 @@ import useAuth from './hooks/fetchAuth';
 import LayoutWorkspace from './Component/LayoutWorkspace';
 import Profile from './Pages/Profile';
 import WorkspaceCardList from './Pages/WorkspaceCardList';
+import LinkHandler from './Pages/LinkHandler';
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
   return (
     <Router>
       <Routes>
+      <Route path="/L/workspace/:workspaceId/board/:boardId" element={<LinkHandler />} />
         <Route path="/j/:joinLink" element={<JoinWorkspace />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/signin" element={<Signin />} />

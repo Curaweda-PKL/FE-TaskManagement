@@ -1,9 +1,15 @@
-import React from 'react';
+// LayoutWorkspace.tsx
+import React, { PropsWithChildren } from 'react';
 import SidebarWorkspace from './SidebarWorkspace';
 import Navbar from './Navbar';
 import { Outlet } from 'react-router-dom';
 
-const LayoutWorkspace: React.FC = () => {
+// Tambahkan interface untuk props
+interface LayoutWorkspaceProps {
+  children?: React.ReactNode;
+}
+
+const LayoutWorkspace: React.FC<LayoutWorkspaceProps> = ({ children }) => {
   return (
     <div className="flex h-screen">
       <SidebarWorkspace />
@@ -12,7 +18,7 @@ const LayoutWorkspace: React.FC = () => {
           <Navbar />
         </div>
         <main className="flex-1 overflow-y-auto mt-[60px]">
-          <Outlet />
+          {children || <Outlet />}
         </main>
       </div>
     </div>
