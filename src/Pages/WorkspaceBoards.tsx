@@ -333,7 +333,7 @@ const WorkspaceBoards: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 shadow-sm mt-8 rounded-lg w-2/3">
+        <div className="bg-white p-1 shadow-sm mt-8 rounded-lg w-2/3">
           {workspace && ( // Tambahkan pengecekan workspace
             <Link to={`/workspace/${workspace?.id}/reports`} className="block">
               <div>
@@ -352,7 +352,7 @@ const WorkspaceBoards: React.FC = () => {
                 <div className="relative pt-1">
                   <div className="flex mb-2 items-center justify-between">
                   </div>
-                  <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
+                  <div className="overflow-hidden h-1 text-xs flex rounded bg-gray-200">
                     <div
                       className={`${allTaskCount === 0 ? 'bg-gray-400' : 'bg-blue-500'}`}
                       style={{ width: `${completionPercentage}%` }}

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X } from 'phosphor-react';
+import React, { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import createWork from '../assets/Media/createWork.svg';
 import work from '../assets/Media/work.png';
 
@@ -15,6 +15,8 @@ interface CreateWorkspaceProps {
   isEditMode: boolean;
 }
 
+const DEFAULT_COLOR = '#EF4444';
+
 const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
   workspaceName,
   workspaceDescription,
@@ -28,6 +30,13 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
 
+  // Set warna default saat komponen pertama kali dimount jika tidak ada warna yang dipilih
+  useEffect(() => {
+    if (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') {
+      setWorkspaceColor(DEFAULT_COLOR);
+    }
+  }, []);
+
   const handleSubmit = async () => {
     if (!workspaceName.trim()) {
       setError('Workspace name is required.');
@@ -36,13 +45,22 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
 
     try {
       setError(null);
-      // Pass the color to onCreate
-      await onCreate(workspaceName, workspaceDescription, workspaceColor);
+      // Pastikan warna yang dikirim tidak kosong atau putih
+      const finalColor = (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
+        ? DEFAULT_COLOR 
+        : workspaceColor;
+        
+      await onCreate(workspaceName, workspaceDescription, finalColor);
       onClose();
     } catch (error) {
       console.error('Failed to create or edit workspace:', error);
     }
   };
+
+  // Memastikan input color dan text selalu menampilkan warna yang valid
+  const displayColor = (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
+    ? DEFAULT_COLOR 
+    : workspaceColor;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -64,7 +82,12 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
               }`}
               placeholder="Workspace..."
               value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
+              onChange={(e) => {
+                const capitalizeWords = (str: string) =>
+                  str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                setWorkspaceName(capitalizeWords(e.target.value));
+              }}
+
             />
             {error && (
               <p className="text-xs text-red-500 mt-1">{error}</p>
@@ -96,15 +119,21 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
               <input
                 type="color"
                 className="h-10 border-gray-300 rounded w-1/2"
-                value={workspaceColor}
-                onChange={(e) => setWorkspaceColor(e.target.value)}
-                style={{ backgroundColor: workspaceColor, border: 'none' }}
+                value={displayColor}
+                onChange={(e) => {
+                  const newColor = e.target.value;
+                  setWorkspaceColor(newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor);
+                }}
+                style={{ backgroundColor: displayColor, border: 'none' }}
               />
               <input
                 type="text"
                 className="w-20 rounded px-3 py-2 text-sm bg-white border-gray-300 border text-black"
-                value={workspaceColor}
-                onChange={(e) => setWorkspaceColor(e.target.value)}
+                value={displayColor}
+                onChange={(e) => {
+                  const newColor = e.target.value;
+                  setWorkspaceColor(newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor);
+                }}
                 placeholder="#hexcode"
               />
             </div>

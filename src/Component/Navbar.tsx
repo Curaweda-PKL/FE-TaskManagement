@@ -539,7 +539,7 @@ function Navbar() {
           Notifications<i className="fas fa-bell ml-1" />
         </button>
         {openDropdown === 'notification' && (
-          <div className="absolute top-[290px] left-0 bg-gray-50 p-4 m-0 shadow text-black w-full">
+          <div className="absolute top-[282px] left-0 bg-gray-50 p-4 m-0 shadow text-red w-full h-[26rem] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Notifications</h2>
               <div className="flex items-center">

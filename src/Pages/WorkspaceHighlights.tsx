@@ -4,7 +4,7 @@ import { getProfilePhotoMember } from '../hooks/fetchWorkspace'
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config/baseUrl';
-
+import Wolf from '../assets/Media/wolf.png';
 
 const WorkspaceHighlights: React.FC = () => {
   const [highlightUser, setHighlightUser] = useState<any>(null);
@@ -140,6 +140,7 @@ const WorkspaceHighlights: React.FC = () => {
           </div>
         )}
 
+      {highlightUser && highlightUser.length > 0 ? (
         <div className='flex flex-col gap-10'>
           {(highlightUser || []).map((highlight: any, index: number) => (
             <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -247,8 +248,27 @@ const WorkspaceHighlights: React.FC = () => {
             </div>
           ))}
         </div>
+        ) : (
+          <div className="bg-white w-[500px] min-h-screen">
+          <div className="mx-auto px-8">
+            <div className="bg-white w-full rounded-lg shadow-md mr-80">
+              <div className="flex flex-col items-center text-center">
+                <div className="relative w-full h-48">
+                  <img src={Wolf} alt="Workspace Highlight" className="w-full h-full object-cover rounded-t-lg" />
+                </div>
+                <div className="p-4">
+                  <h2 className="text-xl font-bold mb-4">Stay up to date</h2>
+                  <p className="text-gray-600 max-w-md">
+                    Invite people to boards and cards, leave comments, add due dates, and we'll show the most important activity here.
+                </p>
+                </div>
+              </div>
+            </div>
+          </div> 
+        </div>
+          )}
+        </div>
       </div>
-    </div>
     /*<div className="bg-white min-h-screen">
         <div className="max-w-screen-xl mx-auto px-8">
           <div className="bg-white rounded-lg shadow-sm mr-80">
@@ -260,7 +280,7 @@ const WorkspaceHighlights: React.FC = () => {
                 <h2 className="text-xl font-bold mb-4">Stay up to date</h2>
                 <p className="text-gray-600 max-w-md">
                   Invite people to boards and cards, leave comments, add due dates, and we'll show the most important activity here.
-                </p>
+              </p>
               </div>
             </div>
           </div>
