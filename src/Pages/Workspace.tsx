@@ -80,7 +80,6 @@ const Workspace: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       const workspaceData = await fetchWorkspaces(workspaces);
       const updatedWorkspaces = await Promise.all(
         workspaceData.map(async (workspace: any) => {

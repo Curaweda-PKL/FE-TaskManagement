@@ -240,13 +240,6 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({ initialDescriptio
               <Link2 size={16} />
             </button>
 
-            <button 
-              className="p-1 hover:bg-gray-200 rounded"
-              onClick={() => applyTextStyle('image')}
-            >
-              <Image size={16} />
-            </button>
-
             {showLinkDialog && (
               <div className="absolute bg-white border p-4 rounded shadow-md">
                 <div className="flex flex-col gap-2">
