@@ -1,4 +1,3 @@
-// components/LinkHandler.tsx
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
