@@ -60,8 +60,17 @@ const Workspace: React.FC = () => {
   }, [userData]);
 
   const isOwner = (workspace: any) => {
-    if (!workspace || !currentUserId) return false;
+    if (!workspace || !currentUserId) return false; 
     return workspace.ownerId === currentUserId;
+  };
+
+  const isAdminOrOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false;
+
+    console.log(workspace)
+
+    const currentUser = workspace.members.find(member => member.userId === currentUserId);
+    return currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'OWNER');
   };
 
   useEffect(() => {
@@ -280,7 +289,7 @@ const Workspace: React.FC = () => {
                   <i className='fas fa-users max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
                   <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Member</span>
                 </Link>
-                {isOwner(workspace) && (
+                {isAdminOrOwner(workspace) && (
                   <Link to={`/workspace/${workspace.id}/settings`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
                     <i className='fas fa-gear max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
                     <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Settings</span>

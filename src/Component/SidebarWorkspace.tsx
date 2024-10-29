@@ -69,12 +69,14 @@ const SidebarWorkspace: React.FC = () => {
     return ownerStatus;
   };
 
-  const isAdmin = () => {
-    const adminStatus = selectedWorkspace &&
-    currentUserId &&
-    selectedWorkspace.member.role === 'ADMIN';
-    return adminStatus;
-  };
+  const isAdminOrOwner = () => {
+    if (!selectedWorkspace || !selectedWorkspace.members || !currentUserId) return false;
+
+    console.log("members", selectedWorkspace.members)
+  
+    const currentMember = selectedWorkspace.members.find((member: any) => member.userId === currentUserId);
+    return currentMember && (currentMember.role === 'ADMIN' || currentMember.role === 'OWNER');
+  };  
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -232,7 +234,7 @@ const SidebarWorkspace: React.FC = () => {
                   className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`) ? activeClass : ''}`}>
                   <i className="fas fa-user-friends mr-2"></i><span>Members</span>
                 </Link>
-                {isOwner() && isAdmin() && (
+                {isAdminOrOwner() && (
                   <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`}
                     className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`) ? activeClass : ''}`}>
                     <i className="fas fa-cog mr-2"></i><span>Workspace Settings</span>

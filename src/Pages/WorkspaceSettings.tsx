@@ -5,6 +5,7 @@ import CreateWorkspace from '../Component/CreateWorkspace';
 import DeleteConfirmation from '../Component/DeleteConfirmation';
 import { fetchWorkspaces, deleteWorkspace, updateWorkspace } from '../hooks/fetchWorkspace';
 import CustomFieldSettings from '../Component/customField';
+import useAuth from '../hooks/fetchAuth';
 
 const WorkspaceSettings: React.FC = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -18,6 +19,8 @@ const WorkspaceSettings: React.FC = () => {
   const navigate = useNavigate();
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { userData, fetchUserData } = useAuth();
 
   useEffect(() => {
     const fetchWorkspaceData = async () => {
@@ -54,6 +57,26 @@ const WorkspaceSettings: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userData) {
+          setCurrentUserId(userData.id);
+          console.log("Current User ID:", userData.id);
+        }
+      } catch (error) {
+        console.error("Error setting currentUserId:", error);
+      }
+    };
+    fetchData();
+  }, [userData]);
+
+  const isOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false;
+    return workspace.ownerId === currentUserId;
+  };
+
 
   const handleDeleteWorkspace = async () => {
     if (workspaceId) {
@@ -121,8 +144,6 @@ const WorkspaceSettings: React.FC = () => {
     closeAllPopups();
   };
 
-
-
   return (
     <div className='min-h-screen'>
       {alert && (
@@ -161,21 +182,23 @@ const WorkspaceSettings: React.FC = () => {
             </button>
           </div>
 
-          <div className='mt-3 w-52 cursor-pointer' onClick={(e) => {
-            e.stopPropagation();
-            togglePopup('delete');
-          }}>
-            <p className='text-red-500 font-semibold hover:bg-gray-200 w-fit p-1.5 px-5 rounded-md'>Delete this workspace?</p>
-          </div>
+          {isOwner(workspace) &&
+            <div className='mt-3 w-52 cursor-pointer' onClick={(e) => {
+              e.stopPropagation();
+              togglePopup('delete');
+            }}>
+              <p className='text-red-500 font-semibold hover:bg-gray-200 w-fit p-1.5 px-5 rounded-md'>Delete this workspace?</p>
+            </div>
+          }
 
           {activePopup === 'delete' && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black opacity-50"></div>
-            <DeleteConfirmation
-              onDelete={handleDeleteWorkspace}
-              onCancel={closeAllPopups}
-              itemType='workspace'
-            />
+              <div className="absolute inset-0 bg-black opacity-50"></div>
+              <DeleteConfirmation
+                onDelete={handleDeleteWorkspace}
+                onCancel={closeAllPopups}
+                itemType='workspace'
+              />
             </div>
           )}
 
