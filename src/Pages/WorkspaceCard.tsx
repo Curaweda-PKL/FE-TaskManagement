@@ -186,9 +186,36 @@ const WorkspaceProject = () => {
   const handleShareClick = () => {
     const currentOrigin = window.location.origin;
     const url = `${currentOrigin}/L/workspace/${workspaceId}/board/${boardId}`;
-    navigator.clipboard.writeText(url);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url)
+        .then(() => {
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 2000);
+        })
+        .catch((error) => {
+          console.error('Failed to copy to clipboard:', error);
+          // Fallback: Buat input tersembunyi dan salin isinya
+          const tempInput = document.createElement('textarea');
+          tempInput.value = url;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 2000);
+        });
+    } else {
+      // Fallback: Buat input tersembunyi dan salin isinya
+      const tempInput = document.createElement('textarea');
+      tempInput.value = url;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   };
 
   useEffect(() => {
