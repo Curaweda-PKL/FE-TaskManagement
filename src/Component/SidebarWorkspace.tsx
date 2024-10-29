@@ -69,6 +69,13 @@ const SidebarWorkspace: React.FC = () => {
     return ownerStatus;
   };
 
+  const isAdmin = () => {
+    const adminStatus = selectedWorkspace &&
+    currentUserId &&
+    selectedWorkspace.member.role === 'ADMIN';
+    return adminStatus;
+  };
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -225,7 +232,7 @@ const SidebarWorkspace: React.FC = () => {
                   className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/members`) ? activeClass : ''}`}>
                   <i className="fas fa-user-friends mr-2"></i><span>Members</span>
                 </Link>
-                {isOwner() && (
+                {isOwner() && isAdmin() && (
                   <Link to={`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`}
                     className={`text-gray-600 p-2 flex items-center ${hoverClass} ${isActive(`/workspace/${selectedWorkspace ? selectedWorkspace.id : ''}/settings`) ? activeClass : ''}`}>
                     <i className="fas fa-cog mr-2"></i><span>Workspace Settings</span>

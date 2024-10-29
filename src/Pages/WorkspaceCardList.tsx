@@ -321,7 +321,9 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                     <div className="activity flex flex-col justify-between mt-2 text-gray-800">
                         {checklistData?.map((data: any, index: number) => {
                             const completionPercentage = calculateChecklistPercentage(data.items);
-
+                            const sortedItems = [...data.items].sort((a, b) => 
+                                String(a.name).localeCompare(String(b.name))
+                            );
                             return (
                                 <div key={index} className="checklist-item">
                                     <div className='flex justify-between items-center'>
@@ -351,14 +353,13 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         ></div>
                                     </div>
 
-
                                     <div className='flex justify-between text-[10px] mb-2'>
                                         <p>Start Date: {data.startDate}</p>
                                         <p>End Date: {data.endDate}</p>
                                     </div>
 
                                     <ul className='mb-3'>
-                                        {data.items.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
+                                    {sortedItems.map((item: { isDone: boolean | undefined; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, itemIndex: Key | null | undefined) => (
                                             <li key={itemIndex} className="flex items-center mb-1">
                                                 <input
                                                     type="checkbox"

@@ -95,7 +95,7 @@ const CreateBoard: React.FC<CreateBoardProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">Board Title*</label>
             <input
               type="text"
-              className="w-full bg-white px-3 py-2 border rounded-md"
+              className="w-full text-black bg-white px-3 py-2 border rounded-md"
               placeholder="Input your title"
               value={name}
               onChange={(e) => setName(e.target.value)}

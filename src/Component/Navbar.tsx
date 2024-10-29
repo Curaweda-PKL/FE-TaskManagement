@@ -233,7 +233,7 @@ function Navbar() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [userData2, setUserData2] = useState<UserData[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfileMap>({});
-
+  
   const fetchNotifications = async () => {
     try {
       const data = await fetchUserNotifications(unreadOnly ? 'yes' : undefined);
@@ -302,8 +302,6 @@ function Navbar() {
 
   const hasUnreadNotifications = notifications.some(notification => !notification.isRead);
 
-
-
   return (
     <nav
       ref={navbarRef}
@@ -328,7 +326,8 @@ function Navbar() {
                     <h3 className="text-sm font-semibold text-gray-500">Your workspaces</h3>
                     {workspaces.map(workspace => (
                       <div key={workspace.id} className={`mt-2 flex items-center justify-start p-2 rounded-md cursor-pointer btn btn-sm ${buttonClass}`} onClick={() => handleWorkspaceClick(workspace.id)}>
-                        <div className="w-4 h-4 bg-red-600 mr-2 rounded"></div>
+                        <div className="w-4 h-4 mr-2 rounded"
+                        style={{ backgroundColor: workspace.color || '#EF4444' }}></div>
                         <a className="text-gray-800 font-semibold">{workspace.name}</a>
                       </div>
                     ))}
@@ -371,7 +370,7 @@ function Navbar() {
             <i className='ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500'></i>
 
             {showSearchResults && (
-              <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute mt-3 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                 {(filteredWorkspaces.length > 0 || searchQuery === "") ? (
                   (searchQuery === "" ? workspaces : filteredWorkspaces).map(workspace => (
                     <div
@@ -379,7 +378,10 @@ function Navbar() {
                       onClick={() => handleWorkspaceClick(workspace.id)}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2"
                     >
-                      <div className="w-5 h-5 bg-red-600 rounded"></div>
+                      <div 
+                        className="w-5 h-5 bg-red-600 rounded"
+                        style={{ backgroundColor: workspace.color || '#EF4444' }}
+                      ></div>
                       <span className="text-gray-900 font-semibold">{workspace.name}</span>
                     </div>
                   ))

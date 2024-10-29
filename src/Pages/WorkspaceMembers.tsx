@@ -38,41 +38,6 @@ const WorkspaceMembers: React.FC = () => {
     const socket = io(config);
     socket.on(`workspace/${workspaceId}`, async () => {
       console.log("here", workspaceId);
-      // const membersData = await memberWorkspace(workspaceId);
-      // const membersWithPhotos = await Promise.all(
-      //   membersData.map(async (member: any) => {
-      //     if (member) {
-      //       try {
-      //         const memberPhoto = await getProfilePhotoMember(member.id);
-      //         return { ...member, photoProfile: memberPhoto };
-      //       } catch (error) {
-      //         console.error(`Error fetching photo profile for ${member.name}:`, error);
-      //         return member;
-      //       }
-      //     }
-      //     return member;
-      //   })
-      // );
-      // setMembers(membersWithPhotos);
-
-      // const joinRequestsData = await joinRequestsWorkspace(workspaceId);
-      // setJoinRequests(joinRequestsData);
-
-      // const joinRequestsPhotoProfile = await Promise.all(
-      //   joinRequestsData.map(async (joinRequest: any) => {
-      //     if (joinRequest) {
-      //       try {
-      //         const joinRequestPhoto = await getProfilePhotoMember(joinRequest.userId);
-      //         return { ...joinRequest, photoProfile: joinRequestPhoto };
-      //       } catch (error) {
-      //         console.error(`Error fetching photo profile for ${joinRequest.name}:`, error);
-      //         return joinRequest;
-      //       }
-      //     }
-      //     return joinRequest;
-      //   })
-      // );
-      // setRequests(joinRequestsPhotoProfile);
       fetchWorkspaceData()
     });
     return () => {
@@ -329,14 +294,20 @@ const WorkspaceMembers: React.FC = () => {
                       <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
                         {currentUserId === workspace?.ownerId && (
                           <>
-                            <select
-                              className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
-                              value={member.role}
-                              onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                            > 
-                              <option value="MEMBER">Member</option>
-                              <option value="ADMIN">Admin</option>
-                            </select>
+                            {member.id === workspace?.ownerId ? (
+                              <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">
+                                Owner
+                              </p>
+                            ) : (
+                              <select
+                                className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
+                                value={member.role}
+                                onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                              >
+                                <option value="MEMBER">Member</option>
+                                <option value="ADMIN">Admin</option>
+                              </select>
+                            )}
                             <button
                               className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
                               onClick={() => handleRemoveMember(member.id)}
@@ -349,6 +320,7 @@ const WorkspaceMembers: React.FC = () => {
                     </div>
                   ))}
                 </div>
+
               </>
             ) : (
               <div className='mt-8'>
