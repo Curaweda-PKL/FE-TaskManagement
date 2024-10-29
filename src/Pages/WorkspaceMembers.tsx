@@ -122,6 +122,15 @@ const WorkspaceMembers: React.FC = () => {
     }
   };
 
+  const isAdminOrOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false;
+
+    console.log(workspace)
+
+    const currentUser = workspace.members.find(member => member.userId === currentUserId);
+    return currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'OWNER');
+  };
+
   const handleJoinRequest = async (requestId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
       await requestWorkspace(requestId, status);
@@ -235,7 +244,7 @@ const WorkspaceMembers: React.FC = () => {
                     Workspace members can view and join all Workspace visible boards and create new boards in the Workspace.
                   </p>
                 </div>
-                {currentUserId === workspace?.ownerId && (
+                {isAdminOrOwner(workspace) && (
                   <div className="bg-white p-0 lg:p-4 border-t-[1.5px] border-b-[1.5px] text-black border-gray-200 mb-8">
                     <h3 className="text-lg font-semibold">Invite members to join you</h3>
                     <div className='flex flex-col lg:flex-row justify-between'>

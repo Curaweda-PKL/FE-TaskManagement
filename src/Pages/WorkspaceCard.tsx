@@ -153,6 +153,7 @@ const WorkspaceProject = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
+  const [isMemberBoardPopupOpen, setIsMemberBoardPopupOpen] = useState(false);
   const [isLabelsPopupOpen, setIsLabelsPopupOpen] = useState(false);
   const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
   const [isEditCardOpen, setIsEditCardOpen] = useState(false);
@@ -183,6 +184,7 @@ const WorkspaceProject = () => {
   const [cardlistCustomFields, setCardlistCustomFields] = useState<CardlistCustomField[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [currentBgColor, setCurrentBgColor] = useState<string>('bg-white');
+  const MAX_VISIBLE_MEMBERS = 2
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -200,8 +202,8 @@ const WorkspaceProject = () => {
         );
 
         setMembers(membersWithPhotos);
-        setVisibleMembers(membersWithPhotos.slice(0, 5));
-        setRemainingCount(membersWithPhotos.length - 5);
+        setVisibleMembers(membersWithPhotos.slice(0, MAX_VISIBLE_MEMBERS));
+        setRemainingCount(membersWithPhotos.length - MAX_VISIBLE_MEMBERS);
       } catch (error) {
         console.error('Failed to fetch workspace members:', error);
       }
@@ -993,39 +995,22 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleSelectChange = async (e: any, customFieldId: any, cardListId: any) => {
-    const selectedValue = e.target.value;
+  const handleInputChange = async (cardListId: any, customFieldId: any, newValue: string) => {
     try {
-      const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, selectedValue);
-      // console.log("Custom field updated successfully:", response);
+      const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
+      console.log("Custom field updated successfully:", response);
+
       const updatedFields = cardlistCustomFields.map((field) =>
         field.customField.id === customFieldId
-          ? { ...field, selectedValue }
+          ? { ...field, value: newValue }
           : field
       );
       setCardlistCustomFields(updatedFields);
-      console.log("updatedFields", updatedFields);
-      console.log("response", response);
     } catch (error) {
       console.error("Failed to update custom field value:", error);
     }
   };
 
-  const handleInputChange = async (e: any, customFieldId: any, cardListId: any) => {
-    const newValue = e.target.value;
-    try {
-        const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
-        console.log("Custom field updated successfully:", response);
-        const updatedFields = cardlistCustomFields.map((field) =>
-            field.customField.id === customFieldId
-                ? { ...field, selectedValue: newValue }
-                : field
-        );
-        setCardlistCustomFields(updatedFields);
-    } catch (error) {
-        console.error("Failed to update custom field value:", error);
-    }
-};
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
@@ -1179,25 +1164,25 @@ const WorkspaceProject = () => {
   }
   const handleToggleIsDone = async (checklistData: any, itemIndex: number, isChecked: boolean, idChecklist: string) => {
     // Find the original item's index in the unsorted array
-    const sortedItems = [...checklistData.items].sort((a, b) => 
-        String(a.name).localeCompare(String(b.name))
+    const sortedItems = [...checklistData.items].sort((a, b) =>
+      String(a.name).localeCompare(String(b.name))
     );
     const item = sortedItems[itemIndex];
-    const originalIndex = checklistData.items.findIndex((originalItem: any) => 
-        originalItem.name === item.name
+    const originalIndex = checklistData.items.findIndex((originalItem: any) =>
+      originalItem.name === item.name
     );
 
     const updatedItems = [...checklistData.items];
     updatedItems[originalIndex].isDone = isChecked;
-    
+
     const data = {
-        idChecklist: idChecklist,
-        checklistData: {
-            name: checklistData.name,
-            startDate: checklistData.startDate,
-            endDate: checklistData.endDate,
-            items: updatedItems,
-        },
+      idChecklist: idChecklist,
+      checklistData: {
+        name: checklistData.name,
+        startDate: checklistData.startDate,
+        endDate: checklistData.endDate,
+        items: updatedItems,
+      },
     };
     await updateChecklist(data);
     handleTakeCardlistChecklist();
@@ -1241,29 +1226,71 @@ const WorkspaceProject = () => {
           <h1 className="text-xl text-black font-medium">{boardName}</h1>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="flex space-x-2">
+          <div className="flex items-center">
             {visibleMembers.map((member, index) => (
-              <img
-                key={index}
-                className="w-8 h-8 rounded-full"
-                src={member.photoProfile}
-                alt={member.name}
-              />
+              <div
+                key={member.id}
+                className="flex flex-col items-center"
+                style={{ marginLeft: index > 0 ? '-8px' : '0' }}
+              >
+                <img
+                  src={member.photoProfile || '/path/to/default/avatar.png'}
+                  alt={member.name}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-white cursor-pointer"
+                />
+              </div>
             ))}
+
             {remainingCount > 0 && (
-              <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
+              <div
+                className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center cursor-pointer"
+                style={{ marginLeft: '-8px' }}
+                onClick={() => setIsMemberBoardPopupOpen(true)}
+              >
                 <span className="text-xs font-semibold text-gray-600">
                   +{remainingCount}
                 </span>
               </div>
             )}
           </div>
-          <button className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center">
+
+          <button
+            className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center"
+            onClick={() => setIsMemberBoardPopupOpen(true)}
+          >
             <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
             Share
           </button>
         </div>
       </header>
+
+      {isMemberBoardPopupOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 w-96">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-black">Card Members</h2>
+              <button
+                onClick={() => setIsMemberBoardPopupOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="space-y-3">
+              {members.map(member => (
+                <div key={member.id} className="flex items-center space-x-3 bg-slate-300 rounded p-1 text-slate-900">
+                  <img
+                    src={member.photoProfile || '/path/to/default/avatar.png'}
+                    alt={member.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <span className="text-sm font-medium">{member.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <main className="h-[89%] w-full flex-1 overflow-x-auto">
         <div className={`flex px-4 py-4 ${currentBgColor} min-w-full w-max h-max min-h-full`}>
           {cardData.length === 0 ? (
@@ -1832,7 +1859,6 @@ const WorkspaceProject = () => {
                   approvedPhoto={approvedPhoto}
                   cardlistCustomFields={cardlistCustomFields}
                   handleRemoveCustomField={handleRemoveCustomField}
-                  handleSelectChange={handleSelectChange}
                   handleInputChange={handleInputChange}
                   attachments={attachments}
                   handleAttachImage={handleAttachImage}

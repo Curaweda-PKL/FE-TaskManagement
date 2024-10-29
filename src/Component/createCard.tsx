@@ -58,7 +58,12 @@ const CreateCard: React.FC<CreateCardProps> = ({
               className="w-full bg-white px-3 py-2 border rounded-md"
               placeholder="Input your title"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const capitalizeWords = (str: string) =>
+                  str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                setName(capitalizeWords(e.target.value));
+              }}
+
             />
             <p className="text-xs text-gray-500 mt-1">* Card title is required</p>
           </div>
