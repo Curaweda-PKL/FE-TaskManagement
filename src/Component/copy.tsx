@@ -4,21 +4,42 @@ import axios from 'axios';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard } from '../hooks/fetchCard';
 import config from '../config/baseUrl';
+import { getMemberCardList } from '../hooks/fetchCardList'
+import { copyCardList } from '../hooks/ApiCopy';
 
 interface Board {
   id: string;
   name: string;
 }
 
+interface FormData {
+  name: string;
+  boardId: string;
+  cardId: string;
+  memberIds: string[]; // Pastikan ini adalah string[]
+  includeMembers: boolean; // Tambahkan ini
+  includeChecklists: boolean;
+  includeCustomFields: boolean;
+  includeAttachments: boolean;
+  includeLabels: boolean;
+}
+
+interface SelectedCardList {
+  id: string;
+  members: {
+    userId: string;
+  }[];
+}
+
 interface Card {
   id: string;
-  title: string;
+  name: string;
   list?: any;
 }
 
 interface CopyPopupProps {
   isCopyPopupOpen: boolean;
-  selectedCardList: any[];
+  selectedCardList: SelectedCardList;
   workspaceId: any;
   close: () => void;
 }
@@ -27,19 +48,45 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
   isCopyPopupOpen,
   selectedCardList,
   workspaceId,
-  close
+  close,
 }) => {
   const [boards, setBoards] = useState<Board[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
-  const [formData, setFormData] = useState({
-    name: 'Copy of List',
-    members: false,
-    attachments: false,
-    comments: false,
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
     boardId: '',
     cardId: '',
-    position: '1'
+    memberIds: [],
+    includeMembers: false,
+    includeChecklists: false,
+    includeCustomFields: false,
+    includeAttachments: false,
+    includeLabels: false,
   });
+
+  const handleCopyCardList = async () => {
+    const memberIds = formData.includeMembers
+      ? selectedCardList.members.map(member => member.userId)
+      : [];
+  
+    const data = {
+      sourceCardListId: selectedCardList.id,
+      targetCardId: formData.cardId,
+      name: formData.name,
+      memberIds: memberIds,
+      includeChecklists: formData.includeChecklists,
+      includeCustomFields: formData.includeCustomFields,
+      includeAttachments: formData.includeAttachments,
+      includeLabels: formData.includeLabels,
+    };
+  
+    try {
+      const result = await copyCardList(data);
+      console.log('Card list copied successfully:', result);
+    } catch (error) {
+      console.error('Error copying card list:', error);
+    }
+  };
 
   useEffect(() => {
     const loadBoards = async () => {
@@ -66,6 +113,9 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
         try {
           const response = await fetchCard(formData.boardId);
           console.log('Raw Card Response:', response);
+          selectedCardList.members.forEach(member => {
+            console.log("User  ID:", member.userId);
+          });
 
           const cardsData = Array.isArray(response) ? response : response.data || [];
 
@@ -84,46 +134,10 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
     loadCards();
   }, [formData.boardId]);
 
-  const handleCheckboxChange = (field: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
-  };
-
-  const handleCreate = async () => {
-    try {
-      const copyData = (selectedCardList || []).map(item => ({
-        ...item,
-        members: formData.members ? item.members : [],
-        attachments: formData.attachments ? item.attachments : [],
-        comments: formData.comments ? item.comments : [],
-        boardId: formData.boardId,
-        cardId: formData.cardId,
-      }));
-
-      console.log('Copying data:', copyData);
-
-      await axios.post(`${config}/cardlist/copy`, {
-        items: copyData,
-        destinationBoardId: formData.boardId,
-        destinationCardId: formData.cardId,
-        name: formData.name,
-      }, {
-        headers: {
-          'Authorization': localStorage.getItem('token'),
-          'Content-Type': 'application/json'
-        }
-      });
-      close();
-    } catch (error) {
-      console.error('Error copying card list:', error);
-    }
-  };
-
-
 
   if (!isCopyPopupOpen || !selectedCardList) return null;
+
+
 
   return (
     <div className="fixed text-gray-800 inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -137,9 +151,7 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
             <X size={16} />
           </button>
         </div>
-
         <div className="p-4 space-y-4">
-
           <div>
             <label className="block text-sm mb-1">Name</label>
             <input
@@ -150,36 +162,53 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
             />
           </div>
 
-          {/* Keep Section */}
           <div>
             <label className="block text-sm mb-2">Keep...</label>
             <div className="space-y-2">
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={formData.members}
-                  onChange={() => handleCheckboxChange('members')}
                   className="form-checkbox rounded text-purple-600"
+                  checked={formData.includeMembers}
+                  onChange={(e) => setFormData(prev => ({ ...prev, includeMembers: e.target.checked }))}
                 />
                 <span className="ml-2 text-sm">Members</span>
               </label>
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={formData.attachments}
-                  onChange={() => handleCheckboxChange('attachments')}
                   className="form-checkbox rounded text-purple-600"
+                  checked={formData.includeChecklists}
+                  onChange={(e) => setFormData(prev => ({ ...prev, includeChecklists: e.target.checked }))}
                 />
-                <span className="ml-2 text-sm">Attachments</span>
+                <span className="ml-2 text-sm">Checklist</span>
               </label>
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={formData.comments}
-                  onChange={() => handleCheckboxChange('comments')}
                   className="form-checkbox rounded text-purple-600"
+                  checked={formData.includeCustomFields}
+                  onChange={(e) => setFormData(prev => ({ ...prev, includeCustomFields: e.target.checked }))}
                 />
-                <span className="ml-2 text-sm">Comments</span>
+                <span className="ml-2 text-sm">Customfields</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="form-checkbox rounded text-purple-600"
+                  checked={formData.includeAttachments}
+                  onChange={(e) => setFormData(prev => ({ ...prev, includeAttachments: e.target.checked }))}
+                />
+                <span className="ml-2 text-sm">Attachment</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="form-checkbox rounded text-purple-600"
+                  checked={formData.includeLabels}
+                  onChange={(e) => setFormData(prev => ({ ...prev, includeLabels: e.target.checked }))}
+                />
+                <span className="ml-2 text-sm">Labels</span>
               </label>
             </div>
           </div>
@@ -210,7 +239,7 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
                   <option value="">Select a card</option>
                   {cards.map((card) => (
                     <option key={card.id} value={card.id}>
-                      {card.title}
+                      {card.name}
                     </option>
                   ))}
                 </select>
@@ -218,27 +247,14 @@ const CopyPopup: React.FC<CopyPopupProps> = ({
                   <p className="text-xs text-red-500 mt-1">No cards available for this board</p>
                 )}
               </div>
-              <div className="w-24">
-                <label className="block text-sm mb-1">Position</label>
-                <select
-                  className="w-full border bg-gray-200 rounded p-1.5 text-sm"
-                  value={formData.position}
-                  onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
-                >
-                  <option>1</option>
-                  <option>2</option>
-                  <option>3</option>
-                  <option>4</option>
-                  <option>5</option>
-                </select>
-              </div>
             </div>
+
           </div>
 
           <button
-            onClick={handleCreate}
             className="w-full bg-purple-600 text-white rounded py-2 text-sm mt-4 hover:bg-purple-700"
             disabled={!formData.boardId || !formData.cardId}
+            onClick={handleCopyCardList} // Panggil fungsi untuk menyalin daftar kartu
           >
             Create Copy
           </button>

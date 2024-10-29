@@ -31,6 +31,11 @@ interface Attachment {
   id: string;
   url: string;
 }
+interface Attachment {
+  name: ReactNode;
+  id: string;
+  url: string;
+}
 interface ChecklistData {
   id: string;
   items: any;
