@@ -1250,7 +1250,6 @@ const WorkspaceProject = () => {
     );
   }
 
-
   return (
     <>
       <header className="flex bg-gray-100 p-3 justify-between items-center">
@@ -1290,7 +1289,7 @@ const WorkspaceProject = () => {
             className="bg-gray-100 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center"
             onClick={handleShareClick}
           >
-            <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2"/>
+            <i className="fas fa-sharp fa-regular fa-share-nodes w-4 h-4 mr-2" />
             {isCopied ? 'Copied!' : 'Share'}
           </button>
 
@@ -1913,6 +1912,8 @@ const WorkspaceProject = () => {
                   handleOpenCopyPopup={handleOpenCopyPopup}
                   handleDeleteCardList={handleDeleteCardList}
                   setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
+                  isCopied={isCopied}
+                  handleShareClick={handleShareClick}
                 />
               </div>
             </div>
