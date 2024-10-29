@@ -5,10 +5,10 @@ interface EditLabelProps {
   onCloseCreate: () => void;
   funcfetchLabels: () => void;
   workspaceId: string;
-  labelId?: string; // add this prop to identify the label being edited
-  initialName?: string; // add this prop to set the initial name of the label
-  initialColor?: string; // add this prop to set the initial color of the label
-  handlefetchCardListLabels?: () => void
+  labelId?: string;
+  initialName?: string;
+  initialColor?: string;
+  handlefetchCardListLabels?: () => void;
 }
 
 const EditLabel: React.FC<EditLabelProps> = ({
@@ -22,21 +22,44 @@ const EditLabel: React.FC<EditLabelProps> = ({
 }) => {
   const [labelColor, setLabelColor] = useState(initialColor || '#ffffff');
   const [name, setName] = useState(initialName || '');
+  const [error, setError] = useState('');
 
-  const handleSubmit = async () => {
-    if (labelId) {
-      await updateCardListLabel(labelId, name, labelColor);
-      if (handlefetchCardListLabels) {
-        handlefetchCardListLabels();
-      }
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length <= 12) {
+      setName(value);
+      setError('');
     } else {
-      await createCardListLabel(workspaceId, name, labelColor);
+      setError('Label name cannot exceed 12 characters');
     }
-    await funcfetchLabels();
-    onCloseCreate();
   };
 
+  const handleSubmit = async () => {
+    if (name.trim() === '') {
+      setError('Label name cannot be empty');
+      return;
+    }
+    
+    if (name.length > 12) {
+      setError('Label name cannot exceed 12 characters');
+      return;
+    }
 
+    try {
+      if (labelId) {
+        await updateCardListLabel(labelId, name, labelColor);
+        if (handlefetchCardListLabels) {
+          handlefetchCardListLabels();
+        }
+      } else {
+        await createCardListLabel(workspaceId, name, labelColor);
+      }
+      await funcfetchLabels();
+      onCloseCreate();
+    } catch (err) {
+      setError('Failed to save label');
+    }
+  };
 
   return (
     <div className="flex justify-center z-100 items-center fixed inset-0 bg-black bg-opacity-50" onClick={(e) => e.stopPropagation()}>
@@ -44,15 +67,20 @@ const EditLabel: React.FC<EditLabelProps> = ({
         <div className="flex justify-end">
           <i className="fas fa-times cursor-pointer text-black" onClick={onCloseCreate} />
         </div>
-        {/* <h2 className="text-center text-lg font-semibold text-gray-900 mb-4">Edit Label</h2> */}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-semibold mb-1">Title</label>
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full border-black border text-black bg-white rounded px-3 py-2 text-sm"
+            onChange={handleNameChange}
+            className={`w-full border ${error ? 'border-red-500' : 'border-black'} text-black bg-white rounded px-3 py-2 text-sm`}
+            maxLength={12}
           />
+          <div className="flex justify-between mt-1">
+            <span className={`text-xs ${error ? 'text-red-500' : 'text-gray-500'}`}>
+              {error || `${name.length}/12 characters`}
+            </span>
+          </div>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-semibold mb-1">Select a color</label>
@@ -66,7 +94,7 @@ const EditLabel: React.FC<EditLabelProps> = ({
             />
             <input
               type="text"
-              className="w-20 rounded px-3 py-2 text-sm bg-white border-black border text-black  "
+              className="w-20 rounded px-3 py-2 text-sm bg-white border-black border text-black"
               value={labelColor}
               onChange={(e) => setLabelColor(e.target.value)}
               placeholder="#hexcode"
@@ -76,8 +104,11 @@ const EditLabel: React.FC<EditLabelProps> = ({
         <div className="flex justify-between">
           <div className="flex justify-between">
             <button
-              className="bg-purple-600 text-sm mr-5 text-white font-medium py-1 px-7 rounded-lg hover:bg-purple-700"
+              className={`bg-purple-600 text-sm mr-5 text-white font-medium py-1 px-7 rounded-lg ${
+                error ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
+              }`}
               onClick={handleSubmit}
+              disabled={!!error}
             >
               {labelId ? 'Update' : 'Save'}
             </button>
