@@ -300,6 +300,13 @@ function Navbar() {
     }
   };
 
+  const handleTaskFlow = () => {
+    localStorage.removeItem('onWorkspace');
+    localStorage.removeItem('onBoardId');
+    window.location.reload();
+  }
+
+
   const hasUnreadNotifications = notifications.some(notification => !notification.isRead);
 
   return (
@@ -312,7 +319,7 @@ function Navbar() {
     >
       <div className="flex items-center justify-between z-[100]">
         <div className="flex items-center space-x-4">
-          <a href="/boards" className="text-purple-600 font-bold text-2xl font-newsreader btn bg-white border-none shadow-none hover:bg-gray-300">TaskFlow</a>
+          <div className="text-purple-600 font-bold text-2xl font-newsreader btn bg-white border-none shadow-none hover:bg-gray-300" onClick={handleTaskFlow}>TaskFlow</div>
           <div className="hidden md:flex items-center space-x-4 h-5">
             <div className="relative">
               <button onClick={() => handleToggle('workspace')}

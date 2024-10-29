@@ -73,10 +73,10 @@ const SidebarWorkspace: React.FC = () => {
     if (!selectedWorkspace || !selectedWorkspace.members || !currentUserId) return false;
 
     console.log("members", selectedWorkspace.members)
-  
+
     const currentMember = selectedWorkspace.members.find((member: any) => member.userId === currentUserId);
     return currentMember && (currentMember.role === 'ADMIN' || currentMember.role === 'OWNER');
-  };  
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -132,10 +132,10 @@ const SidebarWorkspace: React.FC = () => {
       try {
         const response = await deleteBoard(deleteConfirmation.boardId, deleteConfirmation.workspaceId);
         const message = response?.message || 'Board deleted successfully.';
-      if (selectedWorkspace) {
-        const updatedBoards = await fetchBoards(selectedWorkspace.id);
-        setBoards(updatedBoards);
-      }
+        if (selectedWorkspace) {
+          const updatedBoards = await fetchBoards(selectedWorkspace.id);
+          setBoards(updatedBoards);
+        }
         setAlert({ type: 'success', message });
       } catch (error: any) {
         console.error('Failed to delete board:', error);
@@ -166,18 +166,18 @@ const SidebarWorkspace: React.FC = () => {
   const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {
       const response = await createBoard(workspaceId, name, description, backgroundColor);
-      
+
       if (selectedWorkspace) {
         const updatedBoards = await fetchBoards(selectedWorkspace.id);
         setBoards(updatedBoards);
       }
 
       setShowCreateBoard(false);
-      setAlert({ 
-        type: 'success', 
-        message: response?.message || 'Board created successfully.' 
+      setAlert({
+        type: 'success',
+        message: response?.message || 'Board created successfully.'
       });
-      
+
       if (response?.board?.id) {
         navigate(`/workspace/${workspaceId}/board/${response.board.id}`);
       }
@@ -214,10 +214,10 @@ const SidebarWorkspace: React.FC = () => {
             <div className="mb-4">
               <div className={`flex items-center justify-between border-b w-full p-4`}>
                 <div className="flex items-center">
-                  <div 
+                  <div
                     className="w-4 h-4 mr-2"
                     style={{ backgroundColor: selectedWorkspace?.color || '#EF4444' }}>
-                    </div>
+                  </div>
                   <span className="text-black font-medium">{selectedWorkspace ? selectedWorkspace.name : 'Loading...'}</span>
                 </div>
               </div>
@@ -270,7 +270,10 @@ const SidebarWorkspace: React.FC = () => {
                       <Link
                         to={boardUrl}
                         className={`text-gray-600 p-2 flex items-center w-full ${hoverClass} ${isActive(boardUrl) ? activeClass : ''
-                          }`}
+                          }`} onClick={() => {
+                            localStorage.setItem('onWorkspace', selectedWorkspace.id);
+                            localStorage.setItem('onBoardId', board.id);
+                          }}
                       >
                         <div className={`w-4 h-4 rounded-sm mr-2 ${board.backgroundColor || 'bg-gray-400'}`}></div>
                         <span>{board.name}</span>
