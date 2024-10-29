@@ -144,16 +144,10 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                 </button>
               </div>
 
-              <div className="flex justify-between mt-10">
-                <label className="block text-sm font-medium text-black">
-                  Start Date
-                </label>
-                <label className="block text-sm font-medium text-gray-700 ">
-                  End Date
-                </label>
-              </div>
-
-              <div className=" flex-col mt-4 gap-2">
+              <div className=" flex-col mt-5 gap-2">
+              <label className="block text-sm font-medium text-black">
+                Start Date
+              </label>
                 <DayPicker
                   mode="single"
                   selected={startDate}
@@ -161,7 +155,10 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
                   footer={startDate ? <p>{format(startDate, 'PP')}</p> : <p>Please pick a day.</p>}
                   className="text-black"
                 />
-
+                
+                <label className="block text-sm font-medium text-gray-700  mt-5">
+                  End Date
+                </label>
                 <DayPicker
                   mode="single"
                   selected={endDate}

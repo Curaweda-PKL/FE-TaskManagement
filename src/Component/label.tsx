@@ -14,36 +14,49 @@ interface LabelProps {
   fetchData2: () => void;
 }
 
-const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchLabels, handlefetchCardListLabels, cardlistId, workspaceId, fetchData2 }) => {
+const LabelsPopup: React.FC<LabelProps> = ({ 
+  isOpen, 
+  onClose, 
+  labels, 
+  funcfetchLabels, 
+  handlefetchCardListLabels, 
+  cardlistId, 
+  workspaceId, 
+  fetchData2 
+}) => {
   if (!isOpen) return null;
 
   const [openEdit, setOpenEdit] = useState(false);
   const [editingLabelId, setEditingLabelId] = useState<string | undefined>(undefined);
+  const [openCreate, setOpenCreate] = useState(false);
+  const [labelsData, setLabelsData] = useState<{
+    labelId: any; 
+    id: string
+  }[]>([]);
+
+  useEffect(() => {
+    getCardListLabels();
+  }, [cardlistId]);
 
   const handleEditLabel = (labelId: string) => {
     setEditingLabelId(labelId);
     setOpenEdit(true);
   };
 
-  const [openCreate, setOpenCreate] = useState(false);
-
-
   const handleDeleteCardlist = async (cardlistLabelId: string) => {
-    await deleteLabelFromWorkspace(cardlistLabelId)
+    await deleteLabelFromWorkspace(cardlistLabelId);
     funcfetchLabels();
     handlefetchCardListLabels();
     fetchData2();
-  }
-
+  };
 
   const handleAddLabel = async (labelId: string) => {
     try {
       await addLabelToCardList(cardlistId, labelId);
       getCardListLabels();
-      fetchData2()
-      console.log('Label berhasil ditambahkan ke card list');
+      fetchData2();
     } catch (error) {
-      console.error('Gagal menambahkan label ke card list:', error);
+      console.error('Failed to add label to card list:', error);
     }
   };
 
@@ -53,25 +66,9 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
       getCardListLabels();
       fetchData2();
     } catch (error) {
-      console.error('Gagal meremove label dari card list:', error);
+      console.error('Failed to remove label from card list:', error);
     }
   };
-
-  const [labelsData, setLabelsData] = useState<{
-    labelId: any; id: string
-  }[]>([]);
-  useEffect(() => {
-    const getCardListLabels = async () => {
-      try {
-        const response = await fetchCardListLabels(cardlistId);
-        setLabelsData(response);
-        handlefetchCardListLabels()
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    getCardListLabels();
-  }, [cardlistId]);
 
   const getCardListLabels = async () => {
     try {
@@ -83,7 +80,7 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
     }
   };
 
-  const getContrastColor = (hexColor:any) => {
+  const getContrastColor = (hexColor: string) => {
     const r = parseInt(hexColor.slice(1, 3), 16);
     const g = parseInt(hexColor.slice(3, 5), 16);
     const b = parseInt(hexColor.slice(5, 7), 16);
@@ -91,6 +88,11 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
     
     return brightness > 128 ? '#000000' : '#FFFFFF';
+  };
+
+  const truncateText = (text: string, maxLength: number = 12) => {
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength)}...`;
   };
 
   return (
@@ -104,10 +106,10 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
             <i className="fas fa-times"></i>
           </button>
 
-          <h2 className="text-lg font-bold mb-4 text-black   text-center">Label</h2>
+          <h2 className="text-lg font-bold mb-4 text-black text-center">Label</h2>
           <ul className="space-y-2">
             {labels.map((label: any, index: any) => (
-              <li key={index} className="flex items-center justify-between">
+              <li key={index} className="flex items-center justify-between group">
                 <div className="flex items-center w-full">
                   <input
                     type="checkbox"
@@ -122,13 +124,30 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
                       }
                     }}
                   />
-                  <div style={{ backgroundColor: label.color, color: getContrastColor(label.color) }} className={`w-full h-8 rounded-md flex items-center px-2`} onClick={() => handleEditLabel(label.id)}>
-                    <span className="font-semibold">{label.name}</span>
+                  <div 
+                    style={{ 
+                      backgroundColor: label.color, 
+                      color: getContrastColor(label.color) 
+                    }} 
+                    className="w-full h-8 rounded-md flex items-center px-2 cursor-pointer relative"
+                    onClick={() => handleEditLabel(label.id)}
+                  >
+                    <span className="font-semibold" title={label.name.length > 12 ? label.name : ''}>
+                      {truncateText(label.name)}
+                    </span>
+                    {label.name.length > 12 && (
+                      <span className="absolute left-0 -top-6 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {label.name}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <button className="ml-2 text-gray-400 hover:text-gray-600">
-                  <i className="fas fa-trash text-red-500" onClick={() => handleDeleteCardlist(label.id)}></i>
-
+                <button 
+                  className="ml-2 text-gray-400 hover:text-gray-600"
+                  onClick={() => handleDeleteCardlist(label.id)}
+                  title="Delete label"
+                >
+                  <i className="fas fa-trash text-red-500"></i>
                 </button>
               </li>
             ))}
@@ -141,25 +160,26 @@ const LabelsPopup: React.FC<LabelProps> = ({ isOpen, onClose, labels, funcfetchL
           </button>
         </div>
       </div>
-      {openCreate && (
-      <EditLabel
-        onCloseCreate={() => setOpenCreate(false)}
-        workspaceId={workspaceId}
-        funcfetchLabels={funcfetchLabels}
-      />
-    )}
 
-    {openEdit && (
-      <EditLabel
-        onCloseCreate={() => setOpenEdit(false)}
-        workspaceId={workspaceId}
-        funcfetchLabels={funcfetchLabels}
-        labelId={editingLabelId}
-        initialName={labels.find((label: { id: string | null; }) => label.id === editingLabelId)?.name}
-        initialColor={labels.find((label: { id: string | null; }) => label.id === editingLabelId)?.color}
-        handlefetchCardListLabels={handlefetchCardListLabels}
-      />
-    )}
+      {openCreate && (
+        <EditLabel
+          onCloseCreate={() => setOpenCreate(false)}
+          workspaceId={workspaceId}
+          funcfetchLabels={funcfetchLabels}
+        />
+      )}
+
+      {openEdit && (
+        <EditLabel
+          onCloseCreate={() => setOpenEdit(false)}
+          workspaceId={workspaceId}
+          funcfetchLabels={funcfetchLabels}
+          labelId={editingLabelId}
+          initialName={labels.find((label: { id: string | null; }) => label.id === editingLabelId)?.name}
+          initialColor={labels.find((label: { id: string | null; }) => label.id === editingLabelId)?.color}
+          handlefetchCardListLabels={handlefetchCardListLabels}
+        />
+      )}
     </>
   );
 };
