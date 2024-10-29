@@ -1212,17 +1212,18 @@ const WorkspaceProject = () => {
 
   useEffect(() => {
     setLoading(true);
+    fetchData();
+    fetchData2();
 
     setTimeout(() => {
-      fetchData()
       setLoading(false);
     }, 1000);
   }, [workspaceId, boardId]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <span className="text-xl font-medium text-gray-700">Loading...</span>
+      <div className="flex justify-center">
+        <span className="loading loading-bars loading-lg h-screen z-20"></span>
       </div>
     );
   }

@@ -68,7 +68,6 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
         console.error(error);
       }
     } else {
-      // create a new checklist
       const checklistDataWrapper = {
         checklistData: {
           cardListId: selectedCardList.id,
@@ -90,11 +89,11 @@ const ChecklistPopup: React.FC<ChecklistPopupProps> = ({ isOpen, onClose, select
   };
 
   const handleDeleteItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
+    setItems(items.filter((_: any, i: any) => i !== index));
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-100 overflow-y-auto">
+    <div className="fixed inset-0 text-black flex items-center justify-center bg-black bg-opacity-50 z-100 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-lg w-fit max-w-[750px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
         <div className="sticky top-0 bg-white z-10 p-6 border-b">
           <div className="justify-center items-center mb-4">
