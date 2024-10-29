@@ -60,9 +60,13 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     fetchData();
   }, [userData]);
 
-  const isOwner = (workspace: any) => {
-    if (!workspace || !currentUserId) return false; 
-    return workspace.ownerId === currentUserId;
+  const isAdminOrOwner = (workspace: any) => {
+    if (!workspace || !currentUserId) return false;
+
+    console.log(workspace)
+
+    const currentUser = workspace.members.find(member => member.userId === currentUserId);
+    return currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'OWNER');
   };
 
   useEffect(() => {
@@ -188,7 +192,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </p>
           </div>
         </div>
-        {isOwner(workspace) && (
+        {isAdminOrOwner(workspace) && (
         <button onClick={handleOpenModal}><i className='fas fa-bars' /></button>
         )}
       </div>
@@ -220,6 +224,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               <i className="fas fa-times text-black cursor-pointer" onClick={() => setIsInviteOpen(false)} />
             </div>
             <div className="px-4 pb-3 flex flex-col space-y-2">
+              {inviteLinkEnabled && (
               <button
                 className='flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md'
                 onClick={handleCopyLink}
@@ -227,6 +232,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 <i className="fas fa-link mr-2" />
                 Invite with link
               </button>
+              )}
               <button
                 className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
                 onClick={handleCopyId}

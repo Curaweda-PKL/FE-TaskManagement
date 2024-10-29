@@ -82,7 +82,12 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
               }`}
               placeholder="Workspace..."
               value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
+              onChange={(e) => {
+                const capitalizeWords = (str: string) =>
+                  str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                setWorkspaceName(capitalizeWords(e.target.value));
+              }}
+
             />
             {error && (
               <p className="text-xs text-red-500 mt-1">{error}</p>
