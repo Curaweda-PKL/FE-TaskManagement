@@ -12,7 +12,7 @@ const WorkspaceMembers: React.FC = () => {
   const [showJoinRequests, setShowJoinRequests] = useState(false);
   const [visibility, setVisibility] = useState<'Private' | 'Public'>('Private');
   const [workspace, setWorkspace] = useState<any>(null);
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<any>();
   const [requests, setRequests] = useState<any[]>([]);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [inviteLinkEnabled, setInviteLinkEnabled] = useState(true);
@@ -145,13 +145,14 @@ const WorkspaceMembers: React.FC = () => {
       console.error(`Failed to ${status} join request:`, error);
     }
   };
-
+  
   const handleRoleChange = async (memberId: any, newRole: any) => {
     try {
       await updateRoleMember(workspaceId, memberId, newRole);
+      fetchWorkspaceData()
 
-      setMembers((prevMembers) =>
-        prevMembers.map((member) =>
+      setMembers((prevMembers: any) =>
+        prevMembers.map((member: any) =>
           member.id === memberId ? { ...member, role: newRole } : member
         )
       );
@@ -169,7 +170,7 @@ const WorkspaceMembers: React.FC = () => {
     if (memberToRemove) {
       try {
         await removeMemberWorkspace(workspaceId, memberToRemove);
-        setMembers((prevMembers) => prevMembers.filter((member) => member?.id !== memberToRemove));
+        setMembers((prevMembers: any) => prevMembers.filter((member: any) => member?.id !== memberToRemove));
         setShowDeleteConfirmation(false);
         setMemberToRemove(null);
         showAlert('Member successfully removed.', 'success');
@@ -193,7 +194,7 @@ const WorkspaceMembers: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredMembers = members.filter(member =>
+  const filteredMembers = members?.filter(member =>
     member?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -217,21 +218,23 @@ const WorkspaceMembers: React.FC = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-black text-lg font-semibold">Collaborators</h2>
-                <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm">{members.length}</span>
+                <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm">{members?.length}</span>
               </div>
               <div className="lg:flex lg:flex-col relative lg:space-y-3">
                 <button
                   className={`rounded-lg px-2 py-1 text-left font-semibold ${hoverClass} ${!showJoinRequests ? 'bg-gray-100 text-purple-600' : 'bg-white text-black'}`}
                   onClick={() => setShowJoinRequests(false)}
                 >
-                  Workspace member ({members.length})
+                  Workspace member ({members?.length})
                 </button>
+                {isAdminOrOwner(workspace) && (
                 <button
                   className={`rounded-lg px-2 py-1 text-left font-semibold ${hoverClass} ${showJoinRequests ? 'bg-gray-100 text-purple-600' : 'bg-white text-gray-800'}`}
                   onClick={() => setShowJoinRequests(true)}
                 >
                   Join Request ({joinRequests.length})
                 </button>
+                )}
               </div>
             </div>
           </div>
@@ -239,7 +242,7 @@ const WorkspaceMembers: React.FC = () => {
             {!showJoinRequests ? (
               <>
                 <div className="mb-8 mt-8">
-                  <h3 className="text-black text-lg font-semibold">Workspace member ({members.length})</h3>
+                  <h3 className="text-black text-lg font-semibold">Workspace member ({members?.length})</h3>
                   <p className="text-sm text-black mt-2 w-4/5">
                     Workspace members can view and join all Workspace visible boards and create new boards in the Workspace.
                   </p>
@@ -287,7 +290,7 @@ const WorkspaceMembers: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2 text-black w-full lg:w-5/6">
-                  {filteredMembers.map((member) => (
+                  {filteredMembers?.map((member: any) => (
                     <div key={member.id} className="bg-yellow-200 p-4 rounded-md flex justify-between items-center flex-wrap">
                       <div className="flex items-center flex-wrap">
                         <img
@@ -305,24 +308,26 @@ const WorkspaceMembers: React.FC = () => {
                           <>
                             {member.id === workspace?.ownerId ? (
                               <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">
-                                Owner
+                                {member.role}
                               </p>
                             ) : (
                               <select
                                 className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
-                                value={member.role}
+                                value={member?.role}
                                 onChange={(e) => handleRoleChange(member.id, e.target.value)}
                               >
                                 <option value="MEMBER">Member</option>
                                 <option value="ADMIN">Admin</option>
                               </select>
                             )}
+                            {isAdminOrOwner(workspace) && (
                             <button
                               className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
                               onClick={() => handleRemoveMember(member.id)}
                             >
                               Remove
                             </button>
+                            )}
                           </>
                         )}
                       </div>
@@ -333,52 +338,56 @@ const WorkspaceMembers: React.FC = () => {
               </>
             ) : (
               <div className='mt-8'>
-                <h3 className="text-black text-lg font-semibold">Join Requests ({requests.length})</h3>
-                <p className="text-sm text-gray-600 py-3 w-full lg:w-4/5">
-                  These people have requested to join this workspace. Adding new workspace will
-                  automatically update your bill. Workspace guest already count toward the free workspace
-                  collaborator limit.
-                </p>
-                <div className="mb-8 border-b-[1.5px] border-t-[1.5px] py-5 border-gray-200 ">
-                  <input
-                    type="text"
-                    placeholder="Search requests..."
-                    className="w-full lg:w-1/3 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700"
-                    value={searchTerm}
-                    onChange={handleSearch}
-                  />
-                </div>
-                <div className="space-y-4 w-full lg:w-4/5 text-black">
-                  {filteredRequests.map((request) => (
-                    <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
-                      <div className="flex items-center mb-4 lg:mb-0">
-                        <img
-                          src={request.photoProfile || 'https://via.placeholder.com/40'}
-                          alt="User Profile"
-                          className="w-10 h-10 rounded-full mr-4"
-                        />
-                        <div>
-                          <h4 className="font-semibold">{request.name}</h4>
-                          <p className="text-sm text-gray-600">{request.email}</p>
+                {isAdminOrOwner(workspace) && (
+                <div>
+                  <h3 className="text-black text-lg font-semibold">Join Requests ({requests.length})</h3>
+                  <p className="text-sm text-gray-600 py-3 w-full lg:w-4/5">
+                    These people have requested to join this workspace. Adding new workspace will
+                    automatically update your bill. Workspace guest already count toward the free workspace
+                    collaborator limit.
+                  </p>
+                  <div className="mb-8 border-b-[1.5px] border-t-[1.5px] py-5 border-gray-200 ">
+                    <input
+                      type="text"
+                      placeholder="Search requests..."
+                      className="w-full lg:w-1/3 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700"
+                      value={searchTerm}
+                      onChange={handleSearch}
+                    />
+                  </div>
+                  <div className="space-y-4 w-full lg:w-4/5 text-black">
+                    {filteredRequests.map((request) => (
+                      <div key={request.id} className={`bg-${request.status === 'pending' ? 'red-200' : 'yellow-200'} p-4 rounded-md flex flex-col sm:flex-row justify-between items-start lg:items-center`}>
+                        <div className="flex items-center mb-4 lg:mb-0">
+                          <img
+                            src={request.photoProfile || 'https://via.placeholder.com/40'}
+                            alt="User Profile"
+                            className="w-10 h-10 rounded-full mr-4"
+                          />
+                          <div>
+                            <h4 className="font-semibold">{request.name}</h4>
+                            <p className="text-sm text-gray-600">{request.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-4 items-center">
+                          <button
+                            onClick={() => handleJoinRequest(request.id, 'APPROVED')}
+                            className="bg-green-200 text-green-600 px-4 py-1 rounded-md"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleJoinRequest(request.id, 'REJECTED')}
+                            className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
+                          >
+                            Reject
+                          </button>
                         </div>
                       </div>
-                      <div className="flex space-x-4 items-center">
-                        <button
-                          onClick={() => handleJoinRequest(request.id, 'APPROVED')}
-                          className="bg-green-200 text-green-600 px-4 py-1 rounded-md"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleJoinRequest(request.id, 'REJECTED')}
-                          className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+                )}
               </div>
             )}
 

@@ -171,7 +171,7 @@ const CustomFieldSettings: React.FC<CustomFieldSettingsProps> = ({ isOpen, onClo
               <div className="text-center py-4">Loading...</div>
             ) : (
               customFields.map(field => (
-                <div key={field.id} className="flex items-center justify-between bg-gray-100 p-3 rounded-md"
+                <div key={field.id} className="flex items-center justify-between bg-gray-100 p-3 rounded-md cursor-pointer hover:bg-gray-200 transition duration-200"
                 onClick={() => handleCustomFieldClick(field)}
                 >
                   <div>

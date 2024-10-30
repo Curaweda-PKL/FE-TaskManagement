@@ -99,15 +99,15 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     setTimeout(() => setAlert(null), 2000);
   };
 
-  const handleCopyId = () => {
+  const handleCopyId = async () => {
     if (workspace) {
-      navigator.clipboard.writeText(workspace.id)
-        .then(() => {
-          showAlert('Workspace ID copied to clipboard!', 'success');
-        })
-        .catch(() => {
-          showAlert('Failed to copy Workspace ID.', 'error');
-        });
+      try {
+        await navigator.clipboard.writeText(workspace.id);
+        showAlert('Workspace ID copied to clipboard!', 'success');
+      } catch (error) {
+        console.error('Failed to copy Workspace ID:', error);
+        showAlert('Failed to copy Workspace ID. Please try again.', 'error');
+      }
     }
   };
 
@@ -116,12 +116,12 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       try {
         const response = await generateLinkWorkspace(workspace.id);
         const inviteLink = "http://localhost:4545/j/" + response.link.joinLink;
-
-        navigator.clipboard.writeText(inviteLink);
+  
+        await navigator.clipboard.writeText(inviteLink);
         showAlert('Invite link copied to clipboard!', 'success');
       } catch (error) {
         console.error('Failed to generate link:', error);
-        showAlert('An error occurred while generating the invite link.', 'error');
+        showAlert('An error occurred while generating the invite link. Please check your connection and try again.', 'error');
       }
     } else if (!inviteLinkEnabled) {
       showAlert('Invite link is currently disabled.', 'error');
