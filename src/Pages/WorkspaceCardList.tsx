@@ -130,7 +130,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         className="text-[22px] font-semibold text-gray-800 cursor-pointer"
                         onClick={() => setEditingListName(true)}
                     >
-                        {selectedCardList.name}
+                        {selectedCardList?.name}
                     </h2>
                 )}
 
@@ -298,7 +298,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                     </div>
                     <div className="flex flex-wrap">
                         <label className="text-black font-semibold text-[18px] mb-2 w-full">Custom Field</label>
-                        {cardlistCustomFields.map((field: any) => (
+                        {cardlistCustomFields?.map((field: any) => (
                             <div key={field.id} className="mb-4 mr-2 rounded-md w-32">
                                 <div className="flex items-center justify-between">
                                     <label className="block text-black text-sm font-medium">

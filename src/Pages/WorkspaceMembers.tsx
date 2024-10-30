@@ -145,7 +145,7 @@ const WorkspaceMembers: React.FC = () => {
       console.error(`Failed to ${status} join request:`, error);
     }
   };
-  
+
   const handleRoleChange = async (memberId: any, newRole: any) => {
     try {
       await updateRoleMember(workspaceId, memberId, newRole);
@@ -235,18 +235,18 @@ const WorkspaceMembers: React.FC = () => {
                   Workspace member ({members?.length})
                 </button>
                 {isAdminOrOwner(workspace) && (
-                <button
-                  className={`rounded-lg px-2 py-1 text-left font-semibold ${hoverClass} ${showJoinRequests ? 'bg-gray-100 text-purple-600' : 'bg-white text-gray-800'}`}
-                  onClick={() => setShowJoinRequests(true)}
-                >
-                  Join Request ({joinRequests.length})
-                </button>
+                  <button
+                    className={`rounded-lg px-2 py-1 text-left font-semibold ${hoverClass} ${showJoinRequests ? 'bg-gray-100 text-purple-600' : 'bg-white text-gray-800'}`}
+                    onClick={() => setShowJoinRequests(true)}
+                  >
+                    Join Request ({joinRequests.length})
+                  </button>
                 )}
               </div>
             </div>
           </div>
           <div className="w-full lg:w-3/4 pl-0 lg:pl-4">
-          {!showJoinRequests ? (
+            {!showJoinRequests ? (
               <>
                 <div className="mb-8 mt-8">
                   <h3 className="text-black text-lg font-semibold">Workspace member ({members?.length})</h3>
@@ -278,7 +278,7 @@ const WorkspaceMembers: React.FC = () => {
                             <button className="flex items-center lg:mr-0 mr-10 mb-0 lg:lg:mb-0 text-gray-500 hover:text-black" onClick={toggleInviteLink}>
                               <i className='fas fa-link mr-3' />Invite with link
                             </button>
-                            <button className="bg-gray-200 px-6 py-2 rounded-md  text-black">
+                            <button className="bg-gray-200 px-6 py-2 rounded-md text-black">
                               Disable invite link
                             </button>
                           </>
@@ -311,28 +311,20 @@ const WorkspaceMembers: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
-
-                        <>
-                          {member.id === workspace?.ownerId ? (
-                            <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">
-                              OWNER
-                            </p>
-                          ) : currentUserId === workspace?.ownerId ? (
-                            <select
-                              className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
-                              value={member?.role}
-                              onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                            >
-                              <option value="MEMBER">Member</option>
-                              <option value="ADMIN">Admin</option>
-                            </select>
-                          ) : (
-                            <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">
-                              {member.role}
-                            </p>
-                          )}
-                        </>
-
+                        {member.id === workspace?.ownerId ? (
+                          <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">OWNER</p>
+                        ) : currentUserId === workspace?.ownerId ? (
+                          <select
+                            className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
+                            value={member?.role}
+                            onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                          >
+                            <option value="MEMBER">Member</option>
+                            <option value="ADMIN">Admin</option>
+                          </select>
+                        ) : (
+                          <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">{member.role}</p>
+                        )}
                         {isAdminOrOwner(workspace) && member.id !== workspace.ownerId && (
                           <button
                             className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
@@ -345,17 +337,13 @@ const WorkspaceMembers: React.FC = () => {
                     </div>
                   ))}
                 </div>
-
               </>
-            ) : (
+            ) : isAdminOrOwner(workspace) && (
               <div className='mt-8'>
-                {isAdminOrOwner(workspace) && (
                 <div>
                   <h3 className="text-black text-lg font-semibold">Join Requests ({requests.length})</h3>
                   <p className="text-sm text-gray-600 py-3 w-full lg:w-4/5">
-                    These people have requested to join this workspace. Adding new workspace will
-                    automatically update your bill. Workspace guest already count toward the free workspace
-                    collaborator limit.
+                    These people have requested to join this workspace. Adding new workspace will automatically update your bill. Workspace guest already count toward the free workspace collaborator limit.
                   </p>
                   <div className="mb-8 border-b-[1.5px] border-t-[1.5px] py-5 border-gray-200 ">
                     <input
@@ -398,9 +386,9 @@ const WorkspaceMembers: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                )}
               </div>
             )}
+
 
             {showDeleteConfirmation && (
               <div className="fixed inset-0 z-50 flex items-center justify-center">
