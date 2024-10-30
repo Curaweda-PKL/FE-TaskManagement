@@ -30,7 +30,7 @@ const CreateCard: React.FC<CreateCardProps> = ({
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      setError('Card title is required.');
+      setError('Card title is required. Please enter a title.');
       return;
     }
     if (isEditing && initialData) {
@@ -72,15 +72,14 @@ const CreateCard: React.FC<CreateCardProps> = ({
               value={name}
               onChange={handleNameChange}
             />
-            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
             <p className="text-xs text-gray-500 mt-1">* Card title is required</p>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
           </div>
         </div>
         <div className="p-4 border-t border-gray-200">
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition duration-300 w-full"
             onClick={handleSubmit}
-            disabled={!name.trim()}
           >
             {isEditing ? 'Edit Card' : 'Create Card'}
           </button>

@@ -99,34 +99,81 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     setTimeout(() => setAlert(null), 2000);
   };
 
-  const handleCopyId = async () => {
+  const handleCopyId = () => {
     if (workspace) {
-      try {
-        await navigator.clipboard.writeText(workspace.id);
+      const id = workspace.id;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(id)
+          .then(() => {
+            showAlert('Workspace ID copied to clipboard!', 'success');
+          })
+          .catch((error) => {
+            console.error('Failed to copy Workspace ID:', error);
+            // Fallback: Create hidden input and copy its contents
+            const tempInput = document.createElement('textarea');
+            tempInput.value = id;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showAlert('Workspace ID copied to clipboard!', 'success');
+          });
+      } else {
+        // Fallback: Create hidden input and copy its contents
+        const tempInput = document.createElement('textarea');
+        tempInput.value = id;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
         showAlert('Workspace ID copied to clipboard!', 'success');
-      } catch (error) {
-        console.error('Failed to copy Workspace ID:', error);
-        showAlert('Failed to copy Workspace ID. Please try again.', 'error');
       }
     }
   };
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = () => {
     if (workspace && inviteLinkEnabled) {
-      try {
-        const response = await generateLinkWorkspace(workspace.id);
-        const inviteLink = "http://localhost:4545/j/" + response.link.joinLink;
-  
-        await navigator.clipboard.writeText(inviteLink);
-        showAlert('Invite link copied to clipboard!', 'success');
-      } catch (error) {
-        console.error('Failed to generate link:', error);
-        showAlert('An error occurred while generating the invite link. Please check your connection and try again.', 'error');
-      }
+      generateLinkWorkspace(workspace.id)
+        .then((response) => {
+          const inviteLink = "http://localhost:4545/j/" + response.link.joinLink;
+
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(inviteLink)
+              .then(() => {
+                showAlert('Invite link copied to clipboard!', 'success');
+              })
+              .catch((error) => {
+                console.error('Failed to copy invite link:', error);
+                // Fallback: Create hidden input and copy its contents
+                const tempInput = document.createElement('textarea');
+                tempInput.value = inviteLink;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                showAlert('Invite link copied to clipboard!', 'success');
+              });
+          } else {
+            // Fallback: Create hidden input and copy its contents
+            const tempInput = document.createElement('textarea');
+            tempInput.value = inviteLink;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showAlert('Invite link copied to clipboard!', 'success');
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to generate link:', error);
+          showAlert('An error occurred while generating the invite link. Please check your connection and try again.', 'error');
+        });
     } else if (!inviteLinkEnabled) {
       showAlert('Invite link is currently disabled.', 'error');
     }
   };
+
 
   const handleAccept = async (requestId: string) => {
     try {
@@ -168,7 +215,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           </div>
         )}
         <div className="flex sm:items-center md:px-10 px-5 font-sem">
-          <div 
+          <div
             className="min-w-11 h-11 sm:w-14 sm:h-14 rounded mr-3"
             style={{ backgroundColor: workspace?.color || '#EF4444' }}></div>
           <div>
@@ -193,7 +240,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           </div>
         </div>
         {isAdminOrOwner(workspace) && (
-        <button onClick={handleOpenModal}><i className='fas fa-bars' /></button>
+          <button onClick={handleOpenModal}><i className='fas fa-bars' /></button>
         )}
       </div>
 
@@ -225,13 +272,13 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </div>
             <div className="px-4 pb-3 flex flex-col space-y-2">
               {inviteLinkEnabled && (
-              <button
-                className='flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md'
-                onClick={handleCopyLink}
-              >
-                <i className="fas fa-link mr-2" />
-                Invite with link
-              </button>
+                <button
+                  className='flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md'
+                  onClick={handleCopyLink}
+                >
+                  <i className="fas fa-link mr-2" />
+                  Invite with link
+                </button>
               )}
               <button
                 className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-black py-2 px-4 rounded-md"
