@@ -29,6 +29,7 @@ function Profile() {
   const [savingName, setSavingName] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+
   useEffect(() => {
     if (userData) {
       setEditedName(userData?.name || '');
@@ -77,6 +78,8 @@ function Profile() {
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
+    } else {
+      setAlert({ type: 'error', message: 'failed to change password, try again.' });
     }
   };
 
@@ -144,6 +147,10 @@ function Profile() {
     }
   };
 
+  const isDefaultPhoto = (photoUrl: string | null) => {
+    return photoUrl?.includes('/default/') || photoUrl?.includes('/avatar/');
+  };
+
   return (
     <div className='min-h-screen pb-20 bg-white font-sans text-black'>
       <div className='px-5'>
@@ -191,7 +198,7 @@ function Profile() {
           {activeTab === 'profile' ? (
             <div className="flex justify-center">
               <div className='max-w-md md:w-1/2 w-4/5'>
-                <h3 className='font-bold mb-2'>Profile photo and header image</h3>
+                <h3 className='font-bold text-xl mb-2'>Profile photo</h3>
                 <div className='w-full h-24 bg-gray-200 relative rounded-t-lg shadow-xl'>
                   {photo ? (
                     <img
@@ -267,8 +274,8 @@ function Profile() {
                       className="w-full bg-purple-600 text-white py-2 px-4 mb-3 rounded hover:bg-purple-700"
                     >
                       <label className="w-full">
-                        
-                      Change Photo
+
+                        Change Photo
                         <input
                           type="file"
                           className="hidden"
@@ -277,12 +284,14 @@ function Profile() {
                         />
                       </label>
                     </button>
+                    {photo && !isDefaultPhoto(photo) && (
                     <button
                       onClick={handleDeletePhoto}
                       className="w-full bg-red-500 text-white py-2 px-4 mb-3 rounded hover:bg-red-600"
                     >
                       Delete Photo
                     </button>
+                    )}
                     <button
                       onClick={() => setShowModal(false)}
                       className="w-full bg-gray-200 text-black py-2 px-4 rounded hover:bg-gray-300"
@@ -342,7 +351,6 @@ function Profile() {
                   >
                     {loading ? 'Saving...' : 'Save'}
                   </button>
-                  {error && <p className='text-red-500 mt-2'>{error}</p>}
                 </form>
               </div>
             </div>

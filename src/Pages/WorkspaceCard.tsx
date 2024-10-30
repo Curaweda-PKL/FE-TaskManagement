@@ -1242,9 +1242,9 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
+    fetchData()
+    fetchData2()
     setLoading(true);
-    fetchData();
-    fetchData2();
 
     setTimeout(() => {
       setLoading(false);

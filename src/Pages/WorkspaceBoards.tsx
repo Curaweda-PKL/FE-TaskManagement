@@ -296,8 +296,6 @@ const WorkspaceBoards: React.FC = () => {
               onChange={handleSortChange}
               value={sortOrder}
             >
-              <option value="recent">Most recently active</option>
-              <option value="recent">Last recently update</option>
               <option value="asc">A-Z</option>
               <option value="desc">Z-A</option>
             </select>
