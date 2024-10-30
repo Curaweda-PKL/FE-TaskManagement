@@ -52,8 +52,11 @@ interface CustomFieldOption {
 interface CustomField {
   id: string; // or number
   name: string;
-  type: 'DROPDOWN' | 'OTHER_TYPE'; // Add other types as needed
-  options: CustomFieldOption[];
+  type: 'DROPDOWN' | 'OTHER_TYPE';
+  options?: Array<{
+    id: string | number;
+    value: string;
+  }>;
 }
 
 interface CardlistCustomField {
@@ -555,16 +558,11 @@ const WorkspaceProject = () => {
             if (card && card.id) {
               const cardListData = await fetchCardList(card.id);
               const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
-
-              // Assuming you want to set custom fields for each card list
-              // cardList.forEach(list => {
-              //   if (list.customFields) {
-              //     setCardlistCustomFields(list.customFields); // Set custom fields here
-              //     console.log("list.customFields", list.customFields)
-              //   }
-              // });
-
               const updatedCardList = await Promise.all(cardList.map(async (list) => {
+                // Create an object to store all updates
+                const updates: any = { ...list };
+    
+                // Handle members update if they exist
                 if (list.members && list.members.length > 0) {
                   const membersWithPhotos = await Promise.all(
                     list.members.map(async (member: { userId: string }) => {
@@ -575,17 +573,21 @@ const WorkspaceProject = () => {
                       return { ...member, photoUrl };
                     })
                   );
-                  return { ...list, members: membersWithPhotos };
+                  updates.members = membersWithPhotos;
                 }
-                return list;
+    
+                if (list.customFields && list.customFields.length > 0) {
+                  updates.customFields = list.customFields;
+                }
+    
+                return updates;
               }));
-
+              
               return { ...card, cardList: updatedCardList };
             }
             return { ...card, cardList: [] };
           })
         );
-
         setCardData(updatedCardData);
 
         if (selectedCardList && selectedCardList.id) {
@@ -598,42 +600,8 @@ const WorkspaceProject = () => {
 
 
         }
-        // Get all card list data
-        // const allCardlistData = updatedCardData.flatMap((entry) => entry.cardList || []);
-        // console.log("allCardlistData", allCardlistData);
 
-        // // Update selected card list if it exists in the updated data
-        // if (selectedCardListRef.current && allCardlistData.some((item) => item.id === selectedCardListRef?.current?.id)) {
-        //   const updatedSelectedData = allCardlistData.find(
-        //     (item) => item.id === selectedCardListRef?.current?.id
-        //   );
-
-        //   setSelectedCardList(updatedSelectedData);
-
-        //   console.log("updatedSelectedData", updatedSelectedData);
-        //   console.log("selectedCardList", selectedCardList);
-
-        // }
-
-
-
-        // console.log("masuk 1");
-        // const updatedSelectedData = updatedCardData.find((item) => {
-        //   return item.cardList.some((list) => list.id === selectedCardList.id);
-        // });
-
-        // if (updatedSelectedData) {
-        //   console.log("masuk 2");
-        //   const matchingCardList = updatedSelectedData.cardList.find(
-        //     (list) => list.id === selectedCardList.id
-        //   );
-
-        //   if (matchingCardList) {
-        //     console.log("masuk 3");
-        //     setSelectedCardList(matchingCardList);
-        //     console.log("Card list found and set to selectedCardList");
-        //   }
-        // }
+        console.log("hereeeeeeeeeeeeeeeeeeeeee")
 
       } catch (error) {
         console.error('Error fetching card:', error);
@@ -902,21 +870,21 @@ const WorkspaceProject = () => {
     const cardListData = localStorage.getItem('oncardList');
 
     if (cardListData) {
-        const onCardListId = cardListData.toString();
+      const onCardListId = cardListData.toString();
 
-        cardData.forEach((card) => {
-            if (card.cardList) {
-                card.cardList.forEach((cardList: any) => {
-                    if (cardList.id === onCardListId) {
-                        handleOpenPopup(cardList);
-                    }
-                });
+      cardData.forEach((card) => {
+        if (card.cardList) {
+          card.cardList.forEach((cardList: any) => {
+            if (cardList.id === onCardListId) {
+              handleOpenPopup(cardList);
             }
-        });
+          });
+        }
+      });
     } else {
-        console.log("tidak ada");
+      console.log("tidak ada");
     }
-}, [cardData]);
+  }, [cardData]);
 
   const [labels, setLabels] = useState([]);
   useEffect(() => {
@@ -944,7 +912,14 @@ const WorkspaceProject = () => {
     if (customField.type) {
       try {
         const response = await addCardlistCustomField(selectedCardList.id, customField.id);
-        setCardlistCustomFields(prevFields => [...prevFields, response]);
+        const newField: CardlistCustomField = {
+          customField: {
+            ...customField,
+            options: customField.options || []
+          },
+          value: "",
+        };
+        setCardlistCustomFields(prevFields => [...prevFields, newField]);
       } catch (error) {
         console.error('Error adding custom field:', error);
       }
@@ -1280,87 +1255,87 @@ const WorkspaceProject = () => {
                 <h2 className="text-xl text-center mb-6 text-gray-700">{card?.name}</h2>
                 <ul className="space-y-2">
                   {card.cardList && card.cardList?.map((cardList: any, index: any) => (
-                      <li
-                        key={index}
-                        className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group"
-                        onClick={() => {
-                          handleOpenPopup(cardList);
-                          localStorage.setItem('oncardList', cardList.id);
-                        }}
-                      >
-                        <div className=" justify-between items-start">
-                          <div className='grid grid-cols-3 gap-1'>
-                            {cardList.labels?.map((label: any, index: any) =>
-                              <div key={index} style={{ background: label.label.color }} className="w-full h-2 rounded-sm"></div>
-                            )}
-                          </div>
-                          <div className='flex justify-between items-center'>
-                            <span className="text-black text-sm">{cardList?.name}</span>
-                            <p
-                              className={`text-xs px-2 rounded-sm ${cardList?.score === 5 ? 'text-red-600 bg-red-100' :
-                                cardList?.score === 4 ? 'text-orange-600 bg-orange-100' :
-                                  cardList?.score === 3 ? 'text-yellow-600 bg-yellow-100' :
-                                    cardList?.score === 2 ? 'text-blue-600 bg-blue-100' :
-                                      cardList?.score === 1 ? 'text-green-600 bg-green-100' :
-                                        'text-gray-500 bg-gray-300'
-                                }`}
-                            >
-                              {cardList?.score}
-                            </p>
-                          </div>
-                          <button
-                            className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePopUpCard(cardList, e);
-                            }}
-                          >
-                            <i className="fas fa-pencil-alt text-xs"></i>
-                          </button>
+                    <li
+                      key={index}
+                      className="relative bg-gray-100 rounded-lg p-3 cursor-pointer hover:bg-gray-200 transition-colors duration-300 group"
+                      onClick={() => {
+                        handleOpenPopup(cardList);
+                        localStorage.setItem('oncardList', cardList.id);
+                      }}
+                    >
+                      <div className=" justify-between items-start">
+                        <div className='grid grid-cols-3 gap-1'>
+                          {cardList.labels?.map((label: any, index: any) =>
+                            <div key={index} style={{ background: label.label.color }} className="w-full h-2 rounded-sm"></div>
+                          )}
                         </div>
-                        <div className='flex justify-end mt-2'>
-                          <div className='flex justify-between w-full'>
-                            <select
-                              value={cardList?.status}
-                              onChange={(e) => {
-                                const newStatus = e.target.value;
-                                handleUpdateStatusCardlist(cardList.id, newStatus);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-[10px] text-black bg-white"
-                            >
-                              <option value="TODO">To Do</option>
-                              <option value="IN_PROGRESS">In Progress</option>
-                              <option value="DONE">Done</option>
-                              <option value="IN_REVIEW">In Review</option>
-                              <option value="APPROVED">Approved</option>
-                              <option value="NOT_SURE">Not Sure</option>
-                            </select>
-                            {cardList?.startDate && cardList?.endDate && (
-                              <div className="bg-green-300 py-[1px] px-[2px] rounded-[2px] text-[9px] font-medium text-gray-600">
-                                {`${format(new Date(cardList.endDate), 'PP')}`}
+                        <div className='flex justify-between items-center'>
+                          <span className="text-black text-sm">{cardList?.name}</span>
+                          <p
+                            className={`text-xs px-2 rounded-sm ${cardList?.score === 5 ? 'text-red-600 bg-red-100' :
+                              cardList?.score === 4 ? 'text-orange-600 bg-orange-100' :
+                                cardList?.score === 3 ? 'text-yellow-600 bg-yellow-100' :
+                                  cardList?.score === 2 ? 'text-blue-600 bg-blue-100' :
+                                    cardList?.score === 1 ? 'text-green-600 bg-green-100' :
+                                      'text-gray-500 bg-gray-300'
+                              }`}
+                          >
+                            {cardList?.score}
+                          </p>
+                        </div>
+                        <button
+                          className="absolute right-2 top-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePopUpCard(cardList, e);
+                          }}
+                        >
+                          <i className="fas fa-pencil-alt text-xs"></i>
+                        </button>
+                      </div>
+                      <div className='flex justify-end mt-2'>
+                        <div className='flex justify-between w-full'>
+                          <select
+                            value={cardList?.status}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              handleUpdateStatusCardlist(cardList.id, newStatus);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[10px] text-black bg-white"
+                          >
+                            <option value="TODO">To Do</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="DONE">Done</option>
+                            <option value="IN_REVIEW">In Review</option>
+                            <option value="APPROVED">Approved</option>
+                            <option value="NOT_SURE">Not Sure</option>
+                          </select>
+                          {cardList?.startDate && cardList?.endDate && (
+                            <div className="bg-green-300 py-[1px] px-[2px] rounded-[2px] text-[9px] font-medium text-gray-600">
+                              {`${format(new Date(cardList.endDate), 'PP')}`}
+                            </div>
+                          )}
+                          <div className='flex -space-x-1'>
+                            {cardList.members && cardList.members.length > 0 &&
+                              cardList.members.slice(0, 3).map((member: any) => (
+                                <img
+                                  key={member.userId}
+                                  src={member.photoUrl || '/path/to/default/avatar.png'}
+                                  alt={`Profile of member ${member.userId}`}
+                                  className="w-5 h-5 rounded-full object-cover"
+                                />
+                              ))
+                            }
+                            {cardList.members && cardList.members.length > 3 && (
+                              <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
+                                +{cardList.members.length - 3}
                               </div>
                             )}
-                            <div className='flex -space-x-1'>
-                              {cardList.members && cardList.members.length > 0 &&
-                                cardList.members.slice(0, 3).map((member: any) => (
-                                  <img
-                                    key={member.userId}
-                                    src={member.photoUrl || '/path/to/default/avatar.png'}
-                                    alt={`Profile of member ${member.userId}`}
-                                    className="w-5 h-5 rounded-full object-cover"
-                                  />
-                                ))
-                              }
-                              {cardList.members && cardList.members.length > 3 && (
-                                <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 ml-1">
-                                  +{cardList.members.length - 3}
-                                </div>
-                              )}
-                            </div>
                           </div>
                         </div>
-                      </li>
+                      </div>
+                    </li>
                   ))}
                 </ul>
 
