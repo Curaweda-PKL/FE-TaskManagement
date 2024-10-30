@@ -105,7 +105,7 @@ const WorkspaceProject = () => {
               return {
                 ...list,
                 members: [
-                  ...list.members,
+                  ...(Array.isArray(list.members) ? list.members : []), // Ensure members is an array
                   { userId: id, photoUrl: updatedMemberPhoto }
                 ]
               };
@@ -119,14 +119,14 @@ const WorkspaceProject = () => {
           return {
             ...prevSelected,
             members: [
-              ...prevSelected?.members,
+              ...(Array.isArray(prevSelected.members) ? prevSelected.members : []), // Ensure members is an array
               { userId: id, photoUrl: updatedMemberPhoto }
             ]
           };
         }
         return prevSelected;
       });
-
+  
     } catch (error) {
       console.error('Failed to join card list:', error);
     }
@@ -804,26 +804,30 @@ const WorkspaceProject = () => {
     setCardListToDelete(null);
   };
 
-  const handleAddCardList = async (cardId: any) => {
-    try {
-      const defaultListName = 'New List';
-      const newCardList = await createCardList(cardId, defaultListName, '', 0, '', '', '');
-      const updatedCardData = cardData.map(card => {
-        if (card.id === cardId) {
-          return { ...card, cardList: [...card.cardList, newCardList] };
-        }
-        return card;
-      });
-      await fetchData();
+const handleAddCardList = async (cardId: any) => {
+  try {
+    const defaultListName = 'New List';
+    const newCardList = await createCardList(cardId, defaultListName, '', 0, '', '', '');
 
-      setCardData(updatedCardData);
-      setSelectedCardList(newCardList);
-      setIsPopupOpen(true);
-      setEditingListName(true);
-    } catch (error) {
-      console.error("Failed to add card list:", error);
-    }
-  };
+    // Update the cardData state
+    const updatedCardData = cardData.map(card => {
+      if (card.id === cardId) {
+        return { ...card, cardList: [...card.cardList, newCardList] };
+      }
+      return card;
+    });
+
+    setCardData(updatedCardData); // Update cardData state
+
+    // Set the selectedCardList directly after creating the new card list
+    setSelectedCardList(newCardList);
+
+    setIsPopupOpen(true);
+    navigate(`/workspace/${workspaceId}/board/${boardId}/cardList/${newCardList.id}`);
+  } catch (error) {
+    console.error("Failed to add card list:", error);
+  }
+};
 
   const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate?: any, endDate?: any, activity?: any) => {
     try {
@@ -859,6 +863,8 @@ const WorkspaceProject = () => {
     } catch (error) {
       console.error("Error deleting card list:", error);
     } finally {
+      localStorage.removeItem('oncardList');
+      navigate(`/workspace/${workspaceId}/board/${boardId}`);
       setShowDeleteConfirmation(false);
       setCardListToDelete(null);
     }
@@ -1445,30 +1451,48 @@ const WorkspaceProject = () => {
           isEditing={true}
         />
       )}
-
-      {/* {isPopupOpen && selectedCardList && (
+{/* 
+      {isPopupOpen && selectedCardList && (
         <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
             <div className="sticky top-0 bg-white z-10 p-6">
-              <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-2">
                 {editingListName ? (
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={selectedCardList.name}
-                    onChange={(e) => setSelectedCardList({ ...selectedCardList, name: e.target.value })}
-                    onBlur={() => handleUpdateListName(selectedCardList.id, selectedCardList.name, selectedCardList.description, selectedCardList.score, selectedCardList.startDate, selectedCardList.endDate, selectedCardList.activity)}
-                    autoFocus
-                    className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
-                  />
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={selectedCardList.name}
+                        onChange={(e) => {
+                            const capitalizeWords = (str: string) =>
+                                str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+                            setSelectedCardList({
+                                ...selectedCardList,
+                                name: capitalizeWords(e.target.value),
+                            });
+                        }}
+                        onBlur={() =>
+                            handleUpdateListName(
+                                selectedCardList.id,
+                                selectedCardList.name,
+                                selectedCardList.description,
+                                selectedCardList.score,
+                                selectedCardList.startDate,
+                                selectedCardList.endDate,
+                                selectedCardList.activity
+                            )
+                        }
+                        autoFocus
+                        className="text-xl font-semibold p-1 rounded text-black bg-white border-b-1 border-black"
+                    />
                 ) : (
-                  <h2
-                    className="text-[22px] font-semibold text-gray-800 cursor-pointer"
-                    onClick={() => setEditingListName(true)}
-                  >
-                    {selectedCardList.name}
-                  </h2>
+                    <h2
+                        className="text-[22px] font-semibold text-gray-800 cursor-pointer"
+                        onClick={() => setEditingListName(true)}
+                    >
+                        {selectedCardList?.name}
+                    </h2>
                 )}
+
 
                 <button onClick={handleClosePopup} className="text-gray-700 hover:text-gray-700">
                   <i className="fas fa-times"></i>
