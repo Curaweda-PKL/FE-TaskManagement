@@ -810,20 +810,20 @@ const handleAddCardList = async (cardId: any) => {
     const newCardList = await createCardList(cardId, defaultListName, '', 0, '', '', '');
 
     // Update the cardData state
-    const updatedCardData = cardData.map(card => {
+    const updatedCardData = await cardData.map(card => {
       if (card.id === cardId) {
         return { ...card, cardList: [...card.cardList, newCardList] };
       }
       return card;
     });
 
-    setCardData(updatedCardData); // Update cardData state
+    await setCardData(updatedCardData); // Update cardData state
 
     // Set the selectedCardList directly after creating the new card list
-    setSelectedCardList(newCardList);
+    await setSelectedCardList(newCardList);
 
-    setIsPopupOpen(true);
-    navigate(`/workspace/${workspaceId}/board/${boardId}/cardList/${newCardList.id}`);
+    await setIsPopupOpen(true);
+    await navigate(`/L/workspace/${workspaceId}/board/${boardId}/cardList/${newCardList.id}`);
   } catch (error) {
     console.error("Failed to add card list:", error);
   }
