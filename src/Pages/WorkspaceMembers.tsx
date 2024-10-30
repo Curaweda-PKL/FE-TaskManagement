@@ -199,6 +199,13 @@ const WorkspaceMembers: React.FC = () => {
     member?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Urutkan filteredMembers sehingga OWNER berada di urutan pertama
+  const sortedMembers = filteredMembers?.sort((a, b) => {
+    if (a.id === workspace.ownerId) return -1; // Memindahkan OWNER ke atas
+    if (b.id === workspace.ownerId) return 1;
+    return 0; // Urutan tetap untuk anggota lainnya
+  });
+
   const filteredRequests = requests.filter(request =>
     request?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     request?.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -239,7 +246,7 @@ const WorkspaceMembers: React.FC = () => {
             </div>
           </div>
           <div className="w-full lg:w-3/4 pl-0 lg:pl-4">
-            {!showJoinRequests ? (
+          {!showJoinRequests ? (
               <>
                 <div className="mb-8 mt-8">
                   <h3 className="text-black text-lg font-semibold">Workspace member ({members?.length})</h3>
@@ -290,7 +297,7 @@ const WorkspaceMembers: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2 text-black w-full lg:w-5/6">
-                  {filteredMembers?.map((member: any) => (
+                  {sortedMembers?.map((member: any) => (
                     <div key={member.id} className="bg-yellow-200 p-4 rounded-md flex justify-between items-center flex-wrap">
                       <div className="flex items-center flex-wrap">
                         <img
@@ -304,31 +311,35 @@ const WorkspaceMembers: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex space-x-4 items-center lg:mt-0 mt-2 flex-wrap">
-                        {currentUserId === workspace?.ownerId && (
-                          <>
-                            {member.id === workspace?.ownerId ? (
-                              <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">
-                                {member.role}
-                              </p>
-                            ) : (
-                              <select
-                                className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
-                                value={member?.role}
-                                onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                              >
-                                <option value="MEMBER">Member</option>
-                                <option value="ADMIN">Admin</option>
-                              </select>
-                            )}
-                            {isAdminOrOwner(workspace) && (
-                            <button
-                              className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
-                              onClick={() => handleRemoveMember(member.id)}
+
+                        <>
+                          {member.id === workspace?.ownerId ? (
+                            <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">
+                              OWNER
+                            </p>
+                          ) : currentUserId === workspace?.ownerId ? (
+                            <select
+                              className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1"
+                              value={member?.role}
+                              onChange={(e) => handleRoleChange(member.id, e.target.value)}
                             >
-                              Remove
-                            </button>
-                            )}
-                          </>
+                              <option value="MEMBER">Member</option>
+                              <option value="ADMIN">Admin</option>
+                            </select>
+                          ) : (
+                            <p className="bg-gray-500 text-white border border-gray-300 rounded-md px-2 py-1">
+                              {member.role}
+                            </p>
+                          )}
+                        </>
+
+                        {isAdminOrOwner(workspace) && member.id !== workspace.ownerId && (
+                          <button
+                            className="bg-red-100 text-red-600 px-4 py-1 rounded-md"
+                            onClick={() => handleRemoveMember(member.id)}
+                          >
+                            Remove
+                          </button>
                         )}
                       </div>
                     </div>

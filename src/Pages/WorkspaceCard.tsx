@@ -195,7 +195,6 @@ const WorkspaceProject = () => {
         })
         .catch((error) => {
           console.error('Failed to copy to clipboard:', error);
-          // Fallback: Buat input tersembunyi dan salin isinya
           const tempInput = document.createElement('textarea');
           tempInput.value = url;
           document.body.appendChild(tempInput);
@@ -206,7 +205,6 @@ const WorkspaceProject = () => {
           setTimeout(() => setIsCopied(false), 2000);
         });
     } else {
-      // Fallback: Buat input tersembunyi dan salin isinya
       const tempInput = document.createElement('textarea');
       tempInput.value = url;
       document.body.appendChild(tempInput);
@@ -428,32 +426,23 @@ const WorkspaceProject = () => {
 
   const fetchData = async () => {
     try {
+      setCardData([]);
       const boardData = await fetchBoards(workspaceId);
       setBoards(boardData);
+
       const board = boardData.find((b: any) => b.id === boardId);
       setBoardName(board ? board.name : 'Project');
 
       if (boardId) {
         const cardResponse = await fetchCard(boardId);
-        if (cardResponse && cardResponse) {
+
+        if (cardResponse) {
           const updatedCardData = await Promise.all(
             cardResponse.map(async (card: any) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
-                const cardListWithAttachments = await Promise.all(
-                  cardListData.map(async (cardList: any) => {
-                    if (cardList.attachments && cardList.attachments.length > 0) {
-                      const attachmentDetails = await Promise.all(
-                        cardList.attachments.map((attachment: any) =>
-                          fetchCardListAttachments(attachment.attachmentId)
-                        )
-                      );
-                      return { ...cardList, attachmentDetails };
-                    }
-                    return { ...cardList, attachmentDetails: [] };
-                  })
-                );
-                return { ...card, cardList: cardListWithAttachments };
+
+                return { ...card, cardList: cardListData };
               }
               return { ...card, cardList: [] };
             })
@@ -466,13 +455,13 @@ const WorkspaceProject = () => {
     }
   };
 
+
   useEffect(() => {
+    fetchData2();
     const fetchData = async () => {
       try {
         const boardData = await fetchBoards(workspaceId);
         setBoards(boardData);
-        const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
-        setBoardName(board ? board.name : 'Project');
 
         const currentBoard = boardData.find((b: { id: string; name: string; backgroundColor: string }) => b.id === boardId);
 
@@ -483,28 +472,15 @@ const WorkspaceProject = () => {
         setCurrentBgColor(currentBoard?.backgroundColor || 'bg-white');
 
         if (boardId) {
-          // const socket = io(config);
-
-          // socket.on(`board/${boardId}`, () => {
-          //   fetchData();
-          // });
-
-          // return () => {
-          //   socket.off(`board/${boardId}`);
-          //   socket.disconnect();
-          // };
           const cardResponse = await fetchCard(boardId);
           if (cardResponse) {
             const updatedCardData = await Promise.all(
               cardResponse.map(async (card: { id: string }) => {
                 if (card && card.id) {
                   const cardListData = await fetchCardList(card.id);
-                  // const processedCustomFields = processCustomFields(cardListData);
-                  // setCardlistCustomFields(processedCustomFields);
                   const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
 
                   const updatedCardList = await Promise.all(cardList.map(async (list) => {
-
                     if (list.members && list.members.length > 0) {
                       const membersWithPhotos = await Promise.all(
                         list.members.map(async (member: { userId: string }) => {
@@ -520,30 +496,9 @@ const WorkspaceProject = () => {
                     return list;
                   }));
 
-                  const cardListWithAttachments = await Promise.all(
-                    updatedCardList.map(async (cardList: any) => {
-                      if (cardList.attachments && cardList.attachments.length > 0) {
-                        const attachmentDetails = await Promise.all(
-                          cardList.attachments.map((attachment: { attachmentId: string }) =>
-                            fetchCardListAttachments(attachment.attachmentId)
-                          )
-                        );
-                        return { ...cardList, attachmentDetails };
-                      }
-                      return { ...cardList, attachmentDetails: [] };
-                    })
-                  );
-
-                  const cardListWithCustomFields = await Promise.all(
-                    cardListWithAttachments.map(async (cardList: any) => {
-
-                      return { ...cardList };
-                    })
-                  );
-
                   return {
                     ...card,
-                    cardList: cardListWithCustomFields
+                    cardList: updatedCardList
                   };
                 }
                 return { ...card, cardList: [] };
@@ -551,13 +506,13 @@ const WorkspaceProject = () => {
             );
 
             setCardData(updatedCardData);
+
             // const socket = io(config);
 
             // socket.on(`board/${boardId}`, () => {
             //   console.log(`Board updated for board ${boardId}`);
             //   fetchData();
             // });
-
           }
         }
       } catch (error) {
@@ -567,6 +522,7 @@ const WorkspaceProject = () => {
 
     fetchData();
   }, [workspaceId, boardId]);
+
 
   const [cardIdsSocket, setCardIdsSocket] = useState<string[]>([]); // Ubah menjadi array
   const [cardData2, setCardData2] = useState<any[]>([]); // Inisialisasi cardData
@@ -694,7 +650,9 @@ const WorkspaceProject = () => {
 
   const fetchData2 = async () => {
     try {
+      setCardData([]);
       const boardData = await fetchBoards(workspaceId);
+
       const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
       setBoardName(board ? board.name : 'Project');
 
@@ -716,21 +674,23 @@ const WorkspaceProject = () => {
 
                 const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
 
-                const updatedCardList = await Promise.all(cardList.map(async (list) => {
-                  if (list.members && list.members.length > 0) {
-                    const membersWithPhotos = await Promise.all(
-                      list.members.map(async (member: { userId: string }) => {
-                        const photoUrl = await getProfilePhotoMember(member.userId).catch(error => {
-                          console.error(`Error fetching photo for user ${member.userId}:`, error);
-                          return null;
-                        });
-                        return { ...member, photoUrl };
-                      })
-                    );
-                    return { ...list, members: membersWithPhotos };
-                  }
-                  return list;
-                }));
+                const updatedCardList = await Promise.all(
+                  cardList.map(async (list) => {
+                    if (list.members && list.members.length > 0) {
+                      const membersWithPhotos = await Promise.all(
+                        list.members.map(async (member: { userId: string }) => {
+                          const photoUrl = await getProfilePhotoMember(member.userId).catch(error => {
+                            console.error(`Error fetching photo for user ${member.userId}:`, error);
+                            return null;
+                          });
+                          return { ...member, photoUrl };
+                        })
+                      );
+                      return { ...list, members: membersWithPhotos };
+                    }
+                    return list;
+                  })
+                );
 
                 return { ...card, cardList: updatedCardList };
               }
@@ -745,10 +705,6 @@ const WorkspaceProject = () => {
       console.error('Error fetching data:', error);
     }
   };
-
-  useEffect(() => {
-    fetchData2();
-  }, [boardId]);
 
   const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
     try {
@@ -988,7 +944,6 @@ const WorkspaceProject = () => {
     if (customField.type) {
       try {
         const response = await addCardlistCustomField(selectedCardList.id, customField.id);
-        // Pastikan response sesuai dengan tipe CardlistCustomField
         setCardlistCustomFields(prevFields => [...prevFields, response]);
       } catch (error) {
         console.error('Error adding custom field:', error);
@@ -997,35 +952,35 @@ const WorkspaceProject = () => {
   };
 
   const handleRemoveCustomField = async (fieldId: string | number, cardListId: string | number) => {
-      try {
-        await removeCardlistCustomField(fieldId, cardListId);
-        setCardlistCustomFields(prevFields => 
-          prevFields.filter(field => field.customField.id !== fieldId)
-        );
-      } catch (error) {
-        console.error('Error removing custom field:', error);
-      }
+    try {
+      await removeCardlistCustomField(fieldId, cardListId);
+      setCardlistCustomFields(prevFields =>
+        prevFields.filter(field => field.customField.id !== fieldId)
+      );
+    } catch (error) {
+      console.error('Error removing custom field:', error);
+    }
   };
 
   const handleInputChange = async (
-      cardListId: string | number, 
-      customFieldId: string | number, 
-      newValue: string
+    cardListId: string | number,
+    customFieldId: string | number,
+    newValue: string
   ) => {
-      try {
-        const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
-        console.log("Custom field updated successfully:", response);
+    try {
+      const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
+      console.log("Custom field updated successfully:", response);
 
-        setCardlistCustomFields(prevFields => 
-          prevFields.map((field) =>
-            field.customField.id === customFieldId
-              ? { ...field, value: newValue }
-              : field
-          )
-        );
-      } catch (error) {
-        console.error("Failed to update custom field value:", error);
-      }
+      setCardlistCustomFields(prevFields =>
+        prevFields.map((field) =>
+          field.customField.id === customFieldId
+            ? { ...field, value: newValue }
+            : field
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update custom field value:", error);
+    }
   };
 
   useEffect(() => {
@@ -1216,13 +1171,15 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
-    fetchData()
-    fetchData2()
     setLoading(true);
 
+    fetchData2()
+    fetchData()
     setTimeout(() => {
       setLoading(false);
+
     }, 1000);
+
   }, [workspaceId, boardId]);
 
   if (loading) {
