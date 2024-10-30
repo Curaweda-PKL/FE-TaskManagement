@@ -305,6 +305,7 @@ function Navbar() {
   const handleTaskFlow = () => {
     localStorage.removeItem('onWorkspace');
     localStorage.removeItem('onBoardId');
+    localStorage.removeItem('oncardList');
     window.location.reload();
   }
 
