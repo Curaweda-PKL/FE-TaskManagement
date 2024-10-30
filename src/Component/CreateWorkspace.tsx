@@ -30,9 +30,9 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
 
-  // Set warna default saat komponen pertama kali dimount jika tidak ada warna yang dipilih
+  // Set warna default hanya jika tidak dalam mode edit dan tidak ada warna yang dipilih
   useEffect(() => {
-    if (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') {
+    if (!isEditMode && (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF')) {
       setWorkspaceColor(DEFAULT_COLOR);
     }
   }, []);
@@ -45,10 +45,12 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
 
     try {
       setError(null);
-      // Pastikan warna yang dikirim tidak kosong atau putih
-      const finalColor = (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
-        ? DEFAULT_COLOR 
-        : workspaceColor;
+      // Gunakan warna yang ada jika dalam mode edit
+      const finalColor = isEditMode 
+        ? workspaceColor 
+        : (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
+          ? DEFAULT_COLOR 
+          : workspaceColor;
         
       await onCreate(workspaceName, workspaceDescription, finalColor);
       onClose();
@@ -57,10 +59,12 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
     }
   };
 
-  // Memastikan input color dan text selalu menampilkan warna yang valid
-  const displayColor = (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
-    ? DEFAULT_COLOR 
-    : workspaceColor;
+  // Tampilkan warna yang ada jika dalam mode edit
+  const displayColor = isEditMode 
+    ? workspaceColor 
+    : (!workspaceColor || workspaceColor === '#ffffff' || workspaceColor === '#FFFFFF') 
+      ? DEFAULT_COLOR 
+      : workspaceColor;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -117,25 +121,25 @@ const CreateWorkspace: React.FC<CreateWorkspaceProps> = ({
             </label>
             <div className="flex items-center gap-3 w-full">
               <input
-                type="color"
-                className="h-10 border-gray-300 rounded w-1/2"
-                value={displayColor}
-                onChange={(e) => {
-                  const newColor = e.target.value;
-                  setWorkspaceColor(newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor);
-                }}
-                style={{ backgroundColor: displayColor, border: 'none' }}
-              />
-              <input
-                type="text"
-                className="w-20 rounded px-3 py-2 text-sm bg-white border-gray-300 border text-black"
-                value={displayColor}
-                onChange={(e) => {
-                  const newColor = e.target.value;
-                  setWorkspaceColor(newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor);
-                }}
-                placeholder="#hexcode"
-              />
+              type="color"
+              className="h-10 border-gray-300 rounded w-1/2"
+              value={displayColor}
+              onChange={(e) => {
+                const newColor = e.target.value;
+                setWorkspaceColor(isEditMode ? newColor : (newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor));
+              }}
+              style={{ backgroundColor: displayColor, border: 'none' }}
+            />
+            <input
+              type="text"
+              className="w-20 rounded px-3 py-2 text-sm bg-white border-gray-300 border text-black"
+              value={displayColor}
+              onChange={(e) => {
+                const newColor = e.target.value;
+                setWorkspaceColor(isEditMode ? newColor : (newColor === '#ffffff' || newColor === '#FFFFFF' ? DEFAULT_COLOR : newColor));
+              }}
+              placeholder="#hexcode"
+            />
             </div>
           </div>
           <button

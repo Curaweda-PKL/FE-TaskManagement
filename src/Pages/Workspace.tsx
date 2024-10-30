@@ -287,7 +287,7 @@ const Workspace: React.FC = () => {
                 </div>
                 <span className='font-semibold text-[#4A4A4A] text-[15px] overflow-hidden text-ellipsis whitespace-nowrap'>{workspace.name}</span>
               </div>
-              <div className={`grid ${isOwner(workspace) ? 'grid-cols-4' : 'grid-cols-3'} max850:grid-cols-2 gap-5 max850:gap-2 justify-self-end`}>
+              <div className={`grid ${isAdminOrOwner(workspace) ? 'grid-cols-4' : 'grid-cols-3'} max850:grid-cols-2 gap-5 max850:gap-2 justify-self-end`}>
                 <Link to={`/workspace/${workspace.id}/boards-ws`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
                   <i className='fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
                   <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Board</span>

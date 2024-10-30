@@ -23,21 +23,22 @@ const WorkspaceSettings: React.FC = () => {
   const { userData, fetchUserData } = useAuth();
 
   useEffect(() => {
-    const fetchWorkspaceData = async () => {
-      try {
-        const workspaces = await fetchWorkspaces(workspaceId);
-        const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
-        setWorkspace(currentWorkspace);
-        setVisibility(currentWorkspace?.isPublic ? 'Public' : 'Private');
-        setWorkspaceName(currentWorkspace?.name || '');
-        setWorkspaceDescription(currentWorkspace?.description || '');
-      } catch (error) {
-        console.error('Failed to fetch workspace:', error);
-      }
-    };
+  const fetchWorkspaceData = async () => {
+    try {
+      const workspaces = await fetchWorkspaces(workspaceId);
+      const currentWorkspace = workspaces.find((ws: any) => ws.id === workspaceId);
+      setWorkspace(currentWorkspace);
+      setVisibility(currentWorkspace?.isPublic ? 'Public' : 'Private');
+      setWorkspaceName(currentWorkspace?.name || '');
+      setWorkspaceDescription(currentWorkspace?.description || '');
+      setWorkspaceColor(currentWorkspace?.color || '#EF4444'); // Set the workspace color
+    } catch (error) {
+      console.error('Failed to fetch workspace:', error);
+    }
+  };
 
-    fetchWorkspaceData();
-  }, [workspaceId]);
+  fetchWorkspaceData();
+}, [workspaceId]);
 
   const togglePopup = (popupType: 'visibility' | 'delete') => {
     setActivePopup(activePopup === popupType ? null : popupType);
@@ -238,15 +239,16 @@ const WorkspaceSettings: React.FC = () => {
 
           {isEditModalOpen && (
             <CreateWorkspace
-              workspaceName={workspaceName}
-              workspaceDescription={workspaceDescription}
-              setWorkspaceName={setWorkspaceName}
-              setWorkspaceDescription={setWorkspaceDescription}
-              setWorkspaceColor={setWorkspaceColor}
-              onClose={() => setIsEditModalOpen(false)}
-              onCreate={handleUpdateWorkspace}
-              isEditMode={true}
-            />
+            workspaceName={workspaceName}
+            workspaceDescription={workspaceDescription}
+            workspaceColor={workspaceColor} // Tambahkan prop ini
+            setWorkspaceName={setWorkspaceName}
+            setWorkspaceDescription={setWorkspaceDescription}
+            setWorkspaceColor={setWorkspaceColor}
+            onClose={() => setIsEditModalOpen(false)}
+            onCreate={handleUpdateWorkspace}
+            isEditMode={true}
+          />
           )}
         </div>
       </div>
