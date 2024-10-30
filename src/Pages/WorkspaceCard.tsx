@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
-import { useParams } from 'react-router-dom';
+import { Route, useNavigate, Routes, useParams, Router, Link } from 'react-router-dom';
 import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
@@ -643,8 +643,6 @@ const WorkspaceProject = () => {
           setSelectedCardList({ ...updatedSelectedData })
 
 
-        } else {
-          console.log("selectedCardList.id belum di-set atau selectedCardList kosong.");
         }
 
         console.log("here")
@@ -797,52 +795,8 @@ const WorkspaceProject = () => {
       setCardToDelete(null);
     }
   };
+  const currentPath = window.location.pathname;
 
-  // useEffect(() => {
-  //   if (isPopupOpen && selectedCardList) {
-  //     // Mendapatkan path saat ini
-  //     const currentPath = window.location.pathname;
-  //     const newUrl = `${currentPath}/cardList/${selectedCardList.id}`;
-  //     window.history.pushState({}, '', newUrl);
-  //   }
-  // }, [isPopupOpen, selectedCardList]);
-
-  // const { id } = useParams();
-  // const navigate = useNavigate();
-
-  // // Tambahkan useEffect baru untuk handle initial load
-  // useEffect(() => {
-  //   // Jika ada ID di URL tapi popup belum terbuka
-  //   if (id && !isPopupOpen) {
-  //     // Fetch data cardList berdasarkan ID
-  //     const fetchCardList = async () => {
-  //       try {
-  //         // Ganti ini sesuai dengan fungsi fetch data Anda
-  //         const cardList = await fetchCardListById(id);
-  //         if (cardList) {
-  //           handleOpenPopup(cardList);
-  //         } else {
-  //           // Jika data tidak ditemukan, kembali ke homepage
-  //           navigate('/');
-  //         }
-  //       } catch (error) {
-  //         console.error('Error fetching card list:', error);
-  //         navigate('/');
-  //       }
-  //     };
-
-  //     fetchCardList();
-  //   }
-  // }, [id]); // Dependency hanya pada id
-
-  // // useEffect untuk handle perubahan state popup
-  // useEffect(() => {
-  //   if (isPopupOpen && selectedCardList) {
-  //     navigate(`/cardList/${selectedCardList.id}`, { replace: true }); // Tambahkan replace: true
-  //   } else if (!isPopupOpen) {
-  //     navigate('/', { replace: true }); // Tambahkan replace: true
-  //   }
-  // }, [isPopupOpen, selectedCardList, navigate]);
 
 
   const cancelDeleteCardList = () => {
@@ -930,13 +884,14 @@ const WorkspaceProject = () => {
   const [inReviewPhoto, setInReviewPhoto] = useState(null);
   const [approvedPhoto, setapprovedPhoto] = useState(null);
 
+  const navigate = useNavigate()
+
   const handleOpenPopup = async (cardList: any) => {
     setSelectedCardList(cardList);
-    console.log(cardList);
-    console.log(selectedCardList);
     setIsPopupOpen(true);
-    setCardlistCustomFields(cardList.customFields)
+    setCardlistCustomFields(cardList.customFields);
     setAttachments(cardList.attachmentDetails || []);
+    navigate(`/workspace/${workspaceId}/board/${boardId}/cardList/${cardList.id}`);
 
     if (cardList.inReviewById) {
       const photo = await getProfilePhotoMember(cardList.inReviewById);
@@ -1049,7 +1004,6 @@ const WorkspaceProject = () => {
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
-      console.log("her", selectedCardList)
       const fetchAttachments = async () => {
         try {
           const attachmentPromises = selectedCardList.attachments?.map(async (attachment: any) => {
@@ -1878,54 +1832,62 @@ const WorkspaceProject = () => {
         </div>
       )} */}
 
-      {isPopupOpen && selectedCardList && (
-        <>
-          <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
-              <div className="sticky top-0 bg-white z-10 p-6">
-                <WorkspaceCardList
-                  editingListName={editingListName}
-                  inputRef={inputRef}
-                  selectedCardList={selectedCardList}
-                  setSelectedCardList={setSelectedCardList}
-                  handleUpdateListName={handleUpdateListName}
-                  setEditingListName={setEditingListName}
-                  handleClosePopup={handleClosePopup}
-                  labelColors={labelColors}
-                  getContrastColor={getContrastColor}
-                  inReviewPhoto={inReviewPhoto}
-                  approvedPhoto={approvedPhoto}
-                  cardlistCustomFields={cardlistCustomFields}
-                  handleRemoveCustomField={handleRemoveCustomField}
-                  handleInputChange={handleInputChange}
-                  attachments={attachments}
-                  handleAttachImage={handleAttachImage}
-                  handleDownloadAttachment={handleDownloadAttachment}
-                  handleDeleteAttachmentClick={handleDeleteAttachmentClick}
-                  isDeleting={isDeleting}
-                  deleteError={deleteError}
-                  checklistData={checklistData}
-                  calculateChecklistPercentage={calculateChecklistPercentage}
-                  handleOpenChecklistPopup={handleOpenChecklistPopup}
-                  setExistingChecklistData={setExistingChecklistData}
-                  handleToggleIsDone={handleToggleIsDone}
-                  handleDeleteChecklist={handleDeleteChecklist}
-                  handleJoinClick={handleJoinClick}
-                  handleOpenMemberPopup={handleOpenMemberPopup}
-                  handleOpenLabelsPopup={handleOpenLabelsPopup}
-                  handleOpenDatesPopup={handleOpenDatesPopup}
-                  handleOpenAttachPopup={handleOpenAttachPopup}
-                  handleOpenCopyPopup={handleOpenCopyPopup}
-                  handleDeleteCardList={handleDeleteCardList}
-                  setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
-                  isCopied={isCopied}
-                  handleShareClick={handleShareClick}
-                />
+
+
+      <Routes>
+        <Route
+          path="cardList/:id"
+          element={
+            <>
+              <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
+                <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+                  <div className="sticky top-0 bg-white z-10 p-6">
+                    <WorkspaceCardList
+                      editingListName={editingListName}
+                      inputRef={inputRef}
+                      selectedCardList={selectedCardList}
+                      setSelectedCardList={setSelectedCardList}
+                      handleUpdateListName={handleUpdateListName}
+                      setEditingListName={setEditingListName}
+                      handleClosePopup={handleClosePopup}
+                      labelColors={labelColors}
+                      getContrastColor={getContrastColor}
+                      inReviewPhoto={inReviewPhoto}
+                      approvedPhoto={approvedPhoto}
+                      cardlistCustomFields={cardlistCustomFields}
+                      handleRemoveCustomField={handleRemoveCustomField}
+                      handleInputChange={handleInputChange}
+                      attachments={attachments}
+                      handleAttachImage={handleAttachImage}
+                      handleDownloadAttachment={handleDownloadAttachment}
+                      handleDeleteAttachmentClick={handleDeleteAttachmentClick}
+                      isDeleting={isDeleting}
+                      deleteError={deleteError}
+                      checklistData={checklistData}
+                      calculateChecklistPercentage={calculateChecklistPercentage}
+                      handleOpenChecklistPopup={handleOpenChecklistPopup}
+                      setExistingChecklistData={setExistingChecklistData}
+                      handleToggleIsDone={handleToggleIsDone}
+                      handleDeleteChecklist={handleDeleteChecklist}
+                      handleJoinClick={handleJoinClick}
+                      handleOpenMemberPopup={handleOpenMemberPopup}
+                      handleOpenLabelsPopup={handleOpenLabelsPopup}
+                      handleOpenDatesPopup={handleOpenDatesPopup}
+                      handleOpenAttachPopup={handleOpenAttachPopup}
+                      handleOpenCopyPopup={handleOpenCopyPopup}
+                      handleDeleteCardList={handleDeleteCardList}
+                      setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
+                      isCopied={isCopied}
+                      workspaceId={workspaceId}
+                      boardId={boardId}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </>
-      )}
+            </>
+          }
+        />
+      </Routes>
 
       <div className='text-black'>
         <CustomFieldSettings
