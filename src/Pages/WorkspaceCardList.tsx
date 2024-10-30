@@ -1,6 +1,7 @@
-import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState } from "react";
 import DescriptionEditor from '../Component/descriptionEditor';
 import ActivityEditor from '../Component/ActivityEditor';
+import { useNavigate } from 'react-router-dom'
 
 interface WorkspaceCardListProps {
     editingListName?: boolean;
@@ -37,13 +38,47 @@ interface WorkspaceCardListProps {
     handleOpenCopyPopup?: any;
     handleDeleteCardList?: any;
     setIsCustomFieldModalOpen?: any;
-    isCopied?: any;
-    handleShareClick?: any;
+    workspaceId?: any;
+    boardId?: any;
 }
 
 
-const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen, isCopied, handleShareClick }) => {
+const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen, workspaceId, boardId }) => {
     const MAX_VISIBLE_MEMBERS = 2;
+    const navigate = useNavigate();
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleShareClick = () => {
+        const currentOrigin = window.location.origin;
+        const url = `${currentOrigin}/L/workspace/${workspaceId}/board/${boardId}/cardList/${selectedCardList.id}`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url)
+                .then(() => {
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                })
+                .catch((error) => {
+                    console.error('Failed to copy to clipboard:', error);
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = url;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                });
+        } else {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        }
+    };
     
     const formatTimestamp = (timestamp: any) => {
         const date = new Date(timestamp);
@@ -99,7 +134,11 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                     </h2>
                 )}
 
-                <button onClick={handleClosePopup} className="text-gray-700 hover:text-gray-700">
+                <button onClick={() => {
+                    localStorage.removeItem('oncardList');
+                    navigate(`/workspace/${workspaceId}/board/${boardId}`);
+                }} className="text-gray-700 hover:text-gray-700">
+
                     <i className="fas fa-times"></i>
                 </button>
             </div >
@@ -504,7 +543,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                         onClick={() => handleOpenCopyPopup(selectedCardList)}>
                         <i className="fas fa-copy"></i>Copy
                     </div>
-                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black"  onClick={handleShareClick}>
+                    <div className="btn hover:bg-gray-400 min-h-6 h-2 bg-gray-300 rounded border-none justify-start text-black" onClick={handleShareClick}>
                         <i className="fas fa-share"></i>{isCopied ? 'Copied!' : 'Share'}
                     </div>
                     <>
