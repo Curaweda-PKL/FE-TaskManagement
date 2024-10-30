@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
-import { Route, useNavigate, Routes, useParams, Router, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { memberWorkspace, getProfilePhotoMember } from '../hooks/fetchWorkspace';
 import { fetchBoards } from '../hooks/fetchBoard';
 import { fetchCard, createCard, deleteCard, updateCard } from '../hooks/fetchCard';
@@ -198,6 +198,7 @@ const WorkspaceProject = () => {
         })
         .catch((error) => {
           console.error('Failed to copy to clipboard:', error);
+          // Fallback: Buat input tersembunyi dan salin isinya
           const tempInput = document.createElement('textarea');
           tempInput.value = url;
           document.body.appendChild(tempInput);
@@ -208,6 +209,7 @@ const WorkspaceProject = () => {
           setTimeout(() => setIsCopied(false), 2000);
         });
     } else {
+      // Fallback: Buat input tersembunyi dan salin isinya
       const tempInput = document.createElement('textarea');
       tempInput.value = url;
       document.body.appendChild(tempInput);
@@ -429,23 +431,32 @@ const WorkspaceProject = () => {
 
   const fetchData = async () => {
     try {
-      setCardData([]);
       const boardData = await fetchBoards(workspaceId);
       setBoards(boardData);
-
       const board = boardData.find((b: any) => b.id === boardId);
       setBoardName(board ? board.name : 'Project');
 
       if (boardId) {
         const cardResponse = await fetchCard(boardId);
-
-        if (cardResponse) {
+        if (cardResponse && cardResponse) {
           const updatedCardData = await Promise.all(
             cardResponse.map(async (card: any) => {
               if (card && card.id) {
                 const cardListData = await fetchCardList(card.id);
-
-                return { ...card, cardList: cardListData };
+                const cardListWithAttachments = await Promise.all(
+                  cardListData.map(async (cardList: any) => {
+                    if (cardList.attachments && cardList.attachments.length > 0) {
+                      const attachmentDetails = await Promise.all(
+                        cardList.attachments.map((attachment: any) =>
+                          fetchCardListAttachments(attachment.attachmentId)
+                        )
+                      );
+                      return { ...cardList, attachmentDetails };
+                    }
+                    return { ...cardList, attachmentDetails: [] };
+                  })
+                );
+                return { ...card, cardList: cardListWithAttachments };
               }
               return { ...card, cardList: [] };
             })
@@ -458,13 +469,13 @@ const WorkspaceProject = () => {
     }
   };
 
-
   useEffect(() => {
-    fetchData2();
     const fetchData = async () => {
       try {
         const boardData = await fetchBoards(workspaceId);
         setBoards(boardData);
+        const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
+        setBoardName(board ? board.name : 'Project');
 
         const currentBoard = boardData.find((b: { id: string; name: string; backgroundColor: string }) => b.id === boardId);
 
@@ -475,15 +486,28 @@ const WorkspaceProject = () => {
         setCurrentBgColor(currentBoard?.backgroundColor || 'bg-white');
 
         if (boardId) {
+          // const socket = io(config);
+
+          // socket.on(`board/${boardId}`, () => {
+          //   fetchData();
+          // });
+
+          // return () => {
+          //   socket.off(`board/${boardId}`);
+          //   socket.disconnect();
+          // };
           const cardResponse = await fetchCard(boardId);
           if (cardResponse) {
             const updatedCardData = await Promise.all(
               cardResponse.map(async (card: { id: string }) => {
                 if (card && card.id) {
                   const cardListData = await fetchCardList(card.id);
+                  // const processedCustomFields = processCustomFields(cardListData);
+                  // setCardlistCustomFields(processedCustomFields);
                   const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
 
                   const updatedCardList = await Promise.all(cardList.map(async (list) => {
+
                     if (list.members && list.members.length > 0) {
                       const membersWithPhotos = await Promise.all(
                         list.members.map(async (member: { userId: string }) => {
@@ -499,9 +523,30 @@ const WorkspaceProject = () => {
                     return list;
                   }));
 
+                  const cardListWithAttachments = await Promise.all(
+                    updatedCardList.map(async (cardList: any) => {
+                      if (cardList.attachments && cardList.attachments.length > 0) {
+                        const attachmentDetails = await Promise.all(
+                          cardList.attachments.map((attachment: { attachmentId: string }) =>
+                            fetchCardListAttachments(attachment.attachmentId)
+                          )
+                        );
+                        return { ...cardList, attachmentDetails };
+                      }
+                      return { ...cardList, attachmentDetails: [] };
+                    })
+                  );
+
+                  const cardListWithCustomFields = await Promise.all(
+                    cardListWithAttachments.map(async (cardList: any) => {
+
+                      return { ...cardList };
+                    })
+                  );
+
                   return {
                     ...card,
-                    cardList: updatedCardList
+                    cardList: cardListWithCustomFields
                   };
                 }
                 return { ...card, cardList: [] };
@@ -509,13 +554,13 @@ const WorkspaceProject = () => {
             );
 
             setCardData(updatedCardData);
-
             // const socket = io(config);
 
             // socket.on(`board/${boardId}`, () => {
             //   console.log(`Board updated for board ${boardId}`);
             //   fetchData();
             // });
+
           }
         }
       } catch (error) {
@@ -525,7 +570,6 @@ const WorkspaceProject = () => {
 
     fetchData();
   }, [workspaceId, boardId]);
-
 
   const [cardIdsSocket, setCardIdsSocket] = useState<string[]>([]); // Ubah menjadi array
   const [cardData2, setCardData2] = useState<any[]>([]); // Inisialisasi cardData
@@ -599,9 +643,11 @@ const WorkspaceProject = () => {
           setSelectedCardList({ ...updatedSelectedData })
 
 
+        } else {
+          console.log("selectedCardList.id belum di-set atau selectedCardList kosong.");
         }
 
-        console.log("hereeeeeeeeeeeeeeeeeeeeee")
+        console.log("here")
 
       } catch (error) {
         console.error('Error fetching card:', error);
@@ -618,9 +664,7 @@ const WorkspaceProject = () => {
 
   const fetchData2 = async () => {
     try {
-      setCardData([]);
       const boardData = await fetchBoards(workspaceId);
-
       const board = boardData.find((b: { id: string; name: string }) => b.id === boardId);
       setBoardName(board ? board.name : 'Project');
 
@@ -642,23 +686,21 @@ const WorkspaceProject = () => {
 
                 const cardList = Array.isArray(cardListData) ? cardListData : [cardListData];
 
-                const updatedCardList = await Promise.all(
-                  cardList.map(async (list) => {
-                    if (list.members && list.members.length > 0) {
-                      const membersWithPhotos = await Promise.all(
-                        list.members.map(async (member: { userId: string }) => {
-                          const photoUrl = await getProfilePhotoMember(member.userId).catch(error => {
-                            console.error(`Error fetching photo for user ${member.userId}:`, error);
-                            return null;
-                          });
-                          return { ...member, photoUrl };
-                        })
-                      );
-                      return { ...list, members: membersWithPhotos };
-                    }
-                    return list;
-                  })
-                );
+                const updatedCardList = await Promise.all(cardList.map(async (list) => {
+                  if (list.members && list.members.length > 0) {
+                    const membersWithPhotos = await Promise.all(
+                      list.members.map(async (member: { userId: string }) => {
+                        const photoUrl = await getProfilePhotoMember(member.userId).catch(error => {
+                          console.error(`Error fetching photo for user ${member.userId}:`, error);
+                          return null;
+                        });
+                        return { ...member, photoUrl };
+                      })
+                    );
+                    return { ...list, members: membersWithPhotos };
+                  }
+                  return list;
+                }));
 
                 return { ...card, cardList: updatedCardList };
               }
@@ -673,6 +715,10 @@ const WorkspaceProject = () => {
       console.error('Error fetching data:', error);
     }
   };
+
+  useEffect(() => {
+    fetchData2();
+  }, [boardId]);
 
   const handleUpdateStatusCardlist = async (cardlistId: string, status: string) => {
     try {
@@ -751,8 +797,52 @@ const WorkspaceProject = () => {
       setCardToDelete(null);
     }
   };
-  const currentPath = window.location.pathname;
 
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     // Mendapatkan path saat ini
+  //     const currentPath = window.location.pathname;
+  //     const newUrl = `${currentPath}/cardList/${selectedCardList.id}`;
+  //     window.history.pushState({}, '', newUrl);
+  //   }
+  // }, [isPopupOpen, selectedCardList]);
+
+  // const { id } = useParams();
+  // const navigate = useNavigate();
+
+  // // Tambahkan useEffect baru untuk handle initial load
+  // useEffect(() => {
+  //   // Jika ada ID di URL tapi popup belum terbuka
+  //   if (id && !isPopupOpen) {
+  //     // Fetch data cardList berdasarkan ID
+  //     const fetchCardList = async () => {
+  //       try {
+  //         // Ganti ini sesuai dengan fungsi fetch data Anda
+  //         const cardList = await fetchCardListById(id);
+  //         if (cardList) {
+  //           handleOpenPopup(cardList);
+  //         } else {
+  //           // Jika data tidak ditemukan, kembali ke homepage
+  //           navigate('/');
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching card list:', error);
+  //         navigate('/');
+  //       }
+  //     };
+
+  //     fetchCardList();
+  //   }
+  // }, [id]); // Dependency hanya pada id
+
+  // // useEffect untuk handle perubahan state popup
+  // useEffect(() => {
+  //   if (isPopupOpen && selectedCardList) {
+  //     navigate(`/cardList/${selectedCardList.id}`, { replace: true }); // Tambahkan replace: true
+  //   } else if (!isPopupOpen) {
+  //     navigate('/', { replace: true }); // Tambahkan replace: true
+  //   }
+  // }, [isPopupOpen, selectedCardList, navigate]);
 
 
   const cancelDeleteCardList = () => {
@@ -840,14 +930,13 @@ const WorkspaceProject = () => {
   const [inReviewPhoto, setInReviewPhoto] = useState(null);
   const [approvedPhoto, setapprovedPhoto] = useState(null);
 
-  const navigate = useNavigate()
-
   const handleOpenPopup = async (cardList: any) => {
     setSelectedCardList(cardList);
+    console.log(cardList);
+    console.log(selectedCardList);
     setIsPopupOpen(true);
-    setCardlistCustomFields(cardList.customFields);
+    setCardlistCustomFields(cardList.customFields)
     setAttachments(cardList.attachmentDetails || []);
-    navigate(`/workspace/${workspaceId}/board/${boardId}/cardList/${cardList.id}`);
 
     if (cardList.inReviewById) {
       const photo = await getProfilePhotoMember(cardList.inReviewById);
@@ -927,39 +1016,40 @@ const WorkspaceProject = () => {
   };
 
   const handleRemoveCustomField = async (fieldId: string | number, cardListId: string | number) => {
-    try {
-      await removeCardlistCustomField(fieldId, cardListId);
-      setCardlistCustomFields(prevFields =>
-        prevFields.filter(field => field.customField.id !== fieldId)
-      );
-    } catch (error) {
-      console.error('Error removing custom field:', error);
-    }
+      try {
+        await removeCardlistCustomField(fieldId, cardListId);
+        setCardlistCustomFields(prevFields => 
+          prevFields.filter(field => field.customField.id !== fieldId)
+        );
+      } catch (error) {
+        console.error('Error removing custom field:', error);
+      }
   };
 
   const handleInputChange = async (
-    cardListId: string | number,
-    customFieldId: string | number,
-    newValue: string
+      cardListId: string | number, 
+      customFieldId: string | number, 
+      newValue: string
   ) => {
-    try {
-      const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
-      console.log("Custom field updated successfully:", response);
+      try {
+        const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
+        console.log("Custom field updated successfully:", response);
 
-      setCardlistCustomFields(prevFields =>
-        prevFields.map((field) =>
-          field.customField.id === customFieldId
-            ? { ...field, value: newValue }
-            : field
-        )
-      );
-    } catch (error) {
-      console.error("Failed to update custom field value:", error);
-    }
+        setCardlistCustomFields(prevFields => 
+          prevFields.map((field) =>
+            field.customField.id === customFieldId
+              ? { ...field, value: newValue }
+              : field
+          )
+        );
+      } catch (error) {
+        console.error("Failed to update custom field value:", error);
+      }
   };
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
+      console.log("her", selectedCardList)
       const fetchAttachments = async () => {
         try {
           const attachmentPromises = selectedCardList.attachments?.map(async (attachment: any) => {
@@ -1146,15 +1236,13 @@ const WorkspaceProject = () => {
   };
 
   useEffect(() => {
+    fetchData()
+    fetchData2()
     setLoading(true);
 
-    fetchData2()
-    fetchData()
     setTimeout(() => {
       setLoading(false);
-
     }, 1000);
-
   }, [workspaceId, boardId]);
 
   if (loading) {
@@ -1790,62 +1878,54 @@ const WorkspaceProject = () => {
         </div>
       )} */}
 
-
-
-      <Routes>
-        <Route
-          path="cardList/:id"
-          element={
-            <>
-              <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
-                <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
-                  <div className="sticky top-0 bg-white z-10 p-6">
-                    <WorkspaceCardList
-                      editingListName={editingListName}
-                      inputRef={inputRef}
-                      selectedCardList={selectedCardList}
-                      setSelectedCardList={setSelectedCardList}
-                      handleUpdateListName={handleUpdateListName}
-                      setEditingListName={setEditingListName}
-                      handleClosePopup={handleClosePopup}
-                      labelColors={labelColors}
-                      getContrastColor={getContrastColor}
-                      inReviewPhoto={inReviewPhoto}
-                      approvedPhoto={approvedPhoto}
-                      cardlistCustomFields={cardlistCustomFields}
-                      handleRemoveCustomField={handleRemoveCustomField}
-                      handleInputChange={handleInputChange}
-                      attachments={attachments}
-                      handleAttachImage={handleAttachImage}
-                      handleDownloadAttachment={handleDownloadAttachment}
-                      handleDeleteAttachmentClick={handleDeleteAttachmentClick}
-                      isDeleting={isDeleting}
-                      deleteError={deleteError}
-                      checklistData={checklistData}
-                      calculateChecklistPercentage={calculateChecklistPercentage}
-                      handleOpenChecklistPopup={handleOpenChecklistPopup}
-                      setExistingChecklistData={setExistingChecklistData}
-                      handleToggleIsDone={handleToggleIsDone}
-                      handleDeleteChecklist={handleDeleteChecklist}
-                      handleJoinClick={handleJoinClick}
-                      handleOpenMemberPopup={handleOpenMemberPopup}
-                      handleOpenLabelsPopup={handleOpenLabelsPopup}
-                      handleOpenDatesPopup={handleOpenDatesPopup}
-                      handleOpenAttachPopup={handleOpenAttachPopup}
-                      handleOpenCopyPopup={handleOpenCopyPopup}
-                      handleDeleteCardList={handleDeleteCardList}
-                      setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
-                      isCopied={isCopied}
-                      workspaceId={workspaceId}
-                      boardId={boardId}
-                    />
-                  </div>
-                </div>
+      {isPopupOpen && selectedCardList && (
+        <>
+          <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
+              <div className="sticky top-0 bg-white z-10 p-6">
+                <WorkspaceCardList
+                  editingListName={editingListName}
+                  inputRef={inputRef}
+                  selectedCardList={selectedCardList}
+                  setSelectedCardList={setSelectedCardList}
+                  handleUpdateListName={handleUpdateListName}
+                  setEditingListName={setEditingListName}
+                  handleClosePopup={handleClosePopup}
+                  labelColors={labelColors}
+                  getContrastColor={getContrastColor}
+                  inReviewPhoto={inReviewPhoto}
+                  approvedPhoto={approvedPhoto}
+                  cardlistCustomFields={cardlistCustomFields}
+                  handleRemoveCustomField={handleRemoveCustomField}
+                  handleInputChange={handleInputChange}
+                  attachments={attachments}
+                  handleAttachImage={handleAttachImage}
+                  handleDownloadAttachment={handleDownloadAttachment}
+                  handleDeleteAttachmentClick={handleDeleteAttachmentClick}
+                  isDeleting={isDeleting}
+                  deleteError={deleteError}
+                  checklistData={checklistData}
+                  calculateChecklistPercentage={calculateChecklistPercentage}
+                  handleOpenChecklistPopup={handleOpenChecklistPopup}
+                  setExistingChecklistData={setExistingChecklistData}
+                  handleToggleIsDone={handleToggleIsDone}
+                  handleDeleteChecklist={handleDeleteChecklist}
+                  handleJoinClick={handleJoinClick}
+                  handleOpenMemberPopup={handleOpenMemberPopup}
+                  handleOpenLabelsPopup={handleOpenLabelsPopup}
+                  handleOpenDatesPopup={handleOpenDatesPopup}
+                  handleOpenAttachPopup={handleOpenAttachPopup}
+                  handleOpenCopyPopup={handleOpenCopyPopup}
+                  handleDeleteCardList={handleDeleteCardList}
+                  setIsCustomFieldModalOpen={setIsCustomFieldModalOpen}
+                  isCopied={isCopied}
+                  handleShareClick={handleShareClick}
+                />
               </div>
-            </>
-          }
-        />
-      </Routes>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className='text-black'>
         <CustomFieldSettings
