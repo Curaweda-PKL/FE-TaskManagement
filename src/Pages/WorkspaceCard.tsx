@@ -1009,40 +1009,49 @@ const WorkspaceProject = () => {
     }
   };
 
-  const handleCustomFieldClick = async (customField: any) => {
+  const handleCustomFieldClick = async (customField: CustomField) => {
     if (customField.type) {
       try {
-        await addCardlistCustomField(selectedCardList.id, customField.id);
+        const response = await addCardlistCustomField(selectedCardList.id, customField.id);
+        // Pastikan response sesuai dengan tipe CardlistCustomField
+        setCardlistCustomFields(prevFields => [...prevFields, response]);
       } catch (error) {
         console.error('Error adding custom field:', error);
       }
     }
   };
 
-  const handleRemoveCustomField = async (fieldId: any, cardListId: any) => {
-    try {
-      await removeCardlistCustomField(fieldId, cardListId);
-    } catch (error) {
-      console.error('Error removing custom field:', error);
-    }
+  const handleRemoveCustomField = async (fieldId: string | number, cardListId: string | number) => {
+      try {
+        await removeCardlistCustomField(fieldId, cardListId);
+        setCardlistCustomFields(prevFields => 
+          prevFields.filter(field => field.customField.id !== fieldId)
+        );
+      } catch (error) {
+        console.error('Error removing custom field:', error);
+      }
   };
 
-  const handleInputChange = async (cardListId: any, customFieldId: any, newValue: string) => {
-    try {
-      const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
-      console.log("Custom field updated successfully:", response);
+  const handleInputChange = async (
+      cardListId: string | number, 
+      customFieldId: string | number, 
+      newValue: string
+  ) => {
+      try {
+        const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
+        console.log("Custom field updated successfully:", response);
 
-      const updatedFields = cardlistCustomFields.map((field) =>
-        field.customField.id === customFieldId
-          ? { ...field, value: newValue }
-          : field
-      );
-      setCardlistCustomFields(updatedFields);
-    } catch (error) {
-      console.error("Failed to update custom field value:", error);
-    }
+        setCardlistCustomFields(prevFields => 
+          prevFields.map((field) =>
+            field.customField.id === customFieldId
+              ? { ...field, value: newValue }
+              : field
+          )
+        );
+      } catch (error) {
+        console.error("Failed to update custom field value:", error);
+      }
   };
-
 
   useEffect(() => {
     if (isPopupOpen && selectedCardList) {
