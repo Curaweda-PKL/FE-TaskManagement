@@ -136,7 +136,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     if (workspace && inviteLinkEnabled) {
       generateLinkWorkspace(workspace.id)
         .then((response) => {
-          const inviteLink = "http://localhost:4545/j/" + response.link.joinLink;
+          const inviteLink = "http://147.139.165.77:4545/j/" + response.link.joinLink;
 
           if (navigator.clipboard) {
             navigator.clipboard.writeText(inviteLink)
