@@ -20,6 +20,7 @@ const CreateCard: React.FC<CreateCardProps> = ({
   isEditing = false,
 }) => {
   const [name, setName] = useState(initialData?.name || '');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (initialData) {
@@ -28,12 +29,23 @@ const CreateCard: React.FC<CreateCardProps> = ({
   }, [initialData]);
 
   const handleSubmit = () => {
+    if (!name.trim()) {
+      setError('Card title is required.');
+      return;
+    }
     if (isEditing && initialData) {
       onUpdateCard(initialData.id, name);
     } else {
       onCreateCard(name, boardId);
     }
     onClose();
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const capitalizeWords = (str: string) =>
+      str.replace(/\b\w/g, (char: string) => char.toUpperCase());
+    setName(capitalizeWords(e.target.value));
+    setError(''); // Clear error when user starts typing
   };
 
   return (
@@ -58,13 +70,9 @@ const CreateCard: React.FC<CreateCardProps> = ({
               className="w-full bg-white px-3 py-2 border rounded-md"
               placeholder="Input your title"
               value={name}
-              onChange={(e) => {
-                const capitalizeWords = (str: string) =>
-                  str.replace(/\b\w/g, (char: string) => char.toUpperCase());
-                setName(capitalizeWords(e.target.value));
-              }}
-
+              onChange={handleNameChange}
             />
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
             <p className="text-xs text-gray-500 mt-1">* Card title is required</p>
           </div>
         </div>
@@ -72,6 +80,7 @@ const CreateCard: React.FC<CreateCardProps> = ({
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition duration-300 w-full"
             onClick={handleSubmit}
+            disabled={!name.trim()}
           >
             {isEditing ? 'Edit Card' : 'Create Card'}
           </button>

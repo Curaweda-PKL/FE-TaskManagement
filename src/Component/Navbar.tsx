@@ -67,6 +67,8 @@ function Navbar() {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      const storage = localStorage.getItem('token')
+      if (!storage) return handleLogout();
       try {
         const response = await axios.get(`${config}/user/user-data`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -233,7 +235,7 @@ function Navbar() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [userData2, setUserData2] = useState<UserData[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfileMap>({});
-  
+
   const fetchNotifications = async () => {
     try {
       const data = await fetchUserNotifications(unreadOnly ? 'yes' : undefined);
@@ -334,7 +336,7 @@ function Navbar() {
                     {workspaces.map(workspace => (
                       <div key={workspace.id} className={`mt-2 flex items-center justify-start p-2 rounded-md cursor-pointer btn btn-sm ${buttonClass}`} onClick={() => handleWorkspaceClick(workspace.id)}>
                         <div className="w-4 h-4 mr-2 rounded"
-                        style={{ backgroundColor: workspace.color || '#EF4444' }}></div>
+                          style={{ backgroundColor: workspace.color || '#EF4444' }}></div>
                         <a className="text-gray-800 font-semibold">{workspace.name}</a>
                       </div>
                     ))}
@@ -385,7 +387,7 @@ function Navbar() {
                       onClick={() => handleWorkspaceClick(workspace.id)}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2"
                     >
-                      <div 
+                      <div
                         className="w-5 h-5 bg-red-600 rounded"
                         style={{ backgroundColor: workspace.color || '#EF4444' }}
                       ></div>
@@ -652,18 +654,18 @@ function Navbar() {
       </div>
 
       {showCreateWorkspace && (
-      <CreateWorkspace
-        workspaceName={workspaceName}
-        workspaceDescription={workspaceDescription}
-        workspaceColor={workspaceColor} // Add this prop
-        setWorkspaceName={setWorkspaceName}
-        setWorkspaceDescription={setWorkspaceDescription}
-        setWorkspaceColor={setWorkspaceColor} // Add this prop
-        onClose={closeCreateWorkspace}
-        onCreate={handleCreateWorkspace}
-        isEditMode={false}
-      />
-    )}
+        <CreateWorkspace
+          workspaceName={workspaceName}
+          workspaceDescription={workspaceDescription}
+          workspaceColor={workspaceColor} // Add this prop
+          setWorkspaceName={setWorkspaceName}
+          setWorkspaceDescription={setWorkspaceDescription}
+          setWorkspaceColor={setWorkspaceColor} // Add this prop
+          onClose={closeCreateWorkspace}
+          onCreate={handleCreateWorkspace}
+          isEditMode={false}
+        />
+      )}
     </nav>
   );
 }

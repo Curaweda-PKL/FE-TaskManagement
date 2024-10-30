@@ -45,17 +45,18 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
         localStorage.setItem('token', response.data.token);
         setIsLoggedIn(true);
         fetchUserData();
-        onSuccess();
         return true;
+      } else {
+        setIsLoggedIn(false);
+        setError(response.data.message);
+        return false;
       }
     } catch (error: any) {
+      setIsLoggedIn(false);
       console.error('Login Error:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        setError(error.response.data.error);
-      } else {
-        setError('Login failed. Please check your credentials.');
-      }
+      setError(error.response.data.message);
     } finally {
+      setIsLoggedIn(false);
       setLoading(false);
     }
     return false;
@@ -64,7 +65,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
   const handleRegister = async (): Promise<boolean> => {
     try {
       const token = localStorage.getItem('token');
-  
+
       const response = await axios.post(
         `${config}/user/register`,
         { name, email, password },
@@ -74,7 +75,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
           },
         }
       );
-  
+
       if (response.status === 200 || response.status === 201) {
         console.log('Registration successful:', response.data);
         return true;
@@ -94,7 +95,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       setLoading(false);
     }
   };
-  
+
 
   const getCodeVerify = async (): Promise<boolean> => {
     try {
@@ -388,7 +389,7 @@ const useAuth = (onSuccess: () => void, onLogout: () => void): any => {
       setLoading(false);
     }
   };
-  
+
   return {
     name,
     setName,

@@ -9,7 +9,6 @@ import DeleteConfirmation from '../Component/DeleteConfirmation';
 import io from 'socket.io-client';
 import config from '../config/baseUrl';
 
-
 const Workspace: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState<any>([]);
@@ -25,6 +24,7 @@ const Workspace: React.FC = () => {
     workspaceId: null,
     boardId: null
   });
+  const { handleLogout } = useAuth(() => { }, () => navigate('/'));
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [joinWorkspaceId, setJoinWorkspaceId] = useState<string>('');
   const [isPrivateWorkspace, setIsPrivateWorkspace] = useState(false);
@@ -32,7 +32,6 @@ const Workspace: React.FC = () => {
   const hoverClass = "hover:bg-gray-100 hover:text-purple-600 cursor-pointer transition-colors duration-200 rounded-md";
 
   useEffect(() => {
-    // Cek local storage saat komponen dimuat
     const onWorkspace = localStorage.getItem('onWorkspace');
     const onBoardId = localStorage.getItem('onBoardId');
 
@@ -125,10 +124,11 @@ const Workspace: React.FC = () => {
         socket.disconnect();
       };
     } catch (err: any) {
-      handleApiError(err)
       setError(err.message);
       setLoading(false);
       setAlert({ type: 'error', message: 'Failed to fetch workspace data. Please try again later.' });
+
+      handleLogout();
     }
   };
 
@@ -167,17 +167,6 @@ const Workspace: React.FC = () => {
       setAlert({ type: 'error', message: 'Failed to send join request. Please try again.' });
     }
   };
-
-  const handleApiError = (error: any) => {
-    if (error?.response?.status === 401 && error?.response?.status === 500) {
-      localStorage.removeItem("Token");
-      window.location.reload();
-    } else {
-      setError(error?.message);
-      setAlert({ type: 'error', message: 'An unexpected error occurred. Please try again later.' });
-    }
-  };
-
 
   const handleCreateBoard = async (workspaceId: string, name: string, description: string, backgroundColor: string) => {
     try {
@@ -258,7 +247,13 @@ const Workspace: React.FC = () => {
     setEditingBoard(board);
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center">
+        <span className="loading loading-bars loading-lg h-screen z-20"></span>
+      </div>
+    );
+  }
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -287,7 +282,7 @@ const Workspace: React.FC = () => {
                 </div>
                 <span className='font-semibold text-[#4A4A4A] text-[15px] overflow-hidden text-ellipsis whitespace-nowrap'>{workspace.name}</span>
               </div>
-              <div className={`grid ${isOwner(workspace) ? 'grid-cols-4' : 'grid-cols-3'} max850:grid-cols-2 gap-5 max850:gap-2 justify-self-end`}>
+              <div className={`grid ${isAdminOrOwner(workspace) ? 'grid-cols-4' : 'grid-cols-3'} max850:grid-cols-2 gap-5 max850:gap-2 justify-self-end`}>
                 <Link to={`/workspace/${workspace.id}/boards-ws`} className={`group flex gap-2 bg-[rgba(131,73,255,0.1)] rounded-lg cursor-pointer py-2 px-3 items-center ${hoverClass}`}>
                   <i className='fas fa-th-large max768:h-[18px] max768:w-[18px] text-[#4A4A4A] group-hover:text-purple-600' aria-hidden="true"></i>
                   <span className='text-[#4A4A4A] text-[15px] font-semibold group-hover:text-purple-600'>Board</span>
