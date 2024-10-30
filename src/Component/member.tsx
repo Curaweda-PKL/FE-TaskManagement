@@ -24,7 +24,12 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
   const { workspaceId } = useParams<{ workspaceId: any }>();
 
   const [profilePhotos, setProfilePhotos] = useState<{ [key: string]: string }>({});
+  const [workspaceMember, setWorkspaceMember] = useState<workspaceMember[]>([]);
+  const [userData, setUserData] = useState<{ [key: string]: { name: string; email: string } }>({});
+  const [updatedMembers, setUpdatedMembers] = useState(selectedCardList.members);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  const { getUserDataById } = useAuth(onSuccess, onLogout);
 
   useEffect(() => {
     const getMemberWorkspace = async () => {
@@ -35,7 +40,7 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
       for (const member of data) {
         const photoUrl = await getProfilePhotoMember(member.id);
         if (photoUrl) {
-          photos[member.id] = photoUrl; // Now TypeScript knows this is valid
+          photos[member.id] = photoUrl;
         }
       }
       setProfilePhotos(photos);
@@ -43,12 +48,6 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
 
     getMemberWorkspace();
   }, [workspaceId]);
-
-  const [workspaceMember, setWorkspaceMember] = useState<workspaceMember[]>([]);
-  const [userData, setUserData] = useState<{ [key: string]: { name: string; email: string } }>({});
-  const [updatedMembers, setUpdatedMembers] = useState(selectedCardList.members);
-
-  const { getUserDataById } = useAuth(onSuccess, onLogout);
 
   useEffect(() => {
     updatedMembers?.forEach((member: { userId: any }) => {
@@ -70,16 +69,13 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
     setUpdatedMembers(filteredMembers);
     try {
       await outCardList(cardListId, userId);
-
       const updatedCardList = await getMemberCardList(cardListId);
       setUpdatedMembers(updatedCardList.members);
-
       setUserData((prevUserData) => {
         const updatedUserData = { ...prevUserData };
         delete updatedUserData[userId];
         return updatedUserData;
       });
-
     } catch (error) {
       console.error("Error removing member:", error);
     }
@@ -89,6 +85,22 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
     await assignMemberToCardList(selectedCardList.id, userId);
   }
 
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  }
+
+  const filteredUpdatedMembers = updatedMembers?.filter((member) => {
+    const memberData = userData[member.userId];
+    return (
+      (memberData?.name && memberData.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (memberData?.email && memberData.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
+
+  const filteredWorkspaceMembers = workspaceMember.filter((member) =>
+    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -107,11 +119,13 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
             type="text"
             placeholder="Search member"
             className="w-full py-2 px-3 bg-gray-200 rounded-md text-sm"
+            value={searchTerm}
+            onChange={handleSearch}
           />
         </div>
 
         <ul className="space-y-2 mb-2">
-          {updatedMembers?.map((member: any, index: any) => (
+          {filteredUpdatedMembers?.map((member: any, index: any) => (
             <li key={index} className="flex items-center px-2 py-1 bg-gray-200 rounded-md">
               <img
                 alt={`Profile of ${member.userId}`}
@@ -123,18 +137,20 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
                   <div className="flex justify-between w-full">
                     <div className="flex flex-col">
                       <span>
-                        {userData[member?.userId].name}
+                        {userData[member?.userId]?.name}
                       </span>
                       <span>
-                        {userData[member?.userId].email}
+                        {userData[member?.userId]?.email?.length > 20 ? userData[member?.userId]?.email.slice(0, 20) + '...' : userData[member?.userId]?.email}
                       </span>
                     </div>
-                    <button
-                      className="text-gray-500 hover:text-gray-700"
-                      onClick={() => { handleRemoveMember(member?.userId); handleCloseMemberPopup(); }}
-                    >
-                      <i className="fas fa-times"></i>
-                    </button>
+                    <div className="relative">
+                      <button
+                        className="absolute right-0 top-2 text-gray-500 hover:text-gray-700"
+                        onClick={() => { handleRemoveMember(member?.userId); handleCloseMemberPopup(); }}
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
                   </div>
                 )}
               </span>
@@ -145,33 +161,35 @@ const MemberPopup: React.FC<MemberPopupProps> = ({ selectedCardList, isMemberPop
         <div>
           <h3 className="text-sm font-normal mb-2">Workspace members</h3>
           <ul className="space-y-2">
-            {workspaceMember.map((member, index) => {
+            {filteredWorkspaceMembers.map((member, index) => {
               const isAssigned = updatedMembers?.some((updatedMember: { userId: any; }) => updatedMember.userId === member.id);
 
               return (
                 <li key={index} className="flex justify-between py-2 px-3 bg-gray-200 rounded-md">
                   <div className="flex items-center">
                     <img
-                      src={profilePhotos[member.id] || 'default-profile-pic-url'} // Ganti dengan URL gambar default jika tidak ada
+                      src={profilePhotos[member.id] || 'default-profile-pic-url'}
                       alt={`${member.name}'s profile`}
                       className="bg-gray-100 rounded-full w-6 h-6 mr-2"
                     />
                     <div className="flex flex-col overflow-hidden">
                       <span className="text-sm truncate">{member.name}</span>
-                      <span className="text-sm truncate">{member.email}</span>
+                      <span className="text-sm truncate">{member.email.length > 20 ? member.email.slice(0, 20) + '...' : member.email}</span>
                     </div>
                   </div>
                   {!isAssigned && (
-                    <button
-                      className={`btn btn-sm ${isAssigned ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-800'} text-white border-none font-normal text-[12px]`}
-                      disabled={isAssigned}
-                      onClick={() => {
-                        handleAssignMember(member.id);
-                        handleCloseMemberPopup();
-                      }}
-                    >
-                      {isAssigned ? 'Assigned' : 'Assign'}
-                    </button>
+                    <div className="relative">
+                      <button
+                        className={`btn btn-sm absolute right-0 top-1 ${isAssigned ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-800'} text-white border-none font-normal text-[12px]`}
+                        disabled={isAssigned}
+                        onClick={() => {
+                          handleAssignMember(member.id);
+                          handleCloseMemberPopup();
+                        }}
+                      >
+                        <i className="fa-solid fa-plus"></i>
+                      </button>
+                    </div>
                   )}
                 </li>
               );
