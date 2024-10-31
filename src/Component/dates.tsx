@@ -168,22 +168,6 @@ const DatesPopup: React.FC<DatesPopupProps> = ({
             </div>
           </div>
 
-          <div className="mt-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Set Due Date Reminder
-            </label>
-            <select
-              value={reminder}
-              onChange={(e) => setReminder(e.target.value)}
-              className="w-full p-1 bg-gray-300 text-gray-800 border rounded"
-            >
-              <option value="1">1 - Day before</option>
-              <option value="2">2 - Days before</option>
-              <option value="3">3 - Days before</option>
-              <option value="7">1 - Week before</option>
-            </select>
-          </div>
-
           <div className="mt-6 space-y-2">
             <button
               onClick={handleSave}
