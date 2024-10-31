@@ -16,7 +16,7 @@ interface WorkspaceCardListProps {
     inReviewPhoto?: any;
     approvedPhoto?: any;
     cardlistCustomFields?: any;
-    handleRemoveCustomField?: any;
+    openDeleteConfirmationCustomField?: any;
     handleInputChange?: any;
     attachments?: any;
     handleAttachImage?: any;
@@ -28,7 +28,7 @@ interface WorkspaceCardListProps {
     calculateChecklistPercentage?: any;
     handleOpenChecklistPopup?: any;
     setExistingChecklistData?: any;
-    handleDeleteChecklist?: any;
+    openDeleteConfirmation?: any;
     handleToggleIsDone?: any;
     handleJoinClick?: any;
     handleOpenMemberPopup?: any;
@@ -43,7 +43,7 @@ interface WorkspaceCardListProps {
 }
 
 
-const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, handleRemoveCustomField, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, handleDeleteChecklist, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen, workspaceId, boardId }) => {
+const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, inputRef, selectedCardList, setSelectedCardList, handleUpdateListName, setEditingListName, handleClosePopup, labelColors, getContrastColor, inReviewPhoto, approvedPhoto, cardlistCustomFields, openDeleteConfirmationCustomField, handleInputChange, attachments, handleAttachImage, handleDownloadAttachment, handleDeleteAttachmentClick, isDeleting, deleteError, checklistData, calculateChecklistPercentage, handleOpenChecklistPopup, setExistingChecklistData, openDeleteConfirmation, handleToggleIsDone, handleJoinClick, handleOpenMemberPopup, handleOpenLabelsPopup, handleOpenDatesPopup, handleOpenAttachPopup, handleOpenCopyPopup, handleDeleteCardList, setIsCustomFieldModalOpen, workspaceId, boardId }) => {
     const MAX_VISIBLE_MEMBERS = 2;
     const navigate = useNavigate();
     const [isCopied, setIsCopied] = useState(false);
@@ -249,7 +249,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         </div>
                                     </div>
                                     <div className='text-[10px]'>
-                                        Review at: {new Date(selectedCardList.inReviewAt).toLocaleString('id-ID', {
+                                        Review at: {new Date(selectedCardList.inReviewAt).toLocaleString('en-US', {
                                             day: 'numeric',
                                             month: 'long',
                                             year: 'numeric',
@@ -282,7 +282,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                         </div>
                                     </div>
                                     <div className='text-[10px]'>
-                                        Approved at: {new Date(selectedCardList.approvedAt).toLocaleString('id-ID', {
+                                        Approved at: {new Date(selectedCardList.approvedAt).toLocaleString('en-US', {
                                             day: 'numeric',
                                             month: 'long',
                                             year: 'numeric',
@@ -306,7 +306,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                     </label>
                                     <button
                                         onClick={() =>
-                                            handleRemoveCustomField(field.customField.id, selectedCardList.id)
+                                            openDeleteConfirmationCustomField(field.customField.id, selectedCardList.id)
                                         }
                                         className="text-red-500 hover:text-red-700 ml-2"
                                     >
@@ -425,7 +425,7 @@ const WorkspaceCardList: React.FC<WorkspaceCardListProps> = ({ editingListName, 
                                             ></i>
                                             <i
                                                 className="fa-regular fa-trash-can hover:text-red-500 cursor-pointer"
-                                                onClick={() => handleDeleteChecklist(data.id)}
+                                                onClick={() => openDeleteConfirmation(data.id)}
                                             ></i>
                                         </div>
                                     </div>
