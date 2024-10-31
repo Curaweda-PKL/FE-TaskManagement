@@ -3,7 +3,7 @@ import React from 'react';
 interface DeleteConfirmationProps {
   onDelete: () => void;
   onCancel: () => void;
-  itemType: 'workspace' | 'board' | 'member' | 'card' | 'cardlist' | 'attachment';
+  itemType: 'workspace' | 'board' | 'member' | 'card' | 'cardlist' | 'attachment' | 'checklist' | 'customfield';
 }
 
 const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({ onDelete, onCancel, itemType }) => {
@@ -18,6 +18,10 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({ onDelete, onCan
       ? 'Remove this card list?'
       : itemType === 'attachment'
       ? 'Delete this attachment?'
+      : itemType === 'checklist'
+      ? 'Delete this checklist?'
+      : itemType === 'customfield'
+      ? 'Delete this custom field'
       : 'Remove this card?';
 
   const description =

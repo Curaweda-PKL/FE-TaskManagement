@@ -126,7 +126,7 @@ const WorkspaceProject = () => {
         }
         return prevSelected;
       });
-  
+
     } catch (error) {
       console.error('Failed to join card list:', error);
     }
@@ -605,7 +605,7 @@ const WorkspaceProject = () => {
               const updatedCardList = await Promise.all(cardList.map(async (list) => {
                 // Create an object to store all updates
                 const updates: any = { ...list };
-    
+
                 // Handle members update if they exist
                 if (list.members && list.members.length > 0) {
                   const membersWithPhotos = await Promise.all(
@@ -619,14 +619,14 @@ const WorkspaceProject = () => {
                   );
                   updates.members = membersWithPhotos;
                 }
-    
+
                 if (list.customFields && list.customFields.length > 0) {
                   updates.customFields = list.customFields;
                 }
-    
+
                 return updates;
               }));
-              
+
               return { ...card, cardList: updatedCardList };
             }
             return { ...card, cardList: [] };
@@ -804,30 +804,32 @@ const WorkspaceProject = () => {
     setCardListToDelete(null);
   };
 
-const handleAddCardList = async (cardId: any) => {
-  try {
-    const defaultListName = 'New List';
-    const newCardList = await createCardList(cardId, defaultListName, '', 0, '', '', '');
+  const handleAddCardList = async (cardId: any) => {
+    try {
+      const defaultListName = 'New List';
+      const newCardList = await createCardList(cardId, defaultListName, '', 0, '', '', '');
 
-    // Update the cardData state
-    const updatedCardData = await cardData.map(card => {
-      if (card.id === cardId) {
-        return { ...card, cardList: [...card.cardList, newCardList] };
-      }
-      return card;
-    });
+      // Update the cardData state
+      const updatedCardData = await cardData.map(card => {
+        if (card.id === cardId) {
+          return { ...card, cardList: [...card.cardList, newCardList] };
+        }
+        return card;
+      });
 
-    await setCardData(updatedCardData); // Update cardData state
+      await setCardData(updatedCardData); // Update cardData state
 
-    // Set the selectedCardList directly after creating the new card list
-    await setSelectedCardList(newCardList);
+      // Set the selectedCardList directly after creating the new card list
+      await setSelectedCardList(newCardList);
 
-    await setIsPopupOpen(true);
-    await navigate(`/L/workspace/${workspaceId}/board/${boardId}/cardList/${newCardList.id}`);
-  } catch (error) {
-    console.error("Failed to add card list:", error);
-  }
-};
+      await setIsPopupOpen(true);
+      await navigate(`/L/workspace/${workspaceId}/board/${boardId}/cardList/${newCardList.id}`);
+    } catch (error) {
+      console.error("Failed to add card list:", error);
+    }
+  };
+
+
 
   const handleUpdateListName = async (id: any, description: any, score: any, newName: any, startDate?: any, endDate?: any, activity?: any) => {
     try {
@@ -978,36 +980,50 @@ const handleAddCardList = async (cardId: any) => {
     }
   };
 
-  const handleRemoveCustomField = async (fieldId: string | number, cardListId: string | number) => {
-      try {
-        await removeCardlistCustomField(fieldId, cardListId);
-        setCardlistCustomFields(prevFields => 
-          prevFields.filter(field => field.customField.id !== fieldId)
-        );
-      } catch (error) {
-        console.error('Error removing custom field:', error);
-      }
+  const handleRemoveCustomField = async (cardListOnCustomFieldId: string | number, cardlistId: any) => {
+    try {
+      await removeCardlistCustomField(cardListOnCustomFieldId, cardlistId);
+      setCardlistCustomFields(prevFields =>
+        prevFields.filter(field => field.customField.id !== cardListOnCustomFieldId)
+      );
+    } catch (error) {
+      console.error('Error removing custom field:', error);
+    }
+  };
+
+  const confirmRemoveCustomField = () => {
+    handleRemoveCustomField(customFieldIdToDelete, selectedCardList.id);
+    setDeleteCustomFieldModal(false);
+  };
+
+  const cancelRemoveCustomField = () => {
+    setDeleteCustomFieldModal(false);
+  };
+
+  const openDeleteConfirmationCustomField = (fieldId: string) => {
+    setCustomFieldIdToDelete(fieldId);
+    setDeleteCustomFieldModal(true);
   };
 
   const handleInputChange = async (
-      cardListId: string | number, 
-      customFieldId: string | number, 
-      newValue: string
+    cardListId: string | number,
+    customFieldId: string | number,
+    newValue: string
   ) => {
-      try {
-        const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
-        console.log("Custom field updated successfully:", response);
+    try {
+      const response = await updateCardlistCustomFieldValue(cardListId, customFieldId, newValue);
+      console.log("Custom field updated successfully:", response);
 
-        setCardlistCustomFields(prevFields => 
-          prevFields.map((field) =>
-            field.customField.id === customFieldId
-              ? { ...field, value: newValue }
-              : field
-          )
-        );
-      } catch (error) {
-        console.error("Failed to update custom field value:", error);
-      }
+      setCardlistCustomFields(prevFields =>
+        prevFields.map((field) =>
+          field.customField.id === customFieldId
+            ? { ...field, value: newValue }
+            : field
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update custom field value:", error);
+    }
   };
 
   useEffect(() => {
@@ -1154,11 +1170,29 @@ const handleAddCardList = async (cardId: any) => {
   const handleDeleteChecklist = async (checklistId: string) => {
     try {
       await deleteChecklist(checklistId);
-      handleTakeCardlistChecklist()
+      handleTakeCardlistChecklist();
     } catch (error) {
-      console.error(error)
+      console.error("Error deleting checklist:", error);
     }
-  }
+  };
+  const [deleteCustomFieldModal, setDeleteCustomFieldModal] = useState(false);
+  const [customFieldIdToDelete, setCustomFieldIdToDelete] = useState('');
+  const [deleteChecklistModal, setDeleteChecklistModal] = useState(false);
+  const [checklistIdToDelete, setChecklistIdToDelete] = useState('');
+
+  const confirmDeleteChecklist = () => {
+    handleDeleteChecklist(checklistIdToDelete);
+    setDeleteChecklistModal(false);
+  };
+
+  const cancelDeleteChecklist = () => {
+    setDeleteChecklistModal(false);
+  };
+
+  const openDeleteConfirmation = (checklistId: string) => {
+    setChecklistIdToDelete(checklistId);
+    setDeleteChecklistModal(true);
+  };
   const handleToggleIsDone = async (checklistData: any, itemIndex: number, isChecked: boolean, idChecklist: string) => {
     // Find the original item's index in the unsorted array
     const sortedItems = [...checklistData.items].sort((a, b) =>
@@ -1453,7 +1487,7 @@ const handleAddCardList = async (cardId: any) => {
           isEditing={true}
         />
       )}
-{/* 
+      {/* 
       {isPopupOpen && selectedCardList && (
         <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-50 z-30 overflow-y-auto pt-4 pb-1">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-[650px] my-auto mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
@@ -1881,7 +1915,7 @@ const handleAddCardList = async (cardId: any) => {
                       inReviewPhoto={inReviewPhoto}
                       approvedPhoto={approvedPhoto}
                       cardlistCustomFields={cardlistCustomFields}
-                      handleRemoveCustomField={handleRemoveCustomField}
+                      openDeleteConfirmationCustomField={openDeleteConfirmationCustomField}
                       handleInputChange={handleInputChange}
                       attachments={attachments}
                       handleAttachImage={handleAttachImage}
@@ -1894,7 +1928,7 @@ const handleAddCardList = async (cardId: any) => {
                       handleOpenChecklistPopup={handleOpenChecklistPopup}
                       setExistingChecklistData={setExistingChecklistData}
                       handleToggleIsDone={handleToggleIsDone}
-                      handleDeleteChecklist={handleDeleteChecklist}
+                      openDeleteConfirmation={openDeleteConfirmation}
                       handleJoinClick={handleJoinClick}
                       handleOpenMemberPopup={handleOpenMemberPopup}
                       handleOpenLabelsPopup={handleOpenLabelsPopup}
@@ -2142,6 +2176,28 @@ const handleAddCardList = async (cardId: any) => {
           />
         )
       }
+      {deleteChecklistModal &&
+        (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <DeleteConfirmation
+              onDelete={() => confirmDeleteChecklist()}
+              onCancel={cancelDeleteChecklist}
+              itemType="checklist"
+            />
+          </div>
+        )
+      }
+      {deleteCustomFieldModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-50"></div>
+          <DeleteConfirmation
+            onDelete={confirmRemoveCustomField}
+            onCancel={cancelRemoveCustomField}
+            itemType="customfield"
+          />
+        </div>
+      )}
     </>
   );
 };
