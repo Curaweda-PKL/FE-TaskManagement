@@ -893,8 +893,10 @@ const handleAddCardList = async (cardId: any) => {
   const navigate = useNavigate()
 
   const handleOpenPopup = async (cardList: any) => {
+    setEditingListName(false);
     setSelectedCardList(cardList);
     setIsPopupOpen(true);
+    setEditingListName(false);
     setCardlistCustomFields(cardList.customFields);
     setAttachments(cardList.attachmentDetails || []);
     navigate(`/workspace/${workspaceId}/board/${boardId}/cardList/${cardList.id}`);
