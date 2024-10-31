@@ -148,11 +148,11 @@ const Home: React.FC = () => {
             </div>
           )}
 
-          <div className="flex flex-col gap-6 max-w-md ">
+          <div className="flex flex-col text-black gap-6 max-w-md ">
             {(highlightUser || []).map((highlight: any, index: number) => (
               <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="bg-orange-400 p-5">
-                  <Link to={`/workspace/${highlight.workspace.id}/board/${highlight.board.id}`}>
+                  <Link to={`/L/workspace/${highlight.workspace.id}/board/${highlight.board.id}/cardList/${highlight.cardList.id}`}>
                     <div className="bg-gray-200 p-3 rounded-lg hover:bg-gray-300">
                       <span className="font-semibold text-gray-600">{highlight.cardList.name}</span>
                       <div className="flex items-center text-xs mt-1">
